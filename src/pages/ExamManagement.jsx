@@ -165,6 +165,11 @@ export default function ExamManagement() {
                           Analytics
                         </Button>
                       </Link>
+                      <Link to={createPageUrl(`ProctoringAnalytics?id=${exam.id}`)}>
+                        <Button variant="outline" size="sm" className="w-full text-orange-600 border-orange-300">
+                          Proctoring
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CardContent>
