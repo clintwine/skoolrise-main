@@ -55,6 +55,8 @@ import VendorProfile from './pages/VendorProfile';
 import TimetableCalendar from './pages/TimetableCalendar';
 import AIGradingAssistant from './pages/AIGradingAssistant';
 import StudentProgressTracking from './pages/StudentProgressTracking';
+import AILessonPlanner from './pages/AILessonPlanner';
+import ClassroomResources from './pages/ClassroomResources';
 import __Layout from './Layout.jsx';
 
 
@@ -116,6 +118,8 @@ export const PAGES = {
     "TimetableCalendar": TimetableCalendar,
     "AIGradingAssistant": AIGradingAssistant,
     "StudentProgressTracking": StudentProgressTracking,
+    "AILessonPlanner": AILessonPlanner,
+    "ClassroomResources": ClassroomResources,
 }
 
 export const pagesConfig = {
