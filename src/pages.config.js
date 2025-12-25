@@ -13,6 +13,11 @@ import TermsManagement from './pages/TermsManagement';
 import FeesManagement from './pages/FeesManagement';
 import ParentPortal from './pages/ParentPortal';
 import ReportCardsManagement from './pages/ReportCardsManagement';
+import GradingScales from './pages/GradingScales';
+import ClassArms from './pages/ClassArms';
+import TimetableManagement from './pages/TimetableManagement';
+import MessagingCenter from './pages/MessagingCenter';
+import BiometricAttendance from './pages/BiometricAttendance';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +37,11 @@ export const PAGES = {
     "FeesManagement": FeesManagement,
     "ParentPortal": ParentPortal,
     "ReportCardsManagement": ReportCardsManagement,
+    "GradingScales": GradingScales,
+    "ClassArms": ClassArms,
+    "TimetableManagement": TimetableManagement,
+    "MessagingCenter": MessagingCenter,
+    "BiometricAttendance": BiometricAttendance,
 }
 
 export const pagesConfig = {
