@@ -1,133 +1,243 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Activity, Contact, Company, Deal } from "@/entities/all";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-
-import ActivityForm from "../components/activities/ActivityForm";
-import ActivityList from "../components/activities/ActivityList";
-import ActivityFilters from "../components/activities/ActivityFilters";
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, CheckCircle, Clock, AlertCircle, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Activities() {
-  const [activities, setActivities] = useState([]);
-  const [relatedData, setRelatedData] = useState({ contacts: [], companies: [], deals: [] });
-  const [filteredActivities, setFilteredActivities] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingActivity, setEditingActivity] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({ type: "all", priority: "all" });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    assigned_to: '',
+    assigned_by: '',
+    due_date: '',
+    priority: 'Medium',
+    status: 'Pending',
+    category: 'Administrative'
+  });
+  const queryClient = useQueryClient();
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    const [activitiesData, contactsData, companiesData, dealsData] = await Promise.all([
-      Activity.list('-activity_date'),
-      Contact.list(),
-      Company.list(),
-      Deal.list()
-    ]);
-    setActivities(activitiesData);
-    setRelatedData({ contacts: contactsData, companies: companiesData, deals: dealsData });
-    setIsLoading(false);
-  }, []);
-  
-  const filterActivities = useCallback(() => {
-    let filtered = activities.map(activity => {
-      const contact = relatedData.contacts.find(c => c.id === activity.contact_id);
-      return {...activity, contactName: contact ? `${contact.first_name} ${contact.last_name}` : ''};
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: () => base44.entities.Teacher.list(),
+  });
+
+  const { data: activities = [] } = useQuery({
+    queryKey: ['activities'],
+    queryFn: () => base44.entities.Activity.list('-created_date'),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Activity.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      setIsFormOpen(false);
+      resetForm();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Activity.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      assigned_to: '',
+      assigned_by: '',
+      due_date: '',
+      priority: 'Medium',
+      status: 'Pending',
+      category: 'Administrative'
     });
-
-    if (searchTerm) {
-      filtered = filtered.filter(activity =>
-        activity.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.contactName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    if (filters.type !== "all") {
-      filtered = filtered.filter(activity => activity.activity_type === filters.type);
-    }
-    if (filters.priority !== "all") {
-      filtered = filtered.filter(activity => activity.priority === filters.priority);
-    }
-    setFilteredActivities(filtered);
-  }, [activities, relatedData.contacts, searchTerm, filters]);
-  
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
-    filterActivities();
-  }, [activities, relatedData.contacts, searchTerm, filters, filterActivities]);
-
-  const handleSubmit = async (activityData) => {
-    if (editingActivity) {
-      await Activity.update(editingActivity.id, activityData);
-    } else {
-      await Activity.create(activityData);
-    }
-    setShowForm(false);
-    setEditingActivity(null);
-    loadData();
   };
 
-  const handleEdit = (activity) => {
-    setEditingActivity(activity);
-    setShowForm(true);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const teacher = teachers.find(t => t.id === formData.assigned_to);
+    const submitData = {
+      ...formData,
+      assigned_to_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : ''
+    };
+    createMutation.mutate(submitData);
   };
 
-  const handleDelete = async (activityId) => {
-    await Activity.delete(activityId);
-    loadData();
+  const handleStatusChange = (activity, newStatus) => {
+    updateMutation.mutate({
+      id: activity.id,
+      data: { ...activity, status: newStatus }
+    });
+  };
+
+  const statusColors = {
+    Pending: 'bg-yellow-100 text-yellow-800',
+    'In Progress': 'bg-blue-100 text-blue-800',
+    Completed: 'bg-green-100 text-green-800',
+  };
+
+  const priorityColors = {
+    Low: 'bg-gray-100 text-gray-800',
+    Medium: 'bg-orange-100 text-orange-800',
+    High: 'bg-red-100 text-red-800',
+  };
+
+  const groupedActivities = {
+    Pending: activities.filter(a => a.status === 'Pending'),
+    'In Progress': activities.filter(a => a.status === 'In Progress'),
+    Completed: activities.filter(a => a.status === 'Completed'),
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Activities</h1>
-          <p className="text-slate-600 mt-1">Track every interaction with your network</p>
+          <h1 className="text-3xl font-bold text-gray-900">Teacher Activities</h1>
+          <p className="text-gray-600 mt-1">Assign and track tasks for teaching staff</p>
         </div>
-        <Button 
-          onClick={() => { setEditingActivity(null); setShowForm(!showForm); }}
-          className="bg-orange-600 hover:bg-orange-700 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" /> Log Activity
+        <Button onClick={() => setIsFormOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Assign Activity
         </Button>
       </div>
 
-      <AnimatePresence>
-        {showForm && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mb-8">
-            <ActivityForm
-              activity={editingActivity}
-              contacts={relatedData.contacts}
-              companies={relatedData.companies}
-              deals={relatedData.deals}
-              onSubmit={handleSubmit}
-              onCancel={() => { setShowForm(false); setEditingActivity(null); }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <Input placeholder="Search activities..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
-        </div>
-        <ActivityFilters filters={filters} onFiltersChange={setFilters} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {Object.entries(groupedActivities).map(([status, items]) => (
+          <Card key={status}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{status}</span>
+                <Badge className={statusColors[status]}>{items.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {items.map((activity) => (
+                <Card key={activity.id} className="bg-gray-50">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                        <Badge className={priorityColors[activity.priority]} size="sm">{activity.priority}</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <User className="w-4 h-4" />
+                        <span>{activity.assigned_to_name}</span>
+                      </div>
+                      {activity.due_date && (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Clock className="w-4 h-4" />
+                          <span>Due: {new Date(activity.due_date).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {status !== 'Completed' && (
+                        <div className="flex gap-2 mt-3">
+                          {status === 'Pending' && (
+                            <Button size="sm" variant="outline" onClick={() => handleStatusChange(activity, 'In Progress')} className="flex-1">
+                              Start
+                            </Button>
+                          )}
+                          {status === 'In Progress' && (
+                            <Button size="sm" variant="outline" onClick={() => handleStatusChange(activity, 'Completed')} className="flex-1">
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Complete
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {items.length === 0 && (
+                <p className="text-center text-gray-500 py-8 text-sm">No activities</p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <ActivityList
-        activities={filteredActivities}
-        relatedData={relatedData}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isLoading={isLoading}
-      />
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-2xl bg-white">
+          <DialogHeader>
+            <DialogTitle>Assign New Activity</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label>Activity Title *</Label>
+              <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+            </div>
+            <div>
+              <Label>Description *</Label>
+              <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Assign To *</Label>
+                <Select value={formData.assigned_to} onValueChange={(value) => setFormData({...formData, assigned_to: value})} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name} - {teacher.department}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Due Date</Label>
+                <Input type="date" value={formData.due_date} onChange={(e) => setFormData({...formData, due_date: e.target.value})} />
+              </div>
+              <div>
+                <Label>Priority</Label>
+                <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Category</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Administrative">Administrative</SelectItem>
+                    <SelectItem value="Curriculum">Curriculum</SelectItem>
+                    <SelectItem value="Student Support">Student Support</SelectItem>
+                    <SelectItem value="Professional Development">Professional Development</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Assign Activity</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
