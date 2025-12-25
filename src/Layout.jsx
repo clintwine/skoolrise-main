@@ -1,153 +1,213 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building, 
-  Target, 
-  Activity,
-  TrendingUp,
-  Settings
-} from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from './utils';
+import { base44 } from '@/api/base44Client';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-
-const navigationItems = [
-  {
-    title: "Dashboard",
-    url: createPageUrl("Dashboard"),
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Contacts",
-    url: createPageUrl("Contacts"),
-    icon: Users,
-  },
-  {
-    title: "Companies",
-    url: createPageUrl("Companies"),
-    icon: Building,
-  },
-  {
-    title: "Deals",
-    url: createPageUrl("Deals"),
-    icon: Target,
-  },
-  {
-    title: "Activities",
-    url: createPageUrl("Activities"),
-    icon: Activity,
-  },
-];
+  GraduationCap,
+  Users,
+  BookOpen,
+  Calendar,
+  ClipboardList,
+  FileText,
+  BarChart3,
+  Settings,
+  Menu,
+  X,
+  LogOut,
+  UserCircle,
+  Award,
+  CheckSquare
+} from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
-  const location = useLocation();
+  const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
+
+  // Navigation items based on user role
+  const getNavigationItems = () => {
+    if (!user) return [];
+
+    const adminItems = [
+      { name: 'Dashboard', icon: BarChart3, path: 'AdminDashboard' },
+      { name: 'Students', icon: Users, path: 'StudentRecords' },
+      { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
+      { name: 'Courses', icon: BookOpen, path: 'CourseManagement' },
+      { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
+      { name: 'Attendance', icon: CheckSquare, path: 'AttendanceManagement' },
+      { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
+      { name: 'Tests (CBT)', icon: FileText, path: 'TestManagement' },
+      { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
+      { name: 'Reports', icon: BarChart3, path: 'Reports' },
+      { name: 'Settings', icon: Settings, path: 'Settings' },
+    ];
+
+    const teacherItems = [
+      { name: 'Dashboard', icon: BarChart3, path: 'TeacherDashboard' },
+      { name: 'My Classes', icon: GraduationCap, path: 'MyClasses' },
+      { name: 'Attendance', icon: CheckSquare, path: 'AttendanceTaking' },
+      { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
+      { name: 'Tests (CBT)', icon: FileText, path: 'TeacherTests' },
+      { name: 'Gradebook', icon: Award, path: 'Gradebook' },
+      { name: 'Behavior', icon: Award, path: 'BehaviorTracking' },
+      { name: 'Students', icon: Users, path: 'StudentRecords' },
+    ];
+
+    const studentItems = [
+      { name: 'Dashboard', icon: BarChart3, path: 'StudentDashboard' },
+      { name: 'My Classes', icon: GraduationCap, path: 'StudentClasses' },
+      { name: 'Assignments', icon: ClipboardList, path: 'StudentAssignments' },
+      { name: 'Tests', icon: FileText, path: 'StudentTests' },
+      { name: 'Grades', icon: Award, path: 'StudentGrades' },
+      { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
+      { name: 'Profile', icon: UserCircle, path: 'StudentProfile' },
+    ];
+
+    const parentItems = [
+      { name: 'Dashboard', icon: BarChart3, path: 'ParentDashboard' },
+      { name: 'My Children', icon: Users, path: 'ParentChildren' },
+      { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },
+      { name: 'Grades', icon: Award, path: 'ParentGrades' },
+      { name: 'Behavior', icon: Award, path: 'ParentBehavior' },
+    ];
+
+    if (user.role === 'admin') return adminItems;
+    // For now, treat non-admin users as teachers
+    // You can extend this with custom user.user_type field later
+    return teacherItems;
+  };
+
+  const navigationItems = getNavigationItems();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-slate-50">
-        <Sidebar className="border-r border-slate-200">
-          <SidebarHeader className="border-b border-slate-200 p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-8 h-8 text-blue-600" />
               <div>
-                <h2 className="text-xl font-bold text-slate-900">MarketCRM</h2>
-                <p className="text-sm text-slate-500">Digital Marketing CRM</p>
+                <h1 className="text-xl font-bold text-gray-900">SchoolMIS</h1>
+                <p className="text-xs text-gray-500 hidden sm:block">Management Information System</p>
               </div>
             </div>
-          </SidebarHeader>
-          
-          <SidebarContent className="p-4">
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
-                Navigation
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu className="space-y-2">
-                  {navigationItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`hover:bg-orange-50 hover:text-orange-700 transition-all duration-200 rounded-xl py-3 px-4 ${
-                          location.pathname === item.url ? 'bg-orange-100 text-orange-700 shadow-sm border border-orange-200' : 'text-slate-600'
-                        }`}
-                      >
-                        <Link to={item.url} className="flex items-center gap-3">
-                          <item.icon className="w-5 h-5" />
-                          <span className="font-medium">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup className="mt-8">
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
-                Quick Stats
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <div className="px-4 py-3 space-y-3 bg-slate-100 rounded-xl">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600">Active Deals</span>
-                    <span className="font-semibold text-slate-900">0</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600">Total Contacts</span>
-                    <span className="font-semibold text-slate-900">0</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600">Pipeline Value</span>
-                    <span className="font-semibold text-emerald-600">$0</span>
-                  </div>
-                </div>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-
-          <SidebarFooter className="border-t border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">U</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 text-sm truncate">Sales Team</p>
-                <p className="text-xs text-slate-500 truncate">Manage your pipeline</p>
-              </div>
-              <Settings className="w-4 h-4 text-slate-400" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium text-gray-900">{user?.full_name || user?.email}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
             </div>
-          </SidebarFooter>
-        </Sidebar>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+      </header>
 
-        <main className="flex-1 flex flex-col">
-          <header className="bg-white border-b border-slate-200 px-6 py-4 md:hidden">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
-              <h1 className="text-xl font-semibold text-slate-900">MarketCRM</h1>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside
+          className={`
+            fixed lg:sticky top-0 left-0 z-30 h-screen
+            bg-white shadow-lg transition-transform duration-300 ease-in-out
+            w-64 lg:translate-x-0
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <nav className="h-full overflow-y-auto pt-20 lg:pt-4 pb-6 px-3">
+            <div className="space-y-1">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentPageName === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={createPageUrl(item.path)}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                      ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                );
+              })}
             </div>
-          </header>
+          </nav>
+        </aside>
 
-          <div className="flex-1 overflow-auto bg-slate-50">
+        {/* Overlay for mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 min-h-screen">
+          <div className="p-4 lg:p-8">
             {children}
           </div>
         </main>
       </div>
-    </SidebarProvider>
+
+      {/* Custom Styling */}
+      <style>{`
+        :root {
+          --primary: #21325E;
+          --secondary: #3B82F6;
+          --accent: #10B981;
+          --text: #1F2937;
+          --background: #F8FAFC;
+        }
+      `}</style>
+    </div>
   );
 }
