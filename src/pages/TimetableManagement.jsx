@@ -234,9 +234,9 @@ function TimetableFormDialog({ open, onOpenChange, slot, teachers, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle>{slot ? 'Edit Period' : 'Add Period'}</DialogTitle>
+          <DialogTitle className="text-gray-900">{slot ? 'Edit Period' : 'Add Period'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

@@ -283,9 +283,9 @@ function QuestionFormDialog({ open, onOpenChange, question, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle>{question ? 'Edit Question' : 'Add Question'}</DialogTitle>
+          <DialogTitle className="text-gray-900">{question ? 'Edit Question' : 'Add Question'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
