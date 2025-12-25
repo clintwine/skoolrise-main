@@ -8,6 +8,11 @@ import AdminDashboard from './pages/AdminDashboard';
 import StudentRecords from './pages/StudentRecords';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
+import AcademicSessions from './pages/AcademicSessions';
+import TermsManagement from './pages/TermsManagement';
+import FeesManagement from './pages/FeesManagement';
+import ParentPortal from './pages/ParentPortal';
+import ReportCardsManagement from './pages/ReportCardsManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +27,11 @@ export const PAGES = {
     "StudentRecords": StudentRecords,
     "TeacherDashboard": TeacherDashboard,
     "StudentDashboard": StudentDashboard,
+    "AcademicSessions": AcademicSessions,
+    "TermsManagement": TermsManagement,
+    "FeesManagement": FeesManagement,
+    "ParentPortal": ParentPortal,
+    "ReportCardsManagement": ReportCardsManagement,
 }
 
 export const pagesConfig = {
