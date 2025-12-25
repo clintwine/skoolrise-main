@@ -208,9 +208,9 @@ function SessionFormDialog({ open, onOpenChange, session, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle>{session ? 'Edit Session' : 'Add New Session'}</DialogTitle>
+          <DialogTitle className="text-gray-900">{session ? 'Edit Session' : 'Add New Session'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
