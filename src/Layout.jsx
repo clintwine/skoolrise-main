@@ -126,6 +126,8 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'FEES & FINANCE',
         items: [
           { name: 'Fees Management', icon: DollarSign, path: 'FeesManagement' },
+          { name: 'Salary Management', icon: DollarSign, path: 'SalaryManagement' },
+          { name: 'Expense Tracking', icon: TrendingUp, path: 'ExpenseTracking' },
         ]
       },
       {

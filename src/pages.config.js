@@ -31,6 +31,8 @@ import ParentReports from './pages/ParentReports';
 import ParentBehavior from './pages/ParentBehavior';
 import ProctoringAnalytics from './pages/ProctoringAnalytics';
 import SchoolSettings from './pages/SchoolSettings';
+import SalaryManagement from './pages/SalaryManagement';
+import ExpenseTracking from './pages/ExpenseTracking';
 import __Layout from './Layout.jsx';
 
 
@@ -68,6 +70,8 @@ export const PAGES = {
     "ParentBehavior": ParentBehavior,
     "ProctoringAnalytics": ProctoringAnalytics,
     "SchoolSettings": SchoolSettings,
+    "SalaryManagement": SalaryManagement,
+    "ExpenseTracking": ExpenseTracking,
 }
 
 export const pagesConfig = {
