@@ -1,8 +1,11 @@
 import AcademicSessions from './pages/AcademicSessions';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
+import AttendanceManagement from './pages/AttendanceManagement';
+import BehaviorManagement from './pages/BehaviorManagement';
 import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
+import BookshopReports from './pages/BookshopReports';
 import ClassArms from './pages/ClassArms';
 import ClassManagement from './pages/ClassManagement';
 import Companies from './pages/Companies';
@@ -18,39 +21,36 @@ import ExamManagement from './pages/ExamManagement';
 import ExamResults from './pages/ExamResults';
 import ExpenseTracking from './pages/ExpenseTracking';
 import FeesManagement from './pages/FeesManagement';
+import GeneralSettings from './pages/GeneralSettings';
 import GradeExam from './pages/GradeExam';
 import GradingScales from './pages/GradingScales';
 import MessagingCenter from './pages/MessagingCenter';
+import NotificationsSettings from './pages/NotificationsSettings';
 import ParentAttendance from './pages/ParentAttendance';
 import ParentBehavior from './pages/ParentBehavior';
 import ParentFees from './pages/ParentFees';
 import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
+import ParentStudentView from './pages/ParentStudentView';
 import ProctoringAnalytics from './pages/ProctoringAnalytics';
 import QuestionBank from './pages/QuestionBank';
 import ReportCardsManagement from './pages/ReportCardsManagement';
 import Reports from './pages/Reports';
 import SalaryManagement from './pages/SalaryManagement';
 import SchoolSettings from './pages/SchoolSettings';
+import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentManagement from './pages/StudentManagement';
 import StudentRecords from './pages/StudentRecords';
 import TakeExam from './pages/TakeExam';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
 import TermsManagement from './pages/TermsManagement';
 import TimetableManagement from './pages/TimetableManagement';
-import VendorDashboard from './pages/VendorDashboard';
 import UserManagement from './pages/UserManagement';
-import NotificationsSettings from './pages/NotificationsSettings';
-import SecuritySettings from './pages/SecuritySettings';
-import GeneralSettings from './pages/GeneralSettings';
-import StudentManagement from './pages/StudentManagement';
-import ParentStudentView from './pages/ParentStudentView';
-import AttendanceManagement from './pages/AttendanceManagement';
-import BehaviorManagement from './pages/BehaviorManagement';
+import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
-import BookshopReports from './pages/BookshopReports';
 import VendorProfile from './pages/VendorProfile';
 import TimetableCalendar from './pages/TimetableCalendar';
 import __Layout from './Layout.jsx';
@@ -60,8 +60,11 @@ export const PAGES = {
     "AcademicSessions": AcademicSessions,
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
+    "AttendanceManagement": AttendanceManagement,
+    "BehaviorManagement": BehaviorManagement,
     "BiometricAttendance": BiometricAttendance,
     "BookshopManager": BookshopManager,
+    "BookshopReports": BookshopReports,
     "ClassArms": ClassArms,
     "ClassManagement": ClassManagement,
     "Companies": Companies,
@@ -77,39 +80,36 @@ export const PAGES = {
     "ExamResults": ExamResults,
     "ExpenseTracking": ExpenseTracking,
     "FeesManagement": FeesManagement,
+    "GeneralSettings": GeneralSettings,
     "GradeExam": GradeExam,
     "GradingScales": GradingScales,
     "MessagingCenter": MessagingCenter,
+    "NotificationsSettings": NotificationsSettings,
     "ParentAttendance": ParentAttendance,
     "ParentBehavior": ParentBehavior,
     "ParentFees": ParentFees,
     "ParentPortal": ParentPortal,
     "ParentReports": ParentReports,
+    "ParentStudentView": ParentStudentView,
     "ProctoringAnalytics": ProctoringAnalytics,
     "QuestionBank": QuestionBank,
     "ReportCardsManagement": ReportCardsManagement,
     "Reports": Reports,
     "SalaryManagement": SalaryManagement,
     "SchoolSettings": SchoolSettings,
+    "SecuritySettings": SecuritySettings,
     "Settings": Settings,
     "StudentDashboard": StudentDashboard,
+    "StudentManagement": StudentManagement,
     "StudentRecords": StudentRecords,
     "TakeExam": TakeExam,
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
     "TermsManagement": TermsManagement,
     "TimetableManagement": TimetableManagement,
-    "VendorDashboard": VendorDashboard,
     "UserManagement": UserManagement,
-    "NotificationsSettings": NotificationsSettings,
-    "SecuritySettings": SecuritySettings,
-    "GeneralSettings": GeneralSettings,
-    "StudentManagement": StudentManagement,
-    "ParentStudentView": ParentStudentView,
-    "AttendanceManagement": AttendanceManagement,
-    "BehaviorManagement": BehaviorManagement,
+    "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
-    "BookshopReports": BookshopReports,
     "VendorProfile": VendorProfile,
     "TimetableCalendar": TimetableCalendar,
 }
