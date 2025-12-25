@@ -21,14 +21,16 @@ import {
   ChevronRight,
   Building2,
   BookMarked,
-  TrendingUp
+  TrendingUp,
+  DollarSign,
+  Home
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [openGroups, setOpenGroups] = useState(['workspace', 'school-admin', 'academics', 'my-teaching', 'my-learning']);
+  const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'my-teaching', 'my-learning', 'parent-home', 'fees']);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -69,13 +71,14 @@ export default function Layout({ children, currentPageName }) {
         ]
       },
       {
-        id: 'school-admin',
-        groupName: 'SCHOOL ADMINISTRATION',
+        id: 'school-setup',
+        groupName: 'SCHOOL SETUP',
         items: [
+          { name: 'Academic Sessions', icon: Calendar, path: 'AcademicSessions' },
+          { name: 'Terms', icon: Calendar, path: 'TermsManagement' },
           { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
           { name: 'Courses', icon: BookMarked, path: 'CourseManagement' },
           { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
-          { name: 'Settings', icon: Settings, path: 'Settings' },
         ]
       },
       {
@@ -94,6 +97,14 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
           { name: 'Tests (CBT)', icon: FileText, path: 'TestManagement' },
           { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
+          { name: 'Report Cards', icon: FileText, path: 'ReportCardsManagement' },
+        ]
+      },
+      {
+        id: 'fees',
+        groupName: 'FEES & FINANCE',
+        items: [
+          { name: 'Fees Management', icon: DollarSign, path: 'FeesManagement' },
         ]
       },
       {
@@ -101,6 +112,13 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'REPORTS & ANALYTICS',
         items: [
           { name: 'Reports', icon: TrendingUp, path: 'Reports' },
+        ]
+      },
+      {
+        id: 'settings',
+        groupName: 'SYSTEM',
+        items: [
+          { name: 'Settings', icon: Settings, path: 'Settings' },
         ]
       }
     ];
@@ -156,7 +174,18 @@ export default function Layout({ children, currentPageName }) {
       }
     ];
 
+    const parentGroups = [
+      {
+        id: 'parent-home',
+        groupName: 'PARENT PORTAL',
+        items: [
+          { name: 'Home', icon: Home, path: 'ParentPortal' },
+        ]
+      }
+    ];
+
     if (user.role === 'admin') return adminGroups;
+    if (user.role === 'parent') return parentGroups;
     return teacherGroups;
   };
 
