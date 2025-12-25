@@ -63,6 +63,10 @@ import ContactLists from './pages/ContactLists';
 import DeliveryReports from './pages/DeliveryReports';
 import SecureMessaging from './pages/SecureMessaging';
 import ClassDiscussions from './pages/ClassDiscussions';
+import TeacherAssignments from './pages/TeacherAssignments';
+import StudentAssignments from './pages/StudentAssignments';
+import Gradebook from './pages/Gradebook';
+import ParentHomework from './pages/ParentHomework';
 import __Layout from './Layout.jsx';
 
 
@@ -132,6 +136,10 @@ export const PAGES = {
     "DeliveryReports": DeliveryReports,
     "SecureMessaging": SecureMessaging,
     "ClassDiscussions": ClassDiscussions,
+    "TeacherAssignments": TeacherAssignments,
+    "StudentAssignments": StudentAssignments,
+    "Gradebook": Gradebook,
+    "ParentHomework": ParentHomework,
 }
 
 export const pagesConfig = {

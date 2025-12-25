@@ -224,7 +224,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'MY LEARNING',
         items: [
           { name: 'My Classes', icon: GraduationCap, path: 'StudentClasses' },
-          { name: 'Assignments', icon: ClipboardList, path: 'StudentAssignments' },
+          { name: 'My Homework', icon: ClipboardList, path: 'StudentAssignments' },
           { name: 'Tests', icon: FileText, path: 'StudentTests' },
           { name: 'Grades', icon: Award, path: 'StudentGrades' },
           { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
@@ -240,6 +240,7 @@ export default function Layout({ children, currentPageName }) {
         items: [
           { name: 'Home', icon: Home, path: 'ParentPortal' },
           { name: 'My Children', icon: Users, path: 'ParentStudentView' },
+          { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
           { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },
           { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },
           { name: 'Reports', icon: FileText, path: 'ParentReports' },
