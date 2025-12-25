@@ -199,9 +199,9 @@ function ArmFormDialog({ open, onOpenChange, arm, teachers, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle>{arm ? 'Edit Class Arm' : 'Add Class Arm'}</DialogTitle>
+          <DialogTitle className="text-gray-900">{arm ? 'Edit Class Arm' : 'Add Class Arm'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

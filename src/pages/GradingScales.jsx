@@ -212,9 +212,9 @@ function GradeFormDialog({ open, onOpenChange, grade, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle>{grade ? 'Edit Grade' : 'Add Grade'}</DialogTitle>
+          <DialogTitle className="text-gray-900">{grade ? 'Edit Grade' : 'Add Grade'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

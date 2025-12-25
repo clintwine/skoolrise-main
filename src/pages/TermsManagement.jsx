@@ -187,9 +187,9 @@ function TermFormDialog({ open, onOpenChange, term, sessions, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle>{term ? 'Edit Term' : 'Add New Term'}</DialogTitle>
+          <DialogTitle className="text-gray-900">{term ? 'Edit Term' : 'Add New Term'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

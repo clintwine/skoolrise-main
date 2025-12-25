@@ -259,9 +259,9 @@ export default function ParentFees() {
 
       {/* Payment Dialog */}
       <Dialog open={!!selectedInvoice} onOpenChange={() => setSelectedInvoice(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Make Payment</DialogTitle>
+            <DialogTitle className="text-gray-900">Make Payment</DialogTitle>
           </DialogHeader>
           {selectedInvoice && (
             <div className="space-y-4">
