@@ -24,7 +24,8 @@ import {
   TrendingUp,
   DollarSign,
   Home,
-  Mail
+  Mail,
+  Plus
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
