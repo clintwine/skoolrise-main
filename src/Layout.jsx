@@ -141,6 +141,13 @@ export default function Layout({ children, currentPageName }) {
         ]
       },
       {
+        id: 'bookshop',
+        groupName: 'BOOKSHOP',
+        items: [
+          { name: 'Bookshop Manager', icon: BookMarked, path: 'BookshopManager' },
+        ]
+      },
+      {
         id: 'communication',
         groupName: 'COMMUNICATION',
         items: [

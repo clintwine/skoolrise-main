@@ -40,6 +40,7 @@ import TeacherManagement from './pages/TeacherManagement';
 import TermsManagement from './pages/TermsManagement';
 import TimetableManagement from './pages/TimetableManagement';
 import VendorDashboard from './pages/VendorDashboard';
+import BookshopManager from './pages/BookshopManager';
 import __Layout from './Layout.jsx';
 
 
@@ -86,6 +87,7 @@ export const PAGES = {
     "TermsManagement": TermsManagement,
     "TimetableManagement": TimetableManagement,
     "VendorDashboard": VendorDashboard,
+    "BookshopManager": BookshopManager,
 }
 
 export const pagesConfig = {
