@@ -5,14 +5,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, DollarSign, Receipt, AlertCircle } from 'lucide-react';
+import { Search, Plus, DollarSign, Receipt, AlertCircle, Upload, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
+import BulkPaymentImport from '../components/fees/BulkPaymentImport';
 
 export default function FeesManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
@@ -45,12 +48,30 @@ export default function FeesManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Fees Management</h1>
           <p className="text-gray-600 mt-1">Track invoices, payments, and debtors</p>
         </div>
-        <Link to={createPageUrl('CreateInvoice')}>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Invoice
+        <div className="flex gap-2">
+          <Link to={createPageUrl('FeePolicies')}>
+            <Button variant="outline">
+              <FileText className="w-4 h-4 mr-2" />
+              Fee Policies
+            </Button>
+          </Link>
+          <Link to={createPageUrl('InstalmentPlans')}>
+            <Button variant="outline">
+              <DollarSign className="w-4 h-4 mr-2" />
+              Instalment Plans
+            </Button>
+          </Link>
+          <Button onClick={() => setIsImportOpen(true)} variant="outline">
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
           </Button>
-        </Link>
+          <Link to={createPageUrl('CreateInvoice')}>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Invoice
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -184,6 +205,15 @@ export default function FeesManagement() {
           </CardContent>
         </Card>
       )}
+
+      <BulkPaymentImport
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['invoices'] });
+          setIsImportOpen(false);
+        }}
+      />
     </div>
   );
 }

@@ -137,7 +137,9 @@ export default function Layout({ children, currentPageName }) {
         id: 'fees',
         groupName: 'FEES & FINANCE',
         items: [
+          { name: 'Fee Policies', icon: FileText, path: 'FeePolicies' },
           { name: 'Fees Management', icon: DollarSign, path: 'FeesManagement' },
+          { name: 'Instalment Plans', icon: Calendar, path: 'InstalmentPlans' },
           { name: 'Salary Management', icon: DollarSign, path: 'SalaryManagement' },
           { name: 'Expense Tracking', icon: TrendingUp, path: 'ExpenseTracking' },
         ]

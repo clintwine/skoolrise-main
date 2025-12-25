@@ -56,6 +56,9 @@ import AILessonPlanner from './pages/AILessonPlanner';
 import ClassroomResources from './pages/ClassroomResources';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import CreateReportCard from './pages/CreateReportCard';
+import FeePolicies from './pages/FeePolicies';
+import CreateInvoice from './pages/CreateInvoice';
+import InstalmentPlans from './pages/InstalmentPlans';
 import __Layout from './Layout.jsx';
 
 
@@ -118,6 +121,9 @@ export const PAGES = {
     "ClassroomResources": ClassroomResources,
     "AdminReportsDashboard": AdminReportsDashboard,
     "CreateReportCard": CreateReportCard,
+    "FeePolicies": FeePolicies,
+    "CreateInvoice": CreateInvoice,
+    "InstalmentPlans": InstalmentPlans,
 }
 
 export const pagesConfig = {
