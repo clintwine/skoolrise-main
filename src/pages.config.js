@@ -33,6 +33,12 @@ import ProctoringAnalytics from './pages/ProctoringAnalytics';
 import SchoolSettings from './pages/SchoolSettings';
 import SalaryManagement from './pages/SalaryManagement';
 import ExpenseTracking from './pages/ExpenseTracking';
+import ClassManagement from './pages/ClassManagement';
+import TeacherManagement from './pages/TeacherManagement';
+import CourseManagement from './pages/CourseManagement';
+import EnrollmentManagement from './pages/EnrollmentManagement';
+import Settings from './pages/Settings';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -72,6 +78,12 @@ export const PAGES = {
     "SchoolSettings": SchoolSettings,
     "SalaryManagement": SalaryManagement,
     "ExpenseTracking": ExpenseTracking,
+    "ClassManagement": ClassManagement,
+    "TeacherManagement": TeacherManagement,
+    "CourseManagement": CourseManagement,
+    "EnrollmentManagement": EnrollmentManagement,
+    "Settings": Settings,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
