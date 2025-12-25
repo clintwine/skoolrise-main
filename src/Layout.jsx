@@ -16,13 +16,19 @@ import {
   LogOut,
   UserCircle,
   Award,
-  CheckSquare
+  CheckSquare,
+  ChevronDown,
+  ChevronRight,
+  Building2,
+  BookMarked,
+  TrendingUp
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [openGroups, setOpenGroups] = useState(['workspace', 'school-admin', 'academics', 'my-teaching', 'my-learning']);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,57 +48,116 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
+  const toggleGroup = (groupId) => {
+    setOpenGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
   // Navigation items based on user role
   const getNavigationItems = () => {
     if (!user) return [];
 
-    const adminItems = [
-      { name: 'Dashboard', icon: BarChart3, path: 'AdminDashboard' },
-      { name: 'Students', icon: Users, path: 'StudentRecords' },
-      { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
-      { name: 'Courses', icon: BookOpen, path: 'CourseManagement' },
-      { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
-      { name: 'Attendance', icon: CheckSquare, path: 'AttendanceManagement' },
-      { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
-      { name: 'Tests (CBT)', icon: FileText, path: 'TestManagement' },
-      { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
-      { name: 'Reports', icon: BarChart3, path: 'Reports' },
-      { name: 'Settings', icon: Settings, path: 'Settings' },
+    const adminGroups = [
+      {
+        id: 'workspace',
+        groupName: 'WORKSPACE',
+        items: [
+          { name: 'Dashboard', icon: BarChart3, path: 'AdminDashboard' },
+        ]
+      },
+      {
+        id: 'school-admin',
+        groupName: 'SCHOOL ADMINISTRATION',
+        items: [
+          { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
+          { name: 'Courses', icon: BookMarked, path: 'CourseManagement' },
+          { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
+          { name: 'Settings', icon: Settings, path: 'Settings' },
+        ]
+      },
+      {
+        id: 'student-mgmt',
+        groupName: 'STUDENT MANAGEMENT',
+        items: [
+          { name: 'Students', icon: Users, path: 'StudentRecords' },
+          { name: 'Enrollments', icon: BookOpen, path: 'EnrollmentManagement' },
+        ]
+      },
+      {
+        id: 'academics',
+        groupName: 'ACADEMICS & RECORDS',
+        items: [
+          { name: 'Attendance', icon: CheckSquare, path: 'AttendanceManagement' },
+          { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
+          { name: 'Tests (CBT)', icon: FileText, path: 'TestManagement' },
+          { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
+        ]
+      },
+      {
+        id: 'analytics',
+        groupName: 'REPORTS & ANALYTICS',
+        items: [
+          { name: 'Reports', icon: TrendingUp, path: 'Reports' },
+        ]
+      }
     ];
 
-    const teacherItems = [
-      { name: 'Dashboard', icon: BarChart3, path: 'TeacherDashboard' },
-      { name: 'My Classes', icon: GraduationCap, path: 'MyClasses' },
-      { name: 'Attendance', icon: CheckSquare, path: 'AttendanceTaking' },
-      { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
-      { name: 'Tests (CBT)', icon: FileText, path: 'TeacherTests' },
-      { name: 'Gradebook', icon: Award, path: 'Gradebook' },
-      { name: 'Behavior', icon: Award, path: 'BehaviorTracking' },
-      { name: 'Students', icon: Users, path: 'StudentRecords' },
+    const teacherGroups = [
+      {
+        id: 'workspace',
+        groupName: 'WORKSPACE',
+        items: [
+          { name: 'Dashboard', icon: BarChart3, path: 'TeacherDashboard' },
+        ]
+      },
+      {
+        id: 'my-teaching',
+        groupName: 'MY TEACHING',
+        items: [
+          { name: 'My Classes', icon: GraduationCap, path: 'MyClasses' },
+          { name: 'Attendance', icon: CheckSquare, path: 'AttendanceTaking' },
+          { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
+          { name: 'Tests (CBT)', icon: FileText, path: 'TeacherTests' },
+          { name: 'Gradebook', icon: Award, path: 'Gradebook' },
+          { name: 'Behavior', icon: Award, path: 'BehaviorTracking' },
+        ]
+      },
+      {
+        id: 'student-overview',
+        groupName: 'STUDENT OVERVIEW',
+        items: [
+          { name: 'Students', icon: Users, path: 'StudentRecords' },
+        ]
+      }
     ];
 
-    const studentItems = [
-      { name: 'Dashboard', icon: BarChart3, path: 'StudentDashboard' },
-      { name: 'My Classes', icon: GraduationCap, path: 'StudentClasses' },
-      { name: 'Assignments', icon: ClipboardList, path: 'StudentAssignments' },
-      { name: 'Tests', icon: FileText, path: 'StudentTests' },
-      { name: 'Grades', icon: Award, path: 'StudentGrades' },
-      { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
-      { name: 'Profile', icon: UserCircle, path: 'StudentProfile' },
+    const studentGroups = [
+      {
+        id: 'workspace',
+        groupName: 'WORKSPACE',
+        items: [
+          { name: 'Dashboard', icon: BarChart3, path: 'StudentDashboard' },
+        ]
+      },
+      {
+        id: 'my-learning',
+        groupName: 'MY LEARNING',
+        items: [
+          { name: 'My Classes', icon: GraduationCap, path: 'StudentClasses' },
+          { name: 'Assignments', icon: ClipboardList, path: 'StudentAssignments' },
+          { name: 'Tests', icon: FileText, path: 'StudentTests' },
+          { name: 'Grades', icon: Award, path: 'StudentGrades' },
+          { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
+          { name: 'Profile', icon: UserCircle, path: 'StudentProfile' },
+        ]
+      }
     ];
 
-    const parentItems = [
-      { name: 'Dashboard', icon: BarChart3, path: 'ParentDashboard' },
-      { name: 'My Children', icon: Users, path: 'ParentChildren' },
-      { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },
-      { name: 'Grades', icon: Award, path: 'ParentGrades' },
-      { name: 'Behavior', icon: Award, path: 'ParentBehavior' },
-    ];
-
-    if (user.role === 'admin') return adminItems;
-    // For now, treat non-admin users as teachers
-    // You can extend this with custom user.user_type field later
-    return teacherItems;
+    if (user.role === 'admin') return adminGroups;
+    return teacherGroups;
   };
 
   const navigationItems = getNavigationItems();
@@ -155,27 +220,49 @@ export default function Layout({ children, currentPageName }) {
           `}
         >
           <nav className="h-full overflow-y-auto pt-20 lg:pt-4 pb-6 px-3">
-            <div className="space-y-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentPageName === item.path;
+            <div className="space-y-6">
+              {navigationItems.map((group) => {
+                const isGroupOpen = openGroups.includes(group.id);
                 return (
-                  <Link
-                    key={item.path}
-                    to={createPageUrl(item.path)}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                      ${
-                        isActive
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
+                  <div key={group.id} className="space-y-1">
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors uppercase tracking-wider"
+                    >
+                      <span>{group.groupName}</span>
+                      {isGroupOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </button>
+                    {isGroupOpen && (
+                      <div className="space-y-1">
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = currentPageName === item.path;
+                          return (
+                            <Link
+                              key={item.path}
+                              to={createPageUrl(item.path)}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`
+                                flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
+                                ${
+                                  isActive
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }
+                              `}
+                            >
+                              <Icon className="w-5 h-5" />
+                              <span className="font-medium text-sm">{item.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
