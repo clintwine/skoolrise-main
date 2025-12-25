@@ -59,6 +59,10 @@ import CreateReportCard from './pages/CreateReportCard';
 import FeePolicies from './pages/FeePolicies';
 import CreateInvoice from './pages/CreateInvoice';
 import InstalmentPlans from './pages/InstalmentPlans';
+import ContactLists from './pages/ContactLists';
+import DeliveryReports from './pages/DeliveryReports';
+import SecureMessaging from './pages/SecureMessaging';
+import ClassDiscussions from './pages/ClassDiscussions';
 import __Layout from './Layout.jsx';
 
 
@@ -124,6 +128,10 @@ export const PAGES = {
     "FeePolicies": FeePolicies,
     "CreateInvoice": CreateInvoice,
     "InstalmentPlans": InstalmentPlans,
+    "ContactLists": ContactLists,
+    "DeliveryReports": DeliveryReports,
+    "SecureMessaging": SecureMessaging,
+    "ClassDiscussions": ClassDiscussions,
 }
 
 export const pagesConfig = {

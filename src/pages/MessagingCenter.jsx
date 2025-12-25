@@ -20,9 +20,11 @@ export default function MessagingCenter() {
   const [formData, setFormData] = useState({
     recipient_type: 'All Parents',
     recipient_ids: '',
+    contact_list_id: '',
     channel: 'Email',
     subject: '',
     message: '',
+    scheduled_date: '',
     status: 'Draft',
   });
 
@@ -48,14 +50,26 @@ export default function MessagingCenter() {
     queryFn: () => base44.entities.ClassArm.list(),
   });
 
+  const { data: contactLists = [] } = useQuery({
+    queryKey: ['contact-lists'],
+    queryFn: () => base44.entities.ContactList.list(),
+  });
+
   const sendMutation = useMutation({
     mutationFn: async (data) => {
+      const isScheduled = data.scheduled_date && new Date(data.scheduled_date) > new Date();
+      
       const notification = await base44.entities.Notification.create({
         ...data,
-        sent_date: new Date().toISOString(),
+        sent_date: isScheduled ? null : new Date().toISOString(),
         sent_by: (await base44.auth.me()).email,
-        status: 'Sent',
+        status: isScheduled ? 'Scheduled' : 'Sent',
       });
+
+      if (isScheduled) {
+        alert('Message scheduled successfully!');
+        return notification;
+      }
 
       // Handle different channels
       if (data.channel === 'Email') {
@@ -82,12 +96,14 @@ export default function MessagingCenter() {
       setFormData({
         recipient_type: 'All Parents',
         recipient_ids: '',
+        contact_list_id: '',
         channel: 'Email',
         subject: '',
         message: '',
+        scheduled_date: '',
         status: 'Draft',
       });
-      alert('Message sent successfully!');
+      alert(data.status === 'Scheduled' ? 'Message scheduled successfully!' : 'Message sent successfully!');
     },
   });
 
@@ -153,6 +169,7 @@ export default function MessagingCenter() {
                     <SelectItem value="All Students">All Students</SelectItem>
                     <SelectItem value="All Teachers">All Teachers</SelectItem>
                     <SelectItem value="Specific Class">Specific Class</SelectItem>
+                    <SelectItem value="Custom List">Custom List</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -168,6 +185,24 @@ export default function MessagingCenter() {
                       {classArms.map(arm => (
                         <SelectItem key={arm.id} value={arm.id}>
                           Grade {arm.grade_level} - {arm.arm_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {formData.recipient_type === 'Custom List' && (
+                <div>
+                  <Label>Select Contact List</Label>
+                  <Select value={formData.contact_list_id} onValueChange={(value) => setFormData({ ...formData, contact_list_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose contact list" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contactLists.map(list => (
+                        <SelectItem key={list.id} value={list.id}>
+                          {list.list_name} ({list.contact_count} contacts)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -209,13 +244,27 @@ export default function MessagingCenter() {
                 />
               </div>
 
+              <div>
+                <Label>Schedule Send (Optional)</Label>
+                <Input
+                  type="datetime-local"
+                  value={formData.scheduled_date}
+                  onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 mt-1">Leave empty to send immediately</p>
+              </div>
+
               <Button
                 onClick={handleSend}
                 className="w-full bg-blue-600 hover:bg-blue-700"
                 disabled={sendMutation.isPending}
               >
                 <Send className="w-4 h-4 mr-2" />
-                {sendMutation.isPending ? 'Sending...' : 'Send Message'}
+                {sendMutation.isPending 
+                  ? 'Processing...' 
+                  : formData.scheduled_date 
+                    ? 'Schedule Message' 
+                    : 'Send Message'}
               </Button>
             </div>
           </CardContent>

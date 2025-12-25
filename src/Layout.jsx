@@ -158,6 +158,10 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'COMMUNICATION',
         items: [
           { name: 'Messaging Center', icon: Mail, path: 'MessagingCenter' },
+          { name: 'Contact Lists', icon: Users, path: 'ContactLists' },
+          { name: 'Delivery Reports', icon: BarChart3, path: 'DeliveryReports' },
+          { name: 'Secure Messaging', icon: MessageSquare, path: 'SecureMessaging' },
+          { name: 'Class Discussions', icon: MessageSquare, path: 'ClassDiscussions' },
         ]
       },
       {
