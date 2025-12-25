@@ -2,6 +2,7 @@ import AcademicSessions from './pages/AcademicSessions';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
 import BiometricAttendance from './pages/BiometricAttendance';
+import BookshopManager from './pages/BookshopManager';
 import ClassArms from './pages/ClassArms';
 import ClassManagement from './pages/ClassManagement';
 import Companies from './pages/Companies';
@@ -40,7 +41,10 @@ import TeacherManagement from './pages/TeacherManagement';
 import TermsManagement from './pages/TermsManagement';
 import TimetableManagement from './pages/TimetableManagement';
 import VendorDashboard from './pages/VendorDashboard';
-import BookshopManager from './pages/BookshopManager';
+import UserManagement from './pages/UserManagement';
+import NotificationsSettings from './pages/NotificationsSettings';
+import SecuritySettings from './pages/SecuritySettings';
+import GeneralSettings from './pages/GeneralSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -49,6 +53,7 @@ export const PAGES = {
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
     "BiometricAttendance": BiometricAttendance,
+    "BookshopManager": BookshopManager,
     "ClassArms": ClassArms,
     "ClassManagement": ClassManagement,
     "Companies": Companies,
@@ -87,7 +92,10 @@ export const PAGES = {
     "TermsManagement": TermsManagement,
     "TimetableManagement": TimetableManagement,
     "VendorDashboard": VendorDashboard,
-    "BookshopManager": BookshopManager,
+    "UserManagement": UserManagement,
+    "NotificationsSettings": NotificationsSettings,
+    "SecuritySettings": SecuritySettings,
+    "GeneralSettings": GeneralSettings,
 }
 
 export const pagesConfig = {
