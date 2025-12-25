@@ -23,14 +23,15 @@ import {
   BookMarked,
   TrendingUp,
   DollarSign,
-  Home
+  Home,
+  Mail
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'my-teaching', 'my-learning', 'parent-home', 'fees']);
+  const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -76,9 +77,12 @@ export default function Layout({ children, currentPageName }) {
         items: [
           { name: 'Academic Sessions', icon: Calendar, path: 'AcademicSessions' },
           { name: 'Terms', icon: Calendar, path: 'TermsManagement' },
+          { name: 'Grading Scales', icon: Award, path: 'GradingScales' },
+          { name: 'Class Arms', icon: Users, path: 'ClassArms' },
           { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
           { name: 'Courses', icon: BookMarked, path: 'CourseManagement' },
           { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
+          { name: 'Timetables', icon: Calendar, path: 'TimetableManagement' },
         ]
       },
       {
@@ -94,6 +98,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'ACADEMICS & RECORDS',
         items: [
           { name: 'Attendance', icon: CheckSquare, path: 'AttendanceManagement' },
+          { name: 'Biometric Attendance', icon: CheckSquare, path: 'BiometricAttendance' },
           { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
           { name: 'Tests (CBT)', icon: FileText, path: 'TestManagement' },
           { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
@@ -105,6 +110,13 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'FEES & FINANCE',
         items: [
           { name: 'Fees Management', icon: DollarSign, path: 'FeesManagement' },
+        ]
+      },
+      {
+        id: 'communication',
+        groupName: 'COMMUNICATION',
+        items: [
+          { name: 'Messaging Center', icon: Mail, path: 'MessagingCenter' },
         ]
       },
       {
