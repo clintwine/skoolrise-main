@@ -227,6 +227,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'PARENT PORTAL',
         items: [
           { name: 'Home', icon: Home, path: 'ParentPortal' },
+          { name: 'My Children', icon: Users, path: 'ParentStudentView' },
           { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },
           { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },
           { name: 'Reports', icon: FileText, path: 'ParentReports' },

@@ -46,6 +46,7 @@ import NotificationsSettings from './pages/NotificationsSettings';
 import SecuritySettings from './pages/SecuritySettings';
 import GeneralSettings from './pages/GeneralSettings';
 import StudentManagement from './pages/StudentManagement';
+import ParentStudentView from './pages/ParentStudentView';
 import __Layout from './Layout.jsx';
 
 
@@ -98,6 +99,7 @@ export const PAGES = {
     "SecuritySettings": SecuritySettings,
     "GeneralSettings": GeneralSettings,
     "StudentManagement": StudentManagement,
+    "ParentStudentView": ParentStudentView,
 }
 
 export const pagesConfig = {

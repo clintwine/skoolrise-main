@@ -75,32 +75,34 @@ export default function ParentPortal() {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">My Children</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {students.map((student) => (
-            <Card key={student.id} className="bg-white shadow-md">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-blue-600" />
+            <Link key={student.id} to={createPageUrl('ParentStudentView')}>
+              <Card className="bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">
+                        {student.first_name} {student.last_name}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">Grade {student.grade_level}</p>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">
-                      {student.first_name} {student.last_name}
-                    </CardTitle>
-                    <p className="text-sm text-gray-600">Grade {student.grade_level}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Student ID:</span>
+                      <span className="font-medium">{student.student_id}</span>
+                    </div>
+                    <Badge className={student.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                      {student.status}
+                    </Badge>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Student ID:</span>
-                    <span className="font-medium">{student.student_id}</span>
-                  </div>
-                  <Badge className={student.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                    {student.status}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
