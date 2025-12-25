@@ -18,6 +18,8 @@ import ClassArms from './pages/ClassArms';
 import TimetableManagement from './pages/TimetableManagement';
 import MessagingCenter from './pages/MessagingCenter';
 import BiometricAttendance from './pages/BiometricAttendance';
+import QuestionBank from './pages/QuestionBank';
+import ExamCreator from './pages/ExamCreator';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +44,8 @@ export const PAGES = {
     "TimetableManagement": TimetableManagement,
     "MessagingCenter": MessagingCenter,
     "BiometricAttendance": BiometricAttendance,
+    "QuestionBank": QuestionBank,
+    "ExamCreator": ExamCreator,
 }
 
 export const pagesConfig = {
