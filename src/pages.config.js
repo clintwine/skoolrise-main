@@ -8,12 +8,9 @@ import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
 import ClassArms from './pages/ClassArms';
 import ClassManagement from './pages/ClassManagement';
-import Companies from './pages/Companies';
-import CompanyDetail from './pages/CompanyDetail';
 import Contacts from './pages/Contacts';
 import CourseManagement from './pages/CourseManagement';
 import Dashboard from './pages/Dashboard';
-import Deals from './pages/Deals';
 import EnrollmentManagement from './pages/EnrollmentManagement';
 import ExamAnalytics from './pages/ExamAnalytics';
 import ExamCreator from './pages/ExamCreator';
@@ -72,12 +69,9 @@ export const PAGES = {
     "BookshopReports": BookshopReports,
     "ClassArms": ClassArms,
     "ClassManagement": ClassManagement,
-    "Companies": Companies,
-    "CompanyDetail": CompanyDetail,
     "Contacts": Contacts,
     "CourseManagement": CourseManagement,
     "Dashboard": Dashboard,
-    "Deals": Deals,
     "EnrollmentManagement": EnrollmentManagement,
     "ExamAnalytics": ExamAnalytics,
     "ExamCreator": ExamCreator,
