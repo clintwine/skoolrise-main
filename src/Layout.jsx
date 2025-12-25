@@ -192,8 +192,10 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Tests (CBT)', icon: FileText, path: 'TeacherTests' },
           { name: 'Gradebook', icon: Award, path: 'Gradebook' },
           { name: 'Behavior', icon: Award, path: 'BehaviorTracking' },
+          { name: 'Student Progress', icon: TrendingUp, path: 'StudentProgressTracking' },
+          { name: 'Resources', icon: BookOpen, path: 'ClassroomResources' },
         ]
-      },
+        },
       {
         id: 'student-overview',
         groupName: 'STUDENT OVERVIEW',

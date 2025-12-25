@@ -57,6 +57,7 @@ import AIGradingAssistant from './pages/AIGradingAssistant';
 import StudentProgressTracking from './pages/StudentProgressTracking';
 import AILessonPlanner from './pages/AILessonPlanner';
 import ClassroomResources from './pages/ClassroomResources';
+import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -120,6 +121,7 @@ export const PAGES = {
     "StudentProgressTracking": StudentProgressTracking,
     "AILessonPlanner": AILessonPlanner,
     "ClassroomResources": ClassroomResources,
+    "AdminReportsDashboard": AdminReportsDashboard,
 }
 
 export const pagesConfig = {
