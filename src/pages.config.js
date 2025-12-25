@@ -47,6 +47,9 @@ import SecuritySettings from './pages/SecuritySettings';
 import GeneralSettings from './pages/GeneralSettings';
 import StudentManagement from './pages/StudentManagement';
 import ParentStudentView from './pages/ParentStudentView';
+import AttendanceManagement from './pages/AttendanceManagement';
+import BehaviorManagement from './pages/BehaviorManagement';
+import VendorManagement from './pages/VendorManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +103,9 @@ export const PAGES = {
     "GeneralSettings": GeneralSettings,
     "StudentManagement": StudentManagement,
     "ParentStudentView": ParentStudentView,
+    "AttendanceManagement": AttendanceManagement,
+    "BehaviorManagement": BehaviorManagement,
+    "VendorManagement": VendorManagement,
 }
 
 export const pagesConfig = {
