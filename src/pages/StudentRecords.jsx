@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin } from 'lucide-react';
+import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap } from 'lucide-react';
 import StudentForm from '../components/students/StudentForm';
 import StudentDetails from '../components/students/StudentDetails';
 
