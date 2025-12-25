@@ -115,6 +115,13 @@ export default function Layout({ children, currentPageName }) {
         ]
       },
       {
+        id: 'school-settings',
+        groupName: 'SCHOOL BRANDING',
+        items: [
+          { name: 'School Info', icon: Building2, path: 'SchoolSettings' },
+        ]
+      },
+      {
         id: 'fees',
         groupName: 'FEES & FINANCE',
         items: [

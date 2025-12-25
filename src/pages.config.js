@@ -28,6 +28,9 @@ import ExamAnalytics from './pages/ExamAnalytics';
 import ParentFees from './pages/ParentFees';
 import ParentAttendance from './pages/ParentAttendance';
 import ParentReports from './pages/ParentReports';
+import ParentBehavior from './pages/ParentBehavior';
+import ProctoringAnalytics from './pages/ProctoringAnalytics';
+import SchoolSettings from './pages/SchoolSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +65,9 @@ export const PAGES = {
     "ParentFees": ParentFees,
     "ParentAttendance": ParentAttendance,
     "ParentReports": ParentReports,
+    "ParentBehavior": ParentBehavior,
+    "ProctoringAnalytics": ProctoringAnalytics,
+    "SchoolSettings": SchoolSettings,
 }
 
 export const pagesConfig = {
