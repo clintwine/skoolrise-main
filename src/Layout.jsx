@@ -64,6 +64,16 @@ export default function Layout({ children, currentPageName }) {
   const getNavigationItems = () => {
     if (!user) return [];
 
+    const vendorGroups = [
+      {
+        id: 'vendor-home',
+        groupName: 'VENDOR PORTAL',
+        items: [
+          { name: 'Dashboard', icon: Home, path: 'VendorDashboard' },
+        ]
+      }
+    ];
+
     const adminGroups = [
       {
         id: 'workspace',
@@ -220,6 +230,7 @@ export default function Layout({ children, currentPageName }) {
 
     if (user.role === 'admin') return adminGroups;
     if (user.role === 'parent') return parentGroups;
+    if (user.role === 'vendor' || user.vendor_id) return vendorGroups;
     return teacherGroups;
   };
 
