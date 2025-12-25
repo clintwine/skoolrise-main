@@ -12,11 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Award } from 'lucide-react';
+import { Plus, Edit, Trash2, Award, Upload } from 'lucide-react';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function GradingScales() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: grades = [], isLoading } = useQuery({
@@ -72,16 +74,25 @@ export default function GradingScales() {
           <h1 className="text-3xl font-bold text-gray-900">Grading Scales</h1>
           <p className="text-gray-600 mt-1">Configure grade ranges and GPA values</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingGrade(null);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Grade
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsImportOpen(true)}
+            variant="outline"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingGrade(null);
+              setIsFormOpen(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Grade
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -171,6 +182,32 @@ export default function GradingScales() {
         onOpenChange={setIsFormOpen}
         grade={editingGrade}
         onSubmit={handleSubmit}
+      />
+
+      <BulkImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        entityName="GradingScale"
+        entitySchema={{
+          type: "object",
+          properties: {
+            scale_name: { type: "string" },
+            grade: { type: "string" },
+            min_score: { type: "number" },
+            max_score: { type: "number" },
+            grade_point: { type: "number" },
+            remark: { type: "string" },
+            is_active: { type: "boolean" }
+          },
+          required: ["scale_name", "grade", "min_score", "max_score"]
+        }}
+        templateData={[
+          { scale_name: "Standard Grading", grade: "A", min_score: 90, max_score: 100, grade_point: 4.0, remark: "Excellent", is_active: true }
+        ]}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['grading-scales'] });
+          setIsImportOpen(false);
+        }}
       />
     </div>
   );

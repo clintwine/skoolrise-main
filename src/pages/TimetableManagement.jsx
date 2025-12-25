@@ -18,12 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Calendar, Clock } from 'lucide-react';
+import { Plus, Calendar, Clock, Upload } from 'lucide-react';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function TimetableManagement() {
   const [selectedClassArm, setSelectedClassArm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: classArms = [] } = useQuery({
@@ -104,17 +106,27 @@ export default function TimetableManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Timetable Management</h1>
           <p className="text-gray-600 mt-1">Manage class schedules and periods</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingSlot(null);
-            setIsFormOpen(true);
-          }}
-          disabled={!selectedClassArm}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Period
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsImportOpen(true)}
+            disabled={!selectedClassArm}
+            variant="outline"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingSlot(null);
+              setIsFormOpen(true);
+            }}
+            disabled={!selectedClassArm}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Period
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-white shadow-md">
@@ -194,6 +206,35 @@ export default function TimetableManagement() {
         teachers={teachers}
         onSubmit={handleSubmit}
       />
+
+      {selectedClassArm && (
+        <BulkImportDialog
+          open={isImportOpen}
+          onOpenChange={setIsImportOpen}
+          entityName="Timetable"
+          entitySchema={{
+            type: "object",
+            properties: {
+              day_of_week: { type: "string" },
+              period_number: { type: "number" },
+              start_time: { type: "string" },
+              end_time: { type: "string" },
+              subject: { type: "string" },
+              teacher_id: { type: "string" },
+              teacher_name: { type: "string" },
+              room: { type: "string" }
+            },
+            required: ["day_of_week", "period_number", "start_time", "end_time", "subject"]
+          }}
+          templateData={[
+            { day_of_week: "Monday", period_number: 1, start_time: "08:00", end_time: "09:00", subject: "Mathematics", room: "101" }
+          ]}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ['timetable'] });
+            setIsImportOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

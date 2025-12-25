@@ -9,11 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, BookOpen } from 'lucide-react';
+import { Plus, Edit, BookOpen, Upload } from 'lucide-react';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function CourseManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: courses = [] } = useQuery({
@@ -59,10 +61,16 @@ export default function CourseManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Course Management</h1>
           <p className="text-gray-600 mt-1">Manage curriculum and courses</p>
         </div>
-        <Button onClick={() => { setEditingCourse(null); setIsFormOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Course
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsImportOpen(true)} variant="outline">
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button onClick={() => { setEditingCourse(null); setIsFormOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Course
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -100,6 +108,32 @@ export default function CourseManagement() {
         onOpenChange={setIsFormOpen}
         course={editingCourse}
         onSubmit={handleSubmit}
+      />
+
+      <BulkImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        entityName="Course"
+        entitySchema={{
+          type: "object",
+          properties: {
+            course_code: { type: "string" },
+            course_name: { type: "string" },
+            description: { type: "string" },
+            department: { type: "string" },
+            grade_level: { type: "string" },
+            credits: { type: "number" },
+            status: { type: "string" }
+          },
+          required: ["course_code", "course_name", "department"]
+        }}
+        templateData={[
+          { course_code: "MATH101", course_name: "Algebra I", description: "Introduction to algebra", department: "Mathematics", grade_level: "9", credits: 1, status: "Active" }
+        ]}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['courses'] });
+          setIsImportOpen(false);
+        }}
       />
     </div>
   );

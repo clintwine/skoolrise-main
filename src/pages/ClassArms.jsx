@@ -19,11 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Users, MapPin, UserCircle } from 'lucide-react';
+import { Plus, Users, MapPin, UserCircle, Upload } from 'lucide-react';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function ClassArms() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingArm, setEditingArm] = useState(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: arms = [], isLoading } = useQuery({
@@ -83,16 +85,25 @@ export default function ClassArms() {
           <h1 className="text-3xl font-bold text-gray-900">Class Arms</h1>
           <p className="text-gray-600 mt-1">Manage class sections and arms</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingArm(null);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Class Arm
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsImportOpen(true)}
+            variant="outline"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingArm(null);
+              setIsFormOpen(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Class Arm
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -158,6 +169,33 @@ export default function ClassArms() {
         arm={editingArm}
         teachers={teachers}
         onSubmit={handleSubmit}
+      />
+
+      <BulkImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        entityName="ClassArm"
+        entitySchema={{
+          type: "object",
+          properties: {
+            arm_name: { type: "string" },
+            grade_level: { type: "string" },
+            class_teacher_id: { type: "string" },
+            class_teacher_name: { type: "string" },
+            max_students: { type: "number" },
+            current_students: { type: "number" },
+            room: { type: "string" },
+            status: { type: "string" }
+          },
+          required: ["arm_name", "grade_level"]
+        }}
+        templateData={[
+          { arm_name: "A", grade_level: "10", max_students: 30, current_students: 0, room: "101", status: "Active" }
+        ]}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['class-arms'] });
+          setIsImportOpen(false);
+        }}
       />
     </div>
   );

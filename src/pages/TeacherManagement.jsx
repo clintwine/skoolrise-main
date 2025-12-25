@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Search } from 'lucide-react';
+import { Plus, Edit, Search, Upload } from 'lucide-react';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function TeacherManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: teachers = [] } = useQuery({
@@ -66,10 +68,16 @@ export default function TeacherManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Teacher Management</h1>
           <p className="text-gray-600 mt-1">Manage teaching staff</p>
         </div>
-        <Button onClick={() => { setEditingTeacher(null); setIsFormOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Teacher
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsImportOpen(true)} variant="outline">
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button onClick={() => { setEditingTeacher(null); setIsFormOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Teacher
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-white shadow-md">
@@ -113,6 +121,36 @@ export default function TeacherManagement() {
         onOpenChange={setIsFormOpen}
         teacher={editingTeacher}
         onSubmit={handleSubmit}
+      />
+
+      <BulkImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        entityName="Teacher"
+        entitySchema={{
+          type: "object",
+          properties: {
+            first_name: { type: "string" },
+            last_name: { type: "string" },
+            staff_id: { type: "string" },
+            email: { type: "string", format: "email" },
+            phone: { type: "string" },
+            department: { type: "string" },
+            position: { type: "string" },
+            hire_date: { type: "string" },
+            status: { type: "string" },
+            qualifications: { type: "string" },
+            address: { type: "string" }
+          },
+          required: ["first_name", "last_name", "staff_id", "email"]
+        }}
+        templateData={[
+          { first_name: "John", last_name: "Doe", staff_id: "T001", email: "john.doe@school.com", phone: "1234567890", department: "Mathematics", position: "Senior Teacher", status: "Active" }
+        ]}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['teachers'] });
+          setIsImportOpen(false);
+        }}
       />
     </div>
   );
