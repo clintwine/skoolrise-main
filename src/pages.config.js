@@ -25,6 +25,9 @@ import ExamManagement from './pages/ExamManagement';
 import GradeExam from './pages/GradeExam';
 import ExamResults from './pages/ExamResults';
 import ExamAnalytics from './pages/ExamAnalytics';
+import ParentFees from './pages/ParentFees';
+import ParentAttendance from './pages/ParentAttendance';
+import ParentReports from './pages/ParentReports';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +59,9 @@ export const PAGES = {
     "GradeExam": GradeExam,
     "ExamResults": ExamResults,
     "ExamAnalytics": ExamAnalytics,
+    "ParentFees": ParentFees,
+    "ParentAttendance": ParentAttendance,
+    "ParentReports": ParentReports,
 }
 
 export const pagesConfig = {
