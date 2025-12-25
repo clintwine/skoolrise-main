@@ -70,6 +70,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'VENDOR PORTAL',
         items: [
           { name: 'Dashboard', icon: Home, path: 'VendorDashboard' },
+          { name: 'My Profile', icon: UserCircle, path: 'VendorProfile' },
         ]
       }
     ];
@@ -145,6 +146,8 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'BOOKSHOP',
         items: [
           { name: 'Bookshop Manager', icon: BookMarked, path: 'BookshopManager' },
+          { name: 'Bookshop Reports', icon: TrendingUp, path: 'BookshopReports' },
+          { name: 'Vendor Management', icon: Building2, path: 'VendorManagement' },
         ]
       },
       {

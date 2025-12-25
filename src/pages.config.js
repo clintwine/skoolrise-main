@@ -52,6 +52,7 @@ import BehaviorManagement from './pages/BehaviorManagement';
 import VendorManagement from './pages/VendorManagement';
 import BookshopReports from './pages/BookshopReports';
 import VendorProfile from './pages/VendorProfile';
+import TimetableCalendar from './pages/TimetableCalendar';
 import __Layout from './Layout.jsx';
 
 
@@ -110,6 +111,7 @@ export const PAGES = {
     "VendorManagement": VendorManagement,
     "BookshopReports": BookshopReports,
     "VendorProfile": VendorProfile,
+    "TimetableCalendar": TimetableCalendar,
 }
 
 export const pagesConfig = {
