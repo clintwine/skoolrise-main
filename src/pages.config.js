@@ -45,6 +45,7 @@ import UserManagement from './pages/UserManagement';
 import NotificationsSettings from './pages/NotificationsSettings';
 import SecuritySettings from './pages/SecuritySettings';
 import GeneralSettings from './pages/GeneralSettings';
+import StudentManagement from './pages/StudentManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -96,6 +97,7 @@ export const PAGES = {
     "NotificationsSettings": NotificationsSettings,
     "SecuritySettings": SecuritySettings,
     "GeneralSettings": GeneralSettings,
+    "StudentManagement": StudentManagement,
 }
 
 export const pagesConfig = {
