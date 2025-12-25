@@ -50,6 +50,8 @@ import ParentStudentView from './pages/ParentStudentView';
 import AttendanceManagement from './pages/AttendanceManagement';
 import BehaviorManagement from './pages/BehaviorManagement';
 import VendorManagement from './pages/VendorManagement';
+import BookshopReports from './pages/BookshopReports';
+import VendorProfile from './pages/VendorProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -106,6 +108,8 @@ export const PAGES = {
     "AttendanceManagement": AttendanceManagement,
     "BehaviorManagement": BehaviorManagement,
     "VendorManagement": VendorManagement,
+    "BookshopReports": BookshopReports,
+    "VendorProfile": VendorProfile,
 }
 
 export const pagesConfig = {
