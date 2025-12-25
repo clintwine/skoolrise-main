@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Deals from './pages/Deals';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentRecords from './pages/StudentRecords';
+import TeacherDashboard from './pages/TeacherDashboard';
+import StudentDashboard from './pages/StudentDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +20,8 @@ export const PAGES = {
     "Deals": Deals,
     "AdminDashboard": AdminDashboard,
     "StudentRecords": StudentRecords,
+    "TeacherDashboard": TeacherDashboard,
+    "StudentDashboard": StudentDashboard,
 }
 
 export const pagesConfig = {
