@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tantml:react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Building2, TrendingUp, DollarSign, Package } from 'lucide-react';
+import { Plus, Edit, Building2, Search, LayoutGrid, Table as TableIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function VendorManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('table');
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -33,16 +33,6 @@ export default function VendorManagement() {
   const { data: vendors = [] } = useQuery({
     queryKey: ['vendors'],
     queryFn: () => base44.entities.Vendor.list(),
-  });
-
-  const { data: purchaseOrders = [] } = useQuery({
-    queryKey: ['purchase-orders'],
-    queryFn: () => base44.entities.PurchaseOrder.list(),
-  });
-
-  const { data: bookCatalog = [] } = useQuery({
-    queryKey: ['book-catalog'],
-    queryFn: () => base44.entities.BookCatalog.list(),
   });
 
   const createMutation = useMutation({
@@ -93,144 +83,148 @@ export default function VendorManagement() {
     }
   };
 
-  const getVendorMetrics = (vendorId) => {
-    const vendorPOs = purchaseOrders.filter(po => po.vendor_id === vendorId);
-    const totalPOs = vendorPOs.length;
-    const totalValue = vendorPOs.reduce((sum, po) => sum + (po.total_cost || 0), 0);
-    const receivedPOs = vendorPOs.filter(po => po.status === 'Received').length;
-    const vendorBooks = bookCatalog.filter(book => book.vendor_id === vendorId).length;
-    
-    return { totalPOs, totalValue, receivedPOs, vendorBooks };
-  };
+  const filteredVendors = vendors.filter(v =>
+    v.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const totalVendors = vendors.length;
-  const activeVendors = vendors.filter(v => v.status === 'Active').length;
-  const totalPOValue = purchaseOrders.reduce((sum, po) => sum + (po.total_cost || 0), 0);
+  const categoryColors = {
+    Publisher: 'bg-blue-100 text-blue-800',
+    Marketer: 'bg-purple-100 text-purple-800',
+    Distributor: 'bg-green-100 text-green-800',
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vendor Management</h1>
-          <p className="text-gray-600 mt-1">Manage vendors and track performance</p>
+          <h1 className="text-3xl font-bold text-gray-900">Vendors</h1>
+          <p className="text-gray-600 mt-1">Manage your vendor accounts</p>
         </div>
-        <Button onClick={() => { resetForm(); setIsFormOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => { resetForm(); setIsFormOpen(true); }} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="w-4 h-4 mr-2" />
           Add Vendor
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Vendors</p>
-                <p className="text-2xl font-bold text-blue-600">{totalVendors}</p>
-              </div>
-              <Building2 className="w-8 h-8 text-blue-600" />
+      <Card className="bg-white shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input 
+                placeholder="Search vendors..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="pl-10" 
+              />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Vendors</p>
-                <p className="text-2xl font-bold text-green-600">{activeVendors}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-600" />
+            <div className="flex gap-1 border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+              >
+                <TableIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('cards')}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total PO Value</p>
-                <p className="text-2xl font-bold text-purple-600">${totalPOValue.toLocaleString()}</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="list">
-        <TabsList>
-          <TabsTrigger value="list">Vendor List</TabsTrigger>
-          <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="list" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vendors.map((vendor) => (
-              <Card key={vendor.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{vendor.business_name}</CardTitle>
-                      <p className="text-sm text-gray-600">{vendor.contact_person}</p>
-                    </div>
-                    <Badge className={vendor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                      {vendor.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <p className="text-gray-600">Category: {vendor.category}</p>
-                    <p className="text-gray-600">Email: {vendor.email}</p>
-                    <p className="text-gray-600">Phone: {vendor.phone || 'N/A'}</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-4"
-                    onClick={() => handleEdit(vendor)}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="performance" className="space-y-4">
-          {vendors.map((vendor) => {
-            const metrics = getVendorMetrics(vendor.id);
-            return (
-              <Card key={vendor.id}>
-                <CardHeader>
-                  <CardTitle>{vendor.business_name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Total POs</p>
-                      <p className="text-2xl font-bold text-blue-600">{metrics.totalPOs}</p>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Received POs</p>
-                      <p className="text-2xl font-bold text-green-600">{metrics.receivedPOs}</p>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Total Value</p>
-                      <p className="text-2xl font-bold text-purple-600">${metrics.totalValue.toLocaleString()}</p>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Books in Catalog</p>
-                      <p className="text-2xl font-bold text-orange-600">{metrics.vendorBooks}</p>
-                    </div>
+      {viewMode === 'table' ? (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredVendors.map((vendor) => (
+                  <tr key={vendor.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-gray-600" />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{vendor.business_name}</div>
+                          <div className="text-sm text-gray-500">{vendor.contact_person}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge className={categoryColors[vendor.category]}>{vendor.category}</Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{vendor.email || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{vendor.phone || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge className={vendor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                        {vendor.status}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(vendor.created_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(vendor)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredVendors.map((vendor) => (
+            <Card key={vendor.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{vendor.business_name}</CardTitle>
+                    <p className="text-sm text-gray-600">{vendor.contact_person}</p>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </TabsContent>
-      </Tabs>
+                  <Badge className={vendor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                    {vendor.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  <Badge className={categoryColors[vendor.category]}>{vendor.category}</Badge>
+                  <p className="text-gray-600">Email: {vendor.email || 'N/A'}</p>
+                  <p className="text-gray-600">Phone: {vendor.phone || 'N/A'}</p>
+                </div>
+                <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => handleEdit(vendor)}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl bg-white">
@@ -291,8 +285,8 @@ export default function VendorManagement() {
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                {editingVendor ? 'Update Vendor' : 'Add Vendor'}
+              <Button type="submit" className="bg-orange-600 hover:bg-orange-700">
+                {editingVendor ? 'Update' : 'Add'} Vendor
               </Button>
             </div>
           </form>
