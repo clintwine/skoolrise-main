@@ -31,7 +31,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
+  const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'cbt', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -100,9 +100,17 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Attendance', icon: CheckSquare, path: 'AttendanceManagement' },
           { name: 'Biometric Attendance', icon: CheckSquare, path: 'BiometricAttendance' },
           { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
-          { name: 'Tests (CBT)', icon: FileText, path: 'TestManagement' },
           { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
           { name: 'Report Cards', icon: FileText, path: 'ReportCardsManagement' },
+        ]
+      },
+      {
+        id: 'cbt',
+        groupName: 'CBT / EXAMINATIONS',
+        items: [
+          { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
+          { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
+          { name: 'Manage Exams', icon: FileText, path: 'ExamManagement' },
         ]
       },
       {
