@@ -70,6 +70,9 @@ import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import RewardsStore from './pages/RewardsStore';
 import AdmissionsManagement from './pages/AdmissionsManagement';
 import PublicApplicationForm from './pages/PublicApplicationForm';
+import EventCalendar from './pages/EventCalendar';
+import FeeReminderSystem from './pages/FeeReminderSystem';
+import ParentCalendar from './pages/ParentCalendar';
 import __Layout from './Layout.jsx';
 
 
@@ -146,6 +149,9 @@ export const PAGES = {
     "RewardsStore": RewardsStore,
     "AdmissionsManagement": AdmissionsManagement,
     "PublicApplicationForm": PublicApplicationForm,
+    "EventCalendar": EventCalendar,
+    "FeeReminderSystem": FeeReminderSystem,
+    "ParentCalendar": ParentCalendar,
 }
 
 export const pagesConfig = {
