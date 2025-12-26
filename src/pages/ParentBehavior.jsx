@@ -53,23 +53,27 @@ export default function ParentBehavior() {
     );
   }
 
-  const positive = behavior.filter(b => b.type === 'Positive').length;
-  const negative = behavior.filter(b => b.type === 'Negative').length;
+  const merits = behavior.filter(b => b.type === 'Merit').length;
+  const demerits = behavior.filter(b => b.type === 'Demerit').length;
   const detentions = behavior.filter(b => b.type === 'Detention').length;
   const warnings = behavior.filter(b => b.type === 'Warning').length;
+  const meritPoints = behavior.filter(b => b.type === 'Merit').reduce((sum, b) => sum + (b.points || 0), 0);
+  const demeritPoints = behavior.filter(b => b.type === 'Demerit').reduce((sum, b) => sum + (b.points || 0), 0);
 
   const typeColors = {
-    Positive: 'bg-green-100 text-green-800',
-    Negative: 'bg-red-100 text-red-800',
+    Merit: 'bg-green-100 text-green-800',
+    Demerit: 'bg-red-100 text-red-800',
     Detention: 'bg-orange-100 text-orange-800',
     Warning: 'bg-yellow-100 text-yellow-800',
+    Reward: 'bg-purple-100 text-purple-800',
   };
 
   const typeIcons = {
-    Positive: <ThumbsUp className="w-5 h-5 text-green-600" />,
-    Negative: <ThumbsDown className="w-5 h-5 text-red-600" />,
+    Merit: <ThumbsUp className="w-5 h-5 text-green-600" />,
+    Demerit: <ThumbsDown className="w-5 h-5 text-red-600" />,
     Detention: <AlertCircle className="w-5 h-5 text-orange-600" />,
     Warning: <AlertCircle className="w-5 h-5 text-yellow-600" />,
+    Reward: <Award className="w-5 h-5 text-purple-600" />,
   };
 
   return (
@@ -92,13 +96,14 @@ export default function ParentBehavior() {
         </SelectContent>
       </Select>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="bg-white shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Positive</p>
-                <p className="text-3xl font-bold text-green-600">{positive}</p>
+                <p className="text-sm text-gray-600">Merits</p>
+                <p className="text-3xl font-bold text-green-600">{merits}</p>
+                <p className="text-xs text-gray-500">{meritPoints} points</p>
               </div>
               <ThumbsUp className="w-8 h-8 text-green-600" />
             </div>
@@ -108,10 +113,22 @@ export default function ParentBehavior() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Negative</p>
-                <p className="text-3xl font-bold text-red-600">{negative}</p>
+                <p className="text-sm text-gray-600">Demerits</p>
+                <p className="text-3xl font-bold text-red-600">{demerits}</p>
+                <p className="text-xs text-gray-500">{demeritPoints} points</p>
               </div>
               <ThumbsDown className="w-8 h-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Net Points</p>
+                <p className="text-3xl font-bold text-blue-600">{meritPoints - demeritPoints}</p>
+              </div>
+              <Award className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -157,6 +174,7 @@ export default function ParentBehavior() {
                         <div className="flex items-center gap-3 mb-2">
                           <Badge className={typeColors[record.type]}>{record.type}</Badge>
                           <Badge variant="outline">{record.category}</Badge>
+                          {record.points && <Badge className="bg-blue-100 text-blue-800">{record.points > 0 ? '+' : ''}{record.points} pts</Badge>}
                         </div>
                         <p className="font-medium text-gray-900 mb-1">{record.description}</p>
                         <div className="text-sm text-gray-600 space-y-1">
