@@ -4,7 +4,9 @@ import AcademicSessions from './pages/AcademicSessions';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
+import AdmissionsManagement from './pages/AdmissionsManagement';
 import AttendanceManagement from './pages/AttendanceManagement';
+import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import BehaviorManagement from './pages/BehaviorManagement';
 import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
@@ -21,12 +23,14 @@ import CreateReportCard from './pages/CreateReportCard';
 import Dashboard from './pages/Dashboard';
 import DeliveryReports from './pages/DeliveryReports';
 import EnrollmentManagement from './pages/EnrollmentManagement';
+import EventCalendar from './pages/EventCalendar';
 import ExamAnalytics from './pages/ExamAnalytics';
 import ExamCreator from './pages/ExamCreator';
 import ExamManagement from './pages/ExamManagement';
 import ExamResults from './pages/ExamResults';
 import ExpenseTracking from './pages/ExpenseTracking';
 import FeePolicies from './pages/FeePolicies';
+import FeeReminderSystem from './pages/FeeReminderSystem';
 import FeesManagement from './pages/FeesManagement';
 import GeneralSettings from './pages/GeneralSettings';
 import GradeExam from './pages/GradeExam';
@@ -37,15 +41,18 @@ import MessagingCenter from './pages/MessagingCenter';
 import NotificationsSettings from './pages/NotificationsSettings';
 import ParentAttendance from './pages/ParentAttendance';
 import ParentBehavior from './pages/ParentBehavior';
+import ParentCalendar from './pages/ParentCalendar';
 import ParentFees from './pages/ParentFees';
 import ParentHomework from './pages/ParentHomework';
 import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
 import ParentStudentView from './pages/ParentStudentView';
 import ProctoringAnalytics from './pages/ProctoringAnalytics';
+import PublicApplicationForm from './pages/PublicApplicationForm';
 import QuestionBank from './pages/QuestionBank';
 import ReportCardsManagement from './pages/ReportCardsManagement';
 import Reports from './pages/Reports';
+import RewardsStore from './pages/RewardsStore';
 import SalaryManagement from './pages/SalaryManagement';
 import SchoolSettings from './pages/SchoolSettings';
 import SecureMessaging from './pages/SecureMessaging';
@@ -66,13 +73,11 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import BehaviorAnalytics from './pages/BehaviorAnalytics';
-import RewardsStore from './pages/RewardsStore';
-import AdmissionsManagement from './pages/AdmissionsManagement';
-import PublicApplicationForm from './pages/PublicApplicationForm';
-import EventCalendar from './pages/EventCalendar';
-import FeeReminderSystem from './pages/FeeReminderSystem';
-import ParentCalendar from './pages/ParentCalendar';
+import ExamAttemptReview from './pages/ExamAttemptReview';
+import ProctoringMonitor from './pages/ProctoringMonitor';
+import DetailedExamAnalytics from './pages/DetailedExamAnalytics';
+import CurriculumMapping from './pages/CurriculumMapping';
+import ConferenceScheduling from './pages/ConferenceScheduling';
 import __Layout from './Layout.jsx';
 
 
@@ -83,7 +88,9 @@ export const PAGES = {
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
     "AdminReportsDashboard": AdminReportsDashboard,
+    "AdmissionsManagement": AdmissionsManagement,
     "AttendanceManagement": AttendanceManagement,
+    "BehaviorAnalytics": BehaviorAnalytics,
     "BehaviorManagement": BehaviorManagement,
     "BiometricAttendance": BiometricAttendance,
     "BookshopManager": BookshopManager,
@@ -100,12 +107,14 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DeliveryReports": DeliveryReports,
     "EnrollmentManagement": EnrollmentManagement,
+    "EventCalendar": EventCalendar,
     "ExamAnalytics": ExamAnalytics,
     "ExamCreator": ExamCreator,
     "ExamManagement": ExamManagement,
     "ExamResults": ExamResults,
     "ExpenseTracking": ExpenseTracking,
     "FeePolicies": FeePolicies,
+    "FeeReminderSystem": FeeReminderSystem,
     "FeesManagement": FeesManagement,
     "GeneralSettings": GeneralSettings,
     "GradeExam": GradeExam,
@@ -116,15 +125,18 @@ export const PAGES = {
     "NotificationsSettings": NotificationsSettings,
     "ParentAttendance": ParentAttendance,
     "ParentBehavior": ParentBehavior,
+    "ParentCalendar": ParentCalendar,
     "ParentFees": ParentFees,
     "ParentHomework": ParentHomework,
     "ParentPortal": ParentPortal,
     "ParentReports": ParentReports,
     "ParentStudentView": ParentStudentView,
     "ProctoringAnalytics": ProctoringAnalytics,
+    "PublicApplicationForm": PublicApplicationForm,
     "QuestionBank": QuestionBank,
     "ReportCardsManagement": ReportCardsManagement,
     "Reports": Reports,
+    "RewardsStore": RewardsStore,
     "SalaryManagement": SalaryManagement,
     "SchoolSettings": SchoolSettings,
     "SecureMessaging": SecureMessaging,
@@ -145,13 +157,11 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "BehaviorAnalytics": BehaviorAnalytics,
-    "RewardsStore": RewardsStore,
-    "AdmissionsManagement": AdmissionsManagement,
-    "PublicApplicationForm": PublicApplicationForm,
-    "EventCalendar": EventCalendar,
-    "FeeReminderSystem": FeeReminderSystem,
-    "ParentCalendar": ParentCalendar,
+    "ExamAttemptReview": ExamAttemptReview,
+    "ProctoringMonitor": ProctoringMonitor,
+    "DetailedExamAnalytics": DetailedExamAnalytics,
+    "CurriculumMapping": CurriculumMapping,
+    "ConferenceScheduling": ConferenceScheduling,
 }
 
 export const pagesConfig = {

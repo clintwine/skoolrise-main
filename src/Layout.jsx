@@ -119,6 +119,8 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
           { name: 'Behavior Analytics', icon: TrendingUp, path: 'BehaviorAnalytics' },
           { name: 'Report Cards', icon: FileText, path: 'ReportCardsManagement' },
+          { name: 'Curriculum Mapping', icon: BookOpen, path: 'CurriculumMapping' },
+          { name: 'Conference Scheduling', icon: Calendar, path: 'ConferenceScheduling' },
         ]
       },
       {
@@ -128,6 +130,9 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
           { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
           { name: 'Manage Exams', icon: FileText, path: 'ExamManagement' },
+          { name: 'Attempt Review', icon: FileText, path: 'ExamAttemptReview' },
+          { name: 'Proctoring Monitor', icon: Award, path: 'ProctoringMonitor' },
+          { name: 'Exam Analytics', icon: BarChart3, path: 'DetailedExamAnalytics' },
         ]
       },
       {
