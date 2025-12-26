@@ -78,6 +78,7 @@ import ProctoringMonitor from './pages/ProctoringMonitor';
 import DetailedExamAnalytics from './pages/DetailedExamAnalytics';
 import CurriculumMapping from './pages/CurriculumMapping';
 import ConferenceScheduling from './pages/ConferenceScheduling';
+import BackupSettings from './pages/BackupSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -162,6 +163,7 @@ export const PAGES = {
     "DetailedExamAnalytics": DetailedExamAnalytics,
     "CurriculumMapping": CurriculumMapping,
     "ConferenceScheduling": ConferenceScheduling,
+    "BackupSettings": BackupSettings,
 }
 
 export const pagesConfig = {

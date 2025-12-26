@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings as SettingsIcon, Users, Bell, Lock } from 'lucide-react';
+import { Settings as SettingsIcon, Users, Bell, Lock, HardDrive } from 'lucide-react';
 
 export default function Settings() {
   return (
@@ -65,6 +65,20 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">General system configuration</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to={createPageUrl('BackupSettings')} className="block">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HardDrive className="w-5 h-5" />
+                Backup & Restore
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Backup data to Google Drive</p>
             </CardContent>
           </Card>
         </Link>
