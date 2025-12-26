@@ -68,6 +68,8 @@ import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import RewardsStore from './pages/RewardsStore';
+import AdmissionsManagement from './pages/AdmissionsManagement';
+import PublicApplicationForm from './pages/PublicApplicationForm';
 import __Layout from './Layout.jsx';
 
 
@@ -142,6 +144,8 @@ export const PAGES = {
     "VendorProfile": VendorProfile,
     "BehaviorAnalytics": BehaviorAnalytics,
     "RewardsStore": RewardsStore,
+    "AdmissionsManagement": AdmissionsManagement,
+    "PublicApplicationForm": PublicApplicationForm,
 }
 
 export const pagesConfig = {
