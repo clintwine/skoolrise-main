@@ -25,7 +25,9 @@ import {
   DollarSign,
   Home,
   Mail,
-  Plus
+  Plus,
+  Gift,
+  MessageSquare
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -114,6 +116,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Biometric Attendance', icon: CheckSquare, path: 'BiometricAttendance' },
           { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
           { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
+          { name: 'Behavior Analytics', icon: TrendingUp, path: 'BehaviorAnalytics' },
           { name: 'Report Cards', icon: FileText, path: 'ReportCardsManagement' },
         ]
       },
@@ -227,6 +230,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'My Homework', icon: ClipboardList, path: 'StudentAssignments' },
           { name: 'Tests', icon: FileText, path: 'StudentTests' },
           { name: 'Grades', icon: Award, path: 'StudentGrades' },
+          { name: 'Rewards Store', icon: Gift, path: 'RewardsStore' },
           { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
           { name: 'Profile', icon: UserCircle, path: 'StudentProfile' },
         ]

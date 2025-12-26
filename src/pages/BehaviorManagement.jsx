@@ -19,8 +19,9 @@ export default function BehaviorManagement() {
     teacher_id: '',
     class_id: '',
     date: new Date().toISOString().split('T')[0],
-    type: 'Positive',
+    type: 'Merit',
     category: 'Good Conduct',
+    points: 5,
     description: '',
     action_taken: '',
     parent_notified: false,
@@ -47,15 +48,48 @@ export default function BehaviorManagement() {
     queryFn: () => base44.entities.Class.list(),
   });
 
+  const { data: thresholds = [] } = useQuery({
+    queryKey: ['behavior-thresholds'],
+    queryFn: () => base44.entities.BehaviorThreshold.list(),
+  });
+
   const createMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       const student = students.find(s => s.id === data.student_id);
       const teacher = teachers.find(t => t.id === data.teacher_id);
-      return base44.entities.Behavior.create({
+      
+      const behavior = await base44.entities.Behavior.create({
         ...data,
         student_name: `${student?.first_name} ${student?.last_name}`,
         teacher_name: `${teacher?.first_name} ${teacher?.last_name}`,
       });
+
+      // Check thresholds
+      const recentBehaviors = behaviors.filter(b => 
+        b.student_id === data.student_id && 
+        b.type === data.type &&
+        new Date(b.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      );
+
+      thresholds.filter(t => t.type === data.type && t.is_active).forEach(async (threshold) => {
+        const count = recentBehaviors.length + 1;
+        if (count >= threshold.threshold_count) {
+          if (threshold.notify_parent && student?.parent_email) {
+            await base44.integrations.Core.SendEmail({
+              to: student.parent_email,
+              subject: `Behavior Alert: ${threshold.name}`,
+              body: `${student.first_name} has reached the threshold for ${threshold.name}. ${threshold.action}`
+            });
+          }
+          
+          await base44.entities.Behavior.update(behavior.id, {
+            threshold_triggered: true,
+            is_flagged: true
+          });
+        }
+      });
+
+      return behavior;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['behaviors'] });
@@ -70,8 +104,9 @@ export default function BehaviorManagement() {
       teacher_id: '',
       class_id: '',
       date: new Date().toISOString().split('T')[0],
-      type: 'Positive',
+      type: 'Merit',
       category: 'Good Conduct',
+      points: 5,
       description: '',
       action_taken: '',
       parent_notified: false,
@@ -88,16 +123,19 @@ export default function BehaviorManagement() {
     b.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const positiveCount = behaviors.filter(b => b.type === 'Positive').length;
-  const negativeCount = behaviors.filter(b => b.type === 'Negative').length;
+  const meritCount = behaviors.filter(b => b.type === 'Merit').length;
+  const demeritCount = behaviors.filter(b => b.type === 'Demerit').length;
   const detentionCount = behaviors.filter(b => b.type === 'Detention').length;
   const warningCount = behaviors.filter(b => b.type === 'Warning').length;
+  const totalMeritPoints = behaviors.filter(b => b.type === 'Merit').reduce((sum, b) => sum + (b.points || 0), 0);
+  const totalDemeritPoints = behaviors.filter(b => b.type === 'Demerit').reduce((sum, b) => sum + (b.points || 0), 0);
 
   const typeColors = {
-    Positive: 'bg-green-100 text-green-800',
-    Negative: 'bg-red-100 text-red-800',
+    Merit: 'bg-green-100 text-green-800',
+    Demerit: 'bg-red-100 text-red-800',
     Detention: 'bg-orange-100 text-orange-800',
     Warning: 'bg-yellow-100 text-yellow-800',
+    Reward: 'bg-purple-100 text-purple-800',
   };
 
   return (
@@ -113,13 +151,14 @@ export default function BehaviorManagement() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Positive</p>
-                <p className="text-2xl font-bold text-green-600">{positiveCount}</p>
+                <p className="text-sm text-gray-600">Merits</p>
+                <p className="text-2xl font-bold text-green-600">{meritCount}</p>
+                <p className="text-xs text-gray-500">{totalMeritPoints} pts</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
             </div>
@@ -129,8 +168,9 @@ export default function BehaviorManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Negative</p>
-                <p className="text-2xl font-bold text-red-600">{negativeCount}</p>
+                <p className="text-sm text-gray-600">Demerits</p>
+                <p className="text-2xl font-bold text-red-600">{demeritCount}</p>
+                <p className="text-xs text-gray-500">{totalDemeritPoints} pts</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-600" />
             </div>
@@ -158,6 +198,28 @@ export default function BehaviorManagement() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Net Points</p>
+                <p className="text-2xl font-bold text-blue-600">{totalMeritPoints - totalDemeritPoints}</p>
+              </div>
+              <Award className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Flagged</p>
+                <p className="text-2xl font-bold text-red-600">{behaviors.filter(b => b.is_flagged).length}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -180,6 +242,9 @@ export default function BehaviorManagement() {
                       <p className="font-semibold text-gray-900">{behavior.student_name}</p>
                       <Badge className={typeColors[behavior.type]}>{behavior.type}</Badge>
                       <Badge variant="outline">{behavior.category}</Badge>
+                      {behavior.points && <Badge className="bg-blue-100 text-blue-800">{behavior.points > 0 ? '+' : ''}{behavior.points} pts</Badge>}
+                      {behavior.is_flagged && <Badge className="bg-red-100 text-red-800">Flagged</Badge>}
+                      {behavior.threshold_triggered && <Badge className="bg-orange-100 text-orange-800">Threshold</Badge>}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{behavior.description}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -265,12 +330,17 @@ export default function BehaviorManagement() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Positive">Positive</SelectItem>
-                    <SelectItem value="Negative">Negative</SelectItem>
+                    <SelectItem value="Merit">Merit</SelectItem>
+                    <SelectItem value="Demerit">Demerit</SelectItem>
                     <SelectItem value="Detention">Detention</SelectItem>
                     <SelectItem value="Warning">Warning</SelectItem>
+                    <SelectItem value="Reward">Reward</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Points</Label>
+                <Input type="number" value={formData.points} onChange={(e) => setFormData({...formData, points: parseInt(e.target.value)})} />
               </div>
               <div>
                 <Label>Category *</Label>
@@ -281,10 +351,13 @@ export default function BehaviorManagement() {
                   <SelectContent>
                     <SelectItem value="Academic Excellence">Academic Excellence</SelectItem>
                     <SelectItem value="Good Conduct">Good Conduct</SelectItem>
+                    <SelectItem value="Leadership">Leadership</SelectItem>
+                    <SelectItem value="Participation">Participation</SelectItem>
                     <SelectItem value="Disruption">Disruption</SelectItem>
                     <SelectItem value="Tardiness">Tardiness</SelectItem>
                     <SelectItem value="Incomplete Work">Incomplete Work</SelectItem>
                     <SelectItem value="Disrespect">Disrespect</SelectItem>
+                    <SelectItem value="Bullying">Bullying</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
