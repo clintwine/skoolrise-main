@@ -153,19 +153,19 @@ export default function TimetableManagement() {
         <div className="flex gap-2">
           <div className="flex bg-gray-100 rounded-lg p-1">
             <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setViewMode('list')}
-              className={viewMode === 'list' ? 'bg-white shadow-sm' : ''}
+              className={viewMode === 'list' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-200'}
             >
               <List className="w-4 h-4 mr-2" />
               List
             </Button>
             <Button
-              variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => setViewMode('calendar')}
-              className={viewMode === 'calendar' ? 'bg-white shadow-sm' : ''}
+              className={viewMode === 'calendar' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-200'}
             >
               <Grid3x3 className="w-4 h-4 mr-2" />
               Calendar
