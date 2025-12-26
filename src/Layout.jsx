@@ -27,7 +27,8 @@ import {
   Mail,
   Plus,
   Gift,
-  MessageSquare
+  MessageSquare,
+  Bell
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -97,6 +98,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Courses', icon: BookMarked, path: 'CourseManagement' },
           { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
           { name: 'Timetables', icon: Calendar, path: 'TimetableManagement' },
+          { name: 'Admissions', icon: UserCircle, path: 'AdmissionsManagement' },
         ]
       },
       {
@@ -141,6 +143,7 @@ export default function Layout({ children, currentPageName }) {
         items: [
           { name: 'Fee Policies', icon: FileText, path: 'FeePolicies' },
           { name: 'Fees Management', icon: DollarSign, path: 'FeesManagement' },
+          { name: 'Fee Reminders', icon: Bell, path: 'FeeReminderSystem' },
           { name: 'Instalment Plans', icon: Calendar, path: 'InstalmentPlans' },
           { name: 'Salary Management', icon: DollarSign, path: 'SalaryManagement' },
           { name: 'Expense Tracking', icon: TrendingUp, path: 'ExpenseTracking' },
@@ -164,6 +167,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Delivery Reports', icon: BarChart3, path: 'DeliveryReports' },
           { name: 'Secure Messaging', icon: MessageSquare, path: 'SecureMessaging' },
           { name: 'Class Discussions', icon: MessageSquare, path: 'ClassDiscussions' },
+          { name: 'Event Calendar', icon: Calendar, path: 'EventCalendar' },
         ]
       },
       {
@@ -243,6 +247,7 @@ export default function Layout({ children, currentPageName }) {
         items: [
           { name: 'Home', icon: Home, path: 'ParentPortal' },
           { name: 'My Children', icon: Users, path: 'ParentStudentView' },
+          { name: 'Calendar', icon: Calendar, path: 'ParentCalendar' },
           { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
           { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },
           { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },

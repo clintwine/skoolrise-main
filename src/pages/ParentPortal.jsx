@@ -52,8 +52,35 @@ export default function ParentPortal() {
     enabled: studentIds.length > 0,
   });
 
+  const { data: assignments = [] } = useQuery({
+    queryKey: ['parent-assignments', studentIds],
+    queryFn: async () => {
+      if (studentIds.length === 0) return [];
+      const allAssignments = await base44.entities.Assignment.list();
+      const enrollments = await base44.entities.Enrollment.list();
+      const studentClasses = enrollments.filter(e => studentIds.includes(e.student_id)).map(e => e.class_id);
+      return allAssignments.filter(a => studentClasses.includes(a.class_id));
+    },
+    enabled: studentIds.length > 0,
+  });
+
+  const { data: submissions = [] } = useQuery({
+    queryKey: ['parent-submissions', studentIds],
+    queryFn: async () => {
+      if (studentIds.length === 0) return [];
+      const allSubmissions = await base44.entities.Submission.list();
+      return allSubmissions.filter(sub => studentIds.includes(sub.student_id));
+    },
+    enabled: studentIds.length > 0,
+  });
+
   const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
   const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue').length;
+  const upcomingAssignments = assignments.filter(a => new Date(a.due_date) >= new Date()).length;
+  const pendingSubmissions = assignments.filter(a => {
+    const submitted = submissions.find(s => s.assignment_id === a.id);
+    return !submitted && new Date(a.due_date) >= new Date();
+  }).length;
 
   if (!user) {
     return (
@@ -108,7 +135,7 @@ export default function ParentPortal() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-white shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -124,10 +151,10 @@ export default function ParentPortal() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Overdue Invoices</p>
-                <p className="text-2xl font-bold text-red-600">{overdueInvoices}</p>
+                <p className="text-sm text-gray-600">Upcoming Homework</p>
+                <p className="text-2xl font-bold text-blue-600">{upcomingAssignments}</p>
               </div>
-              <Calendar className="w-8 h-8 text-red-600" />
+              <FileText className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -135,10 +162,21 @@ export default function ParentPortal() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Report Cards</p>
-                <p className="text-2xl font-bold text-blue-600">{reportCards.length}</p>
+                <p className="text-sm text-gray-600">Pending Submissions</p>
+                <p className="text-2xl font-bold text-yellow-600">{pendingSubmissions}</p>
               </div>
-              <Award className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Overdue Fees</p>
+                <p className="text-2xl font-bold text-red-600">{overdueInvoices}</p>
+              </div>
+              <DollarSign className="w-8 h-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
@@ -183,9 +221,51 @@ export default function ParentPortal() {
               <h3 className="font-semibold text-gray-900">Behavior</h3>
               <p className="text-sm text-gray-600 mt-1">View behavior records</p>
             </Link>
+            <Link
+              to={createPageUrl('ParentHomework')}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
+            >
+              <FileText className="w-8 h-8 text-blue-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Homework</h3>
+              <p className="text-sm text-gray-600 mt-1">View assignments</p>
+            </Link>
+            <Link
+              to={createPageUrl('ParentCalendar')}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all"
+            >
+              <Calendar className="w-8 h-8 text-indigo-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Calendar</h3>
+              <p className="text-sm text-gray-600 mt-1">View homework & events</p>
+            </Link>
           </div>
         </CardContent>
       </Card>
+
+      {/* Upcoming Homework */}
+      {assignments.length > 0 && (
+        <Card className="bg-white shadow-md">
+          <CardHeader>
+            <CardTitle>Upcoming Homework</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {assignments
+                .filter(a => new Date(a.due_date) >= new Date())
+                .slice(0, 5)
+                .map((assignment) => (
+                  <div key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium">{assignment.title}</p>
+                      <p className="text-sm text-gray-600">{assignment.class_name}</p>
+                      <p className="text-xs text-gray-500">Due: {new Date(assignment.due_date).toLocaleDateString()}</p>
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-800">{assignment.type}</Badge>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Report Cards */}
       {reportCards.length > 0 && (
