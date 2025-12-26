@@ -28,6 +28,9 @@ export default function MessagingCenter() {
     status: 'Draft',
   });
 
+  const [classSearchTerm, setClassSearchTerm] = useState('');
+  const [contactListSearchTerm, setContactListSearchTerm] = useState('');
+
   const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading } = useQuery({
@@ -177,16 +180,26 @@ export default function MessagingCenter() {
               {formData.recipient_type === 'Specific Class' && (
                 <div>
                   <Label>Select Class</Label>
+                  <Input
+                    placeholder="Search classes..."
+                    value={classSearchTerm}
+                    onChange={(e) => setClassSearchTerm(e.target.value)}
+                    className="mb-2"
+                  />
                   <Select value={formData.recipient_ids} onValueChange={(value) => setFormData({ ...formData, recipient_ids: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose class" />
                     </SelectTrigger>
                     <SelectContent>
-                      {classArms.map(arm => (
-                        <SelectItem key={arm.id} value={arm.id}>
-                          Grade {arm.grade_level} - {arm.arm_name}
-                        </SelectItem>
-                      ))}
+                      {classArms
+                        .filter(arm =>
+                          `Grade ${arm.grade_level} - ${arm.arm_name}`.toLowerCase().includes(classSearchTerm.toLowerCase())
+                        )
+                        .map(arm => (
+                          <SelectItem key={arm.id} value={arm.id}>
+                            Grade {arm.grade_level} - {arm.arm_name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -195,16 +208,26 @@ export default function MessagingCenter() {
               {formData.recipient_type === 'Custom List' && (
                 <div>
                   <Label>Select Contact List</Label>
+                  <Input
+                    placeholder="Search contact lists..."
+                    value={contactListSearchTerm}
+                    onChange={(e) => setContactListSearchTerm(e.target.value)}
+                    className="mb-2"
+                  />
                   <Select value={formData.contact_list_id} onValueChange={(value) => setFormData({ ...formData, contact_list_id: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose contact list" />
                     </SelectTrigger>
                     <SelectContent>
-                      {contactLists.map(list => (
-                        <SelectItem key={list.id} value={list.id}>
-                          {list.list_name} ({list.contact_count} contacts)
-                        </SelectItem>
-                      ))}
+                      {contactLists
+                        .filter(list =>
+                          list.list_name?.toLowerCase().includes(contactListSearchTerm.toLowerCase())
+                        )
+                        .map(list => (
+                          <SelectItem key={list.id} value={list.id}>
+                            {list.list_name} ({list.contact_count} contacts)
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

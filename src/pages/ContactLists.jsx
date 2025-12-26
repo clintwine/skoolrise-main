@@ -163,6 +163,7 @@ function ContactListFormDialog({ open, onOpenChange, list, students, teachers, o
   });
 
   const [selectedContacts, setSelectedContacts] = useState([]);
+  const [contactSearchTerm, setContactSearchTerm] = useState('');
 
   React.useEffect(() => {
     if (list) {
@@ -179,19 +180,31 @@ function ContactListFormDialog({ open, onOpenChange, list, students, teachers, o
       });
       setSelectedContacts([]);
     }
+    setContactSearchTerm('');
   }, [list, open]);
 
   const getAvailableContacts = () => {
-    if (formData.contact_type === 'Students') return students;
-    if (formData.contact_type === 'Teachers') return teachers;
-    if (formData.contact_type === 'Parents') {
-      return students.filter(s => s.parent_email).map(s => ({
+    let contacts = [];
+    if (formData.contact_type === 'Students') {
+      contacts = students.map(s => ({ ...s, name: `${s.first_name} ${s.last_name}` }));
+    } else if (formData.contact_type === 'Teachers') {
+      contacts = teachers.map(t => ({ ...t, name: `${t.first_name} ${t.last_name}` }));
+    } else if (formData.contact_type === 'Parents') {
+      contacts = students.filter(s => s.parent_email).map(s => ({
         id: s.id,
         name: `${s.parent_name} (Parent of ${s.first_name} ${s.last_name})`,
         email: s.parent_email
       }));
+    } else if (formData.contact_type === 'Mixed') {
+      contacts = [
+        ...students.map(s => ({ ...s, name: `${s.first_name} ${s.last_name}` })),
+        ...teachers.map(t => ({ ...t, name: `${t.first_name} ${t.last_name}` })),
+      ];
     }
-    return [...students, ...teachers];
+    return contacts.filter(contact => 
+      contact.name?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(contactSearchTerm.toLowerCase())
+    );
   };
 
   const toggleContact = (contactId) => {
@@ -243,6 +256,12 @@ function ContactListFormDialog({ open, onOpenChange, list, students, teachers, o
 
           <div>
             <Label>Select Contacts ({selectedContacts.length} selected)</Label>
+            <Input 
+              placeholder="Search contacts by name or email..."
+              value={contactSearchTerm}
+              onChange={(e) => setContactSearchTerm(e.target.value)}
+              className="mb-3"
+            />
             <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
               {getAvailableContacts().map((contact) => (
                 <label key={contact.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
