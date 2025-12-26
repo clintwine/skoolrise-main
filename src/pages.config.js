@@ -61,7 +61,6 @@ import TeacherAssignments from './pages/TeacherAssignments';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
 import TermsManagement from './pages/TermsManagement';
-import TimetableCalendar from './pages/TimetableCalendar';
 import TimetableManagement from './pages/TimetableManagement';
 import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
@@ -136,7 +135,6 @@ export const PAGES = {
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
     "TermsManagement": TermsManagement,
-    "TimetableCalendar": TimetableCalendar,
     "TimetableManagement": TimetableManagement,
     "UserManagement": UserManagement,
     "VendorDashboard": VendorDashboard,

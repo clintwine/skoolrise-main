@@ -97,7 +97,6 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Courses', icon: BookMarked, path: 'CourseManagement' },
           { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
           { name: 'Timetables', icon: Calendar, path: 'TimetableManagement' },
-          { name: 'Timetable Calendar', icon: Calendar, path: 'TimetableCalendar' },
         ]
       },
       {
