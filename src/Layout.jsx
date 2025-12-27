@@ -294,7 +294,11 @@ export default function Layout({ children, currentPageName }) {
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <div className="flex items-center gap-2">
-              <GraduationCap className="w-8 h-8 text-blue-600" />
+              <img 
+                src="https://via.placeholder.com/40x40/2563eb/ffffff?text=SMS" 
+                alt="School Logo" 
+                className="w-10 h-10 rounded-lg"
+              />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">SchoolMIS</h1>
                 <p className="text-xs text-gray-500 hidden sm:block">Management Information System</p>
