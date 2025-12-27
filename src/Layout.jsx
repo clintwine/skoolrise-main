@@ -299,10 +299,7 @@ export default function Layout({ children, currentPageName }) {
                 alt="School Logo" 
                 className="w-10 h-10 rounded-lg"
               />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">SchoolMIS</h1>
-                <p className="text-xs text-gray-500 hidden sm:block">Management Information System</p>
-              </div>
+             
             </div>
           </div>
           <div className="flex items-center gap-4">
