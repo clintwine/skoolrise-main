@@ -79,6 +79,7 @@ import DetailedExamAnalytics from './pages/DetailedExamAnalytics';
 import CurriculumMapping from './pages/CurriculumMapping';
 import ConferenceScheduling from './pages/ConferenceScheduling';
 import BackupSettings from './pages/BackupSettings';
+import LandingPage from './pages/LandingPage';
 import __Layout from './Layout.jsx';
 
 
@@ -164,6 +165,7 @@ export const PAGES = {
     "CurriculumMapping": CurriculumMapping,
     "ConferenceScheduling": ConferenceScheduling,
     "BackupSettings": BackupSettings,
+    "LandingPage": LandingPage,
 }
 
 export const pagesConfig = {
