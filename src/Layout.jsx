@@ -295,9 +295,9 @@ export default function Layout({ children, currentPageName }) {
             </button>
             <div className="flex items-center gap-2">
               <img 
-                src="https://via.placeholder.com/40x40/2563eb/ffffff?text=SMS" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/ae1de3830_ChatGPTImageDec27202508_39_37PM.png" 
                 alt="School Logo" 
-                className="w-10 h-10 rounded-lg"
+                className="h-10 object-contain"
               />
              
             </div>
