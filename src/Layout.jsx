@@ -297,7 +297,7 @@ export default function Layout({ children, currentPageName }) {
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/9f8b26af8_ChatGPTImageDec27202508_39_37PM.png" 
                 alt="SkoolRise Logo" 
-                className="h-16 object-contain"
+                className="h-10 "
               />
             </div>
           </div>
