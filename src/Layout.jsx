@@ -294,11 +294,11 @@ export default function Layout({ children, currentPageName }) {
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <div className="flex items-center gap-2">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/9f8b26af8_ChatGPTImageDec27202508_39_37PM.png" 
-                alt="SkoolRise Logo" 
-                className="h-10 object-contain "
-              />
+              <GraduationCap className="w-8 h-8 text-blue-600" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">SchoolMIS</h1>
+                <p className="text-xs text-gray-500 hidden sm:block">Management Information System</p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-4">
