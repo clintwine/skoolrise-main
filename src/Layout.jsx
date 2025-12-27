@@ -295,8 +295,8 @@ export default function Layout({ children, currentPageName }) {
             </button>
             <div className="flex items-center">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/af06aeb77_image.png" 
-                alt="SchoolMIS Logo" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/90d2daf9a_oie_b7JlP4U16so5.png" 
+                alt="SkoolRise Logo" 
                 className="h-10"
               />
             </div>
