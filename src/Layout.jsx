@@ -294,11 +294,7 @@ export default function Layout({ children, currentPageName }) {
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <div className="flex items-center gap-2">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/ae1de3830_ChatGPTImageDec27202508_39_37PM.png" 
-                alt="School Logo" 
-                className="w-full h-10 object-contain"
-              />
+
              
             </div>
           </div>
