@@ -222,43 +222,44 @@ export default function UserManagement() {
                               Code
                             </Button>
                           </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Activation Code Generated</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label>User</Label>
-                              <p className="text-sm text-gray-600">{selectedUser?.email}</p>
-                            </div>
-                            {generatedCode && (
-                              <>
-                                <div>
-                                  <Label>Activation Code</Label>
-                                  <div className="flex gap-2 mt-2">
-                                    <Input
-                                      value={generatedCode}
-                                      readOnly
-                                      className="font-mono text-lg text-center"
-                                    />
-                                    <Button onClick={handleCopyCode} variant="outline">
-                                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                    </Button>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Activation Code Generated</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <Label>User</Label>
+                                <p className="text-sm text-gray-600">{selectedUser?.email}</p>
+                              </div>
+                              {generatedCode && (
+                                <>
+                                  <div>
+                                    <Label>Activation Code</Label>
+                                    <div className="flex gap-2 mt-2">
+                                      <Input
+                                        value={generatedCode}
+                                        readOnly
+                                        className="font-mono text-lg text-center"
+                                      />
+                                      <Button onClick={handleCopyCode} variant="outline">
+                                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                      </Button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">Valid for 48 hours</p>
                                   </div>
-                                  <p className="text-xs text-gray-500 mt-1">Valid for 48 hours</p>
-                                </div>
-                                <Button 
-                                  onClick={() => handleSendCodeByEmail(selectedUser)}
-                                  className="w-full"
-                                >
-                                  <Mail className="w-4 h-4 mr-2" />
-                                  Send Code via Email
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                                  <Button 
+                                    onClick={() => handleSendCodeByEmail(selectedUser)}
+                                    className="w-full"
+                                  >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    Send Code via Email
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </td>
                   </tr>
                 ))}
