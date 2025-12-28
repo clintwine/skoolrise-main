@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,10 +19,47 @@ import {
   Calendar,
   Database
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { base44 } from '@/api/base44Client';
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuthenticated = await base44.auth.isAuthenticated();
+        if (isAuthenticated) {
+          const user = await base44.auth.me();
+          // Redirect authenticated users to their dashboard
+          if (user.role === 'admin') {
+            navigate(createPageUrl('AdminDashboard'));
+          } else if (user.role === 'parent') {
+            navigate(createPageUrl('ParentPortal'));
+          } else if (user.role === 'vendor' || user.vendor_id) {
+            navigate(createPageUrl('VendorDashboard'));
+          } else {
+            navigate(createPageUrl('TeacherDashboard'));
+          }
+        }
+      } catch (error) {
+        // User not authenticated, stay on landing page
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
   const features = [
     {
       icon: DollarSign,
@@ -339,18 +376,53 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800 py-8">
+      <footer className="bg-gray-900 border-t border-gray-800 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/90d2daf9a_oie_b7JlP4U16so5.png" 
                 alt="SkoolRise Logo" 
-                className="h-10 w-auto"
+                className="h-10 w-auto mb-4"
               />
+              <p className="text-gray-400 text-sm">
+                Smart School Management for Nigerian Schools
+              </p>
             </div>
-            <p className="text-gray-400 text-sm">
-              © 2025 SkoolRise. Smart School Management for Nigerian Schools.
+            <div>
+              <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link to={createPageUrl('PublicApplicationForm')} className="text-gray-400 hover:text-white text-sm transition-colors">
+                    Apply Now
+                  </Link>
+                </li>
+                <li>
+                  <Link to={createPageUrl('Dashboard')} className="text-gray-400 hover:text-white text-sm transition-colors">
+                    Login
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link to={createPageUrl('PrivacyPolicy')} className="text-gray-400 hover:text-white text-sm transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to={createPageUrl('TermsOfService')} className="text-gray-400 hover:text-white text-sm transition-colors">
+                    Terms of Service
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8">
+            <p className="text-gray-400 text-sm text-center">
+              © 2025 SkoolRise. All rights reserved.
             </p>
           </div>
         </div>

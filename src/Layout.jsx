@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import {
@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -44,12 +45,14 @@ export default function Layout({ children, currentPageName }) {
         setUser(currentUser);
       } catch (error) {
         console.error('Failed to fetch user:', error);
+        // Redirect to landing page if not authenticated
+        navigate(createPageUrl('LandingPage'));
       } finally {
         setLoading(false);
       }
     };
     fetchUser();
-  }, []);
+  }, [navigate]);
 
   const handleLogout = () => {
     base44.auth.logout();
