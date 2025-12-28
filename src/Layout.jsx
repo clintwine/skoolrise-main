@@ -211,6 +211,7 @@ export default function Layout({ children, currentPageName }) {
         id: 'settings',
         groupName: 'SYSTEM',
         items: [
+          { name: 'User Management', icon: Users, path: 'UserManagement' },
           { name: 'Settings', icon: Settings, path: 'Settings' },
         ]
       }
