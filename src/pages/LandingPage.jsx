@@ -140,9 +140,13 @@ export default function LandingPage() {
               <a href="#pricing" className="text-gray-700 hover:text-gray-900 transition-colors">Pricing</a>
             </div>
             <div className="flex items-center gap-3">
-              <Link to={createPageUrl('Dashboard')}>
-                <Button variant="ghost" className="text-gray-700">Login</Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                className="text-gray-700"
+                onClick={() => base44.auth.redirectToLogin()}
+              >
+                Login
+              </Button>
               <Link to={createPageUrl('PublicApplicationForm')}>
                 <Button className="bg-black hover:bg-gray-800 text-white">Get Started</Button>
               </Link>
