@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Users, Key, CheckCircle, XCircle, Mail, Copy, Check } from 'lucide-react';
+import { Users, Key, CheckCircle, XCircle, Mail, Copy, Check, Power } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function UserManagement() {
@@ -73,6 +73,13 @@ export default function UserManagement() {
     } catch (error) {
       toast.error('Failed to send email: ' + error.message);
     }
+  };
+
+  const handleToggleActivation = (user) => {
+    updateUserMutation.mutate({
+      userId: user.id,
+      data: { is_activated: !user.is_activated }
+    });
   };
 
   const filteredUsers = users.filter(user => {
@@ -194,17 +201,27 @@ export default function UserManagement() {
                       )}
                     </td>
                     <td className="p-3 text-right">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleGenerateCode(user)}
-                          >
-                            <Key className="w-4 h-4 mr-1" />
-                            Generate Code
-                          </Button>
-                        </DialogTrigger>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant={user.is_activated ? "outline" : "default"}
+                          onClick={() => handleToggleActivation(user)}
+                          title={user.is_activated ? "Deactivate user" : "Activate user"}
+                        >
+                          <Power className="w-4 h-4 mr-1" />
+                          {user.is_activated ? 'Deactivate' : 'Activate'}
+                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleGenerateCode(user)}
+                            >
+                              <Key className="w-4 h-4 mr-1" />
+                              Code
+                            </Button>
+                          </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Activation Code Generated</DialogTitle>
