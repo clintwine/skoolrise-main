@@ -38,7 +38,17 @@ export default function Layout({ children, currentPageName }) {
   const [loading, setLoading] = useState(true);
   const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'cbt', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
 
+  // Public pages that don't need the layout wrapper
+  const publicPages = ['LandingPage', 'PrivacyPolicy', 'TermsOfService', 'PublicApplicationForm'];
+  const isPublicPage = publicPages.includes(currentPageName);
+
   useEffect(() => {
+    // Skip auth check for public pages
+    if (isPublicPage) {
+      setLoading(false);
+      return;
+    }
+
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
@@ -52,7 +62,7 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     fetchUser();
-  }, [navigate]);
+  }, [navigate, isPublicPage]);
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -272,6 +282,11 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const navigationItems = getNavigationItems();
+
+  // Return children directly for public pages without layout wrapper
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
