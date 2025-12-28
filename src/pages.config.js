@@ -80,6 +80,8 @@ import CurriculumMapping from './pages/CurriculumMapping';
 import ConferenceScheduling from './pages/ConferenceScheduling';
 import BackupSettings from './pages/BackupSettings';
 import LandingPage from './pages/LandingPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import __Layout from './Layout.jsx';
 
 
@@ -166,6 +168,8 @@ export const PAGES = {
     "ConferenceScheduling": ConferenceScheduling,
     "BackupSettings": BackupSettings,
     "LandingPage": LandingPage,
+    "PrivacyPolicy": PrivacyPolicy,
+    "TermsOfService": TermsOfService,
 }
 
 export const pagesConfig = {
