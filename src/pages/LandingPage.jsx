@@ -32,12 +32,30 @@ export default function LandingPage() {
         const isAuthenticated = await base44.auth.isAuthenticated();
         if (isAuthenticated) {
           const user = await base44.auth.me();
-          if (user.role === 'admin') {
+          
+          // Check activation status
+          if (!user.is_activated) {
+            navigate(createPageUrl('ActivationPage'));
+            return;
+          }
+          
+          // Check profile completion
+          if (!user.profile_completed) {
+            navigate(createPageUrl('ProfileSetupPage'));
+            return;
+          }
+          
+          // Redirect to appropriate dashboard
+          if (user.role === 'admin' || user.user_type === 'admin') {
             navigate(createPageUrl('AdminDashboard'));
-          } else if (user.role === 'parent') {
+          } else if (user.user_type === 'parent') {
             navigate(createPageUrl('ParentPortal'));
           } else if (user.role === 'vendor' || user.vendor_id) {
             navigate(createPageUrl('VendorDashboard'));
+          } else if (user.user_type === 'teacher') {
+            navigate(createPageUrl('TeacherDashboard'));
+          } else if (user.user_type === 'student') {
+            navigate(createPageUrl('StudentDashboard'));
           } else {
             navigate(createPageUrl('TeacherDashboard'));
           }

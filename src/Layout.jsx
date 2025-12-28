@@ -39,7 +39,7 @@ export default function Layout({ children, currentPageName }) {
   const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'cbt', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
 
   // Public pages that don't need the layout wrapper
-  const publicPages = ['LandingPage', 'PrivacyPolicy', 'TermsOfService', 'PublicApplicationForm'];
+  const publicPages = ['LandingPage', 'PrivacyPolicy', 'TermsOfService', 'PublicApplicationForm', 'ActivationPage', 'ProfileSetupPage'];
   const isPublicPage = publicPages.includes(currentPageName);
 
   useEffect(() => {
@@ -52,6 +52,18 @@ export default function Layout({ children, currentPageName }) {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
+        
+        // Check activation and profile completion
+        if (!currentUser.is_activated) {
+          navigate(createPageUrl('ActivationPage'));
+          return;
+        }
+        
+        if (!currentUser.profile_completed) {
+          navigate(createPageUrl('ProfileSetupPage'));
+          return;
+        }
+        
         setUser(currentUser);
       } catch (error) {
         console.error('Failed to fetch user:', error);

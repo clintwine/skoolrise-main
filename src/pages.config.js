@@ -82,6 +82,8 @@ import BackupSettings from './pages/BackupSettings';
 import LandingPage from './pages/LandingPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import ActivationPage from './pages/ActivationPage';
+import ProfileSetupPage from './pages/ProfileSetupPage';
 import __Layout from './Layout.jsx';
 
 
@@ -170,6 +172,8 @@ export const PAGES = {
     "LandingPage": LandingPage,
     "PrivacyPolicy": PrivacyPolicy,
     "TermsOfService": TermsOfService,
+    "ActivationPage": ActivationPage,
+    "ProfileSetupPage": ProfileSetupPage,
 }
 
 export const pagesConfig = {
