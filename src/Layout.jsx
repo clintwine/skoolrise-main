@@ -115,6 +115,7 @@ export default function Layout({ children, currentPageName }) {
         id: 'school-setup',
         groupName: 'SCHOOL SETUP',
         items: [
+          { name: 'User Management', icon: Users, path: 'UserManagement' },
           { name: 'Academic Sessions', icon: Calendar, path: 'AcademicSessions' },
           { name: 'Terms', icon: Calendar, path: 'TermsManagement' },
           { name: 'Grading Scales', icon: Award, path: 'GradingScales' },
@@ -211,7 +212,6 @@ export default function Layout({ children, currentPageName }) {
         id: 'settings',
         groupName: 'SYSTEM',
         items: [
-          { name: 'User Management', icon: Users, path: 'UserManagement' },
           { name: 'Settings', icon: Settings, path: 'Settings' },
         ]
       }
