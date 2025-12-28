@@ -133,7 +133,7 @@ export default function ActivationPage() {
           <Button
             variant="ghost"
             className="w-full mt-4"
-            onClick={() => base44.auth.logout()}
+            onClick={() => base44.auth.logout(window.location.origin)}
           >
             Log Out
           </Button>
