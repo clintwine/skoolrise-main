@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     // Fetch student details
     const students = await base44.entities.Student.filter({ student_id_number: student_id_number });
     if (students.length === 0) {
-      return Response.json({ error: 'Student not found' }, { status: 404 });
+      return Response.json({ success: false, error: 'Student not found' }, { status: 404 });
     }
 
     const student = students[0];
@@ -72,6 +72,6 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in scanStudentAttendance:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });
