@@ -25,7 +25,7 @@ export default function UserManagement() {
     queryKey: ['users'],
     queryFn: async () => {
       console.log('Fetching users...');
-      const allUsers = await base44.asServiceRole.entities.User.list();
+      const allUsers = await base44.entities.User.list();
       console.log('Fetched users:', allUsers);
       return allUsers;
     },
@@ -33,26 +33,26 @@ export default function UserManagement() {
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers'],
-    queryFn: () => base44.asServiceRole.entities.Teacher.list(),
+    queryFn: () => base44.entities.Teacher.list(),
   });
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
-    queryFn: () => base44.asServiceRole.entities.Student.list(),
+    queryFn: () => base44.entities.Student.list(),
   });
 
   const { data: parents = [] } = useQuery({
     queryKey: ['parents'],
-    queryFn: () => base44.asServiceRole.entities.Parent.list(),
+    queryFn: () => base44.entities.Parent.list(),
   });
 
   const { data: vendors = [] } = useQuery({
     queryKey: ['vendors'],
-    queryFn: () => base44.asServiceRole.entities.Vendor.list(),
+    queryFn: () => base44.entities.Vendor.list(),
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, data }) => base44.asServiceRole.entities.User.update(userId, data),
+    mutationFn: ({ userId, data }) => base44.entities.User.update(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('User updated successfully');
