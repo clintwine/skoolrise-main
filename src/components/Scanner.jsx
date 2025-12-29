@@ -18,8 +18,10 @@ export default function Scanner({
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let html5QrcodeScannerInstance;
+
     if (isOpen && !scanner) {
-      const html5QrcodeScanner = new Html5QrcodeScanner(
+      html5QrcodeScannerInstance = new Html5QrcodeScanner(
         "qr-reader",
         { 
           fps: 10, 
@@ -35,21 +37,23 @@ export default function Scanner({
             8, // CODE_93
             9, // CODE_128
             10, // ITF
-          ]
+          ],
+          videoConstraints: { facingMode: { exact: "environment" } }
         },
         false
       );
 
-      html5QrcodeScanner.render(
+      html5QrcodeScannerInstance.render(
         (decodedText, decodedResult) => {
           setScanResult(decodedText);
-          html5QrcodeScanner.clear();
+          if (html5QrcodeScannerInstance) {
+            html5QrcodeScannerInstance.clear().catch(err => console.error('Error clearing scanner after success:', err));
+          }
           if (onScanSuccess) {
             onScanSuccess(decodedText);
           }
         },
         (errorMessage) => {
-          // Ignore frequent scanning errors
           if (!errorMessage.includes('NotFoundException')) {
             setError(errorMessage);
             if (onScanError) {
@@ -59,12 +63,12 @@ export default function Scanner({
         }
       );
 
-      setScanner(html5QrcodeScanner);
+      setScanner(html5QrcodeScannerInstance);
     }
 
     return () => {
-      if (scanner) {
-        scanner.clear().catch(err => console.error('Error clearing scanner:', err));
+      if (html5QrcodeScannerInstance) {
+        html5QrcodeScannerInstance.clear().catch(err => console.error('Error clearing scanner:', err));
       }
     };
   }, [isOpen]);
@@ -72,8 +76,8 @@ export default function Scanner({
   const handleClose = () => {
     if (scanner) {
       scanner.clear().catch(err => console.error('Error clearing scanner:', err));
-      setScanner(null);
     }
+    setScanner(null);
     setScanResult(null);
     setError(null);
     onClose();
