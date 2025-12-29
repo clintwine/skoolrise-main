@@ -188,15 +188,14 @@ export default function BiometricAttendance() {
               <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Export
             </Button>
-            {attendanceScannerEnabled && (
-              <Button
-                onClick={() => setScannerOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-sm px-3 py-2"
-              >
-                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                Scan Student
-              </Button>
-            )}
+            <Button
+              onClick={() => setScannerOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-sm px-3 py-2"
+              disabled={!attendanceScannerEnabled}
+            >
+              <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              Scan Student
+            </Button>
             <Button
               onClick={() => {
                 const randomStudent = students[Math.floor(Math.random() * students.length)];
@@ -214,6 +213,13 @@ export default function BiometricAttendance() {
           </div>
         </CardContent>
       </Card>
+
+      {!attendanceScannerEnabled && (
+        <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-3 sm:p-4 rounded-lg flex items-center gap-2 text-sm sm:text-base">
+          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+          Biometric attendance scanner is disabled. Enable it in Scanner Settings.
+        </div>
+      )}
 
       {/* Records Table */}
       <Card className="bg-white shadow-md">
