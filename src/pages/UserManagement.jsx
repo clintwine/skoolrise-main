@@ -21,9 +21,14 @@ export default function UserManagement() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.asServiceRole.entities.User.list(),
+    queryFn: async () => {
+      console.log('Fetching users...');
+      const allUsers = await base44.asServiceRole.entities.User.list();
+      console.log('Fetched users:', allUsers);
+      return allUsers;
+    },
   });
 
   const { data: teachers = [] } = useQuery({
@@ -131,20 +136,26 @@ export default function UserManagement() {
     return matchesSearch && matchesType;
   });
 
-  const getUserTypeColor = (type) => {
-    const colors = {
-      admin: 'bg-purple-100 text-purple-700',
-      teacher: 'bg-blue-100 text-blue-700',
-      student: 'bg-green-100 text-green-700',
-      parent: 'bg-orange-100 text-orange-700'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-700';
-  };
+  console.log('All users:', users);
+  console.log('Filtered users:', filteredUsers);
+  console.log('Is loading:', isLoading);
+  console.log('Error:', error);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 font-semibold">Error loading users</p>
+          <p className="text-gray-600 mt-2">{error.message}</p>
+        </div>
       </div>
     );
   }
@@ -174,6 +185,7 @@ export default function UserManagement() {
             <SelectItem value="teacher">Teacher</SelectItem>
             <SelectItem value="student">Student</SelectItem>
             <SelectItem value="parent">Parent</SelectItem>
+            <SelectItem value="vendor">Vendor</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -186,126 +198,132 @@ export default function UserManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3 text-sm font-semibold">Email</th>
-                  <th className="text-left p-3 text-sm font-semibold">Name</th>
-                  <th className="text-left p-3 text-sm font-semibold">User Types</th>
-                  <th className="text-left p-3 text-sm font-semibold">Linked Details</th>
-                  <th className="text-left p-3 text-sm font-semibold">Status</th>
-                  <th className="text-right p-3 text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => {
-                  const userTypes = user.user_types || [];
-                  const linked = getLinkedEntity(user);
-                  return (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-sm">{user.email}</td>
-                    <td className="p-3 text-sm">{user.full_name || '-'}</td>
-                    <td className="p-3">
-                      <div className="space-y-2">
-                        {['admin', 'teacher', 'student', 'parent', 'vendor'].map((type) => (
-                          <label key={type} className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={userTypes.includes(type)}
-                              onCheckedChange={() => handleToggleUserType(user.id, type, userTypes)}
-                            />
-                            <span className="text-xs capitalize">{type}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="p-3 text-xs">
-                      {linked.teacher && <div>Teacher: {linked.teacher.first_name} {linked.teacher.last_name}</div>}
-                      {linked.student && <div>Student: {linked.student.first_name} {linked.student.last_name}</div>}
-                      {linked.parent && <div>Parent: {linked.parent.first_name} {linked.parent.last_name}</div>}
-                      {linked.vendor && <div>Vendor: {linked.vendor.business_name}</div>}
-                      {!linked.teacher && !linked.student && !linked.parent && !linked.vendor && <span className="text-gray-400">-</span>}
-                    </td>
-                    <td className="p-3">
-                      {user.is_activated ? (
-                        <Badge className="bg-green-100 text-green-700">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-red-100 text-red-700">
-                          <XCircle className="w-3 h-3 mr-1" />
-                          Inactive
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="p-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant={user.is_activated ? "outline" : "default"}
-                          onClick={() => handleToggleActivation(user)}
-                          title={user.is_activated ? "Deactivate user" : "Activate user"}
-                        >
-                          <Power className="w-4 h-4 mr-1" />
-                          {user.is_activated ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleGenerateCode(user)}
-                            >
-                              <Key className="w-4 h-4 mr-1" />
-                              Code
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Activation Code Generated</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label>User</Label>
-                                <p className="text-sm text-gray-600">{selectedUser?.email}</p>
-                              </div>
-                              {generatedCode && (
-                                <>
-                                  <div>
-                                    <Label>Activation Code</Label>
-                                    <div className="flex gap-2 mt-2">
-                                      <Input
-                                        value={generatedCode}
-                                        readOnly
-                                        className="font-mono text-lg text-center"
-                                      />
-                                      <Button onClick={handleCopyCode} variant="outline">
-                                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                      </Button>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">Valid for 48 hours</p>
-                                  </div>
-                                  <Button 
-                                    onClick={() => handleSendCodeByEmail(selectedUser)}
-                                    className="w-full"
-                                  >
-                                    <Mail className="w-4 h-4 mr-2" />
-                                    Send Code via Email
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </td>
+          {users.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No users found. Check browser console for debug logs.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-3 text-sm font-semibold">Email</th>
+                    <th className="text-left p-3 text-sm font-semibold">Name</th>
+                    <th className="text-left p-3 text-sm font-semibold">User Types</th>
+                    <th className="text-left p-3 text-sm font-semibold">Linked Details</th>
+                    <th className="text-left p-3 text-sm font-semibold">Status</th>
+                    <th className="text-right p-3 text-sm font-semibold">Actions</th>
                   </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => {
+                    const userTypes = user.user_types || [];
+                    const linked = getLinkedEntity(user);
+                    return (
+                    <tr key={user.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3 text-sm">{user.email}</td>
+                      <td className="p-3 text-sm">{user.full_name || '-'}</td>
+                      <td className="p-3">
+                        <div className="space-y-2">
+                          {['admin', 'teacher', 'student', 'parent', 'vendor'].map((type) => (
+                            <label key={type} className="flex items-center gap-2 cursor-pointer">
+                              <Checkbox
+                                checked={userTypes.includes(type)}
+                                onCheckedChange={() => handleToggleUserType(user.id, type, userTypes)}
+                              />
+                              <span className="text-xs capitalize">{type}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="p-3 text-xs">
+                        {linked.teacher && <div>Teacher: {linked.teacher.first_name} {linked.teacher.last_name}</div>}
+                        {linked.student && <div>Student: {linked.student.first_name} {linked.student.last_name}</div>}
+                        {linked.parent && <div>Parent: {linked.parent.first_name} {linked.parent.last_name}</div>}
+                        {linked.vendor && <div>Vendor: {linked.vendor.business_name}</div>}
+                        {!linked.teacher && !linked.student && !linked.parent && !linked.vendor && <span className="text-gray-400">-</span>}
+                      </td>
+                      <td className="p-3">
+                        {user.is_activated ? (
+                          <Badge className="bg-green-100 text-green-700">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-red-100 text-red-700">
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Inactive
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant={user.is_activated ? "outline" : "default"}
+                            onClick={() => handleToggleActivation(user)}
+                            title={user.is_activated ? "Deactivate user" : "Activate user"}
+                          >
+                            <Power className="w-4 h-4 mr-1" />
+                            {user.is_activated ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleGenerateCode(user)}
+                              >
+                                <Key className="w-4 h-4 mr-1" />
+                                Code
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Activation Code Generated</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label>User</Label>
+                                  <p className="text-sm text-gray-600">{selectedUser?.email}</p>
+                                </div>
+                                {generatedCode && (
+                                  <>
+                                    <div>
+                                      <Label>Activation Code</Label>
+                                      <div className="flex gap-2 mt-2">
+                                        <Input
+                                          value={generatedCode}
+                                          readOnly
+                                          className="font-mono text-lg text-center"
+                                        />
+                                        <Button onClick={handleCopyCode} variant="outline">
+                                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                        </Button>
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-1">Valid for 48 hours</p>
+                                    </div>
+                                    <Button 
+                                      onClick={() => handleSendCodeByEmail(selectedUser)}
+                                      className="w-full"
+                                    >
+                                      <Mail className="w-4 h-4 mr-2" />
+                                      Send Code via Email
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
