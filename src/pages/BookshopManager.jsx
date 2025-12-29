@@ -33,66 +33,66 @@ export default function BookshopManager() {
   const pendingPOs = purchaseOrders.filter(po => po.status === 'Pending Approval' || po.status === 'Approved');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Bookshop Management</h1>
-        <p className="text-gray-600 mt-1">Manage procurement, inventory, and sales</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Bookshop Management</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Manage procurement, inventory, and sales</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Low Stock Items</p>
-                <p className="text-3xl font-bold text-red-600">{lowStockItems.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Low Stock Items</p>
+                <p className="text-2xl sm:text-3xl font-bold text-red-600">{lowStockItems.length}</p>
               </div>
-              <AlertCircle className="w-10 h-10 text-red-600" />
+              <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 text-red-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Inventory Items</p>
-                <p className="text-3xl font-bold text-blue-600">{inventory.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Inventory Items</p>
+                <p className="text-2xl sm:text-3xl font-bold text-blue-600">{inventory.length}</p>
               </div>
-              <Package className="w-10 h-10 text-blue-600" />
+              <Package className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending Purchase Orders</p>
-                <p className="text-3xl font-bold text-orange-600">{pendingPOs.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Pending Purchase Orders</p>
+                <p className="text-2xl sm:text-3xl font-bold text-orange-600">{pendingPOs.length}</p>
               </div>
-              <ShoppingCart className="w-10 h-10 text-orange-600" />
+              <ShoppingCart className="w-8 h-8 sm:w-10 sm:h-10 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="procurement" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="procurement">Procurement</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-10 sm:h-auto p-1">
+          <TabsTrigger value="procurement" className="text-xs sm:text-base py-2">Procurement</TabsTrigger>
+          <TabsTrigger value="inventory" className="text-xs sm:text-base py-2">Inventory</TabsTrigger>
+          <TabsTrigger value="purchase-orders" className="text-xs sm:text-base py-2">Purchase Orders</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="procurement" className="mt-6">
+        <TabsContent value="procurement" className="mt-4 sm:mt-6">
           <ProcurementView scannerEnabled={isbnScannerEnabled} />
         </TabsContent>
 
-        <TabsContent value="inventory" className="mt-6">
+        <TabsContent value="inventory" className="mt-4 sm:mt-6">
           <InventoryView />
         </TabsContent>
 
-        <TabsContent value="purchase-orders" className="mt-6">
+        <TabsContent value="purchase-orders" className="mt-4 sm:mt-6">
           <PurchaseOrdersView />
         </TabsContent>
       </Tabs>

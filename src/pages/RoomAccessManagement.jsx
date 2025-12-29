@@ -99,15 +99,15 @@ export default function RoomAccessManagement() {
 
   if (!roomAccessEnabled) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
         <Card className="max-w-md">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Room Access Scanner Disabled</h2>
-            <p className="text-gray-600 mb-4">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-lg sm:text-xl font-semibold mb-2">Room Access Scanner Disabled</h2>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
               The room access scanner feature is currently disabled. Please enable it in Scanner Settings.
             </p>
-            <Button onClick={() => window.location.href = '/scanner-settings'}>
+            <Button onClick={() => window.location.href = '/scanner-settings'} className="text-sm sm:text-base">
               Go to Scanner Settings
             </Button>
           </CardContent>
@@ -117,44 +117,44 @@ export default function RoomAccessManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Room Access Management</h1>
-        <p className="text-gray-600 mt-1">Track room entry and exit via QR scanner</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Room Access Management</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Track room entry and exit via QR scanner</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Entries</p>
-                <p className="text-2xl font-bold text-green-600">{entriesCount}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Entries</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{entriesCount}</p>
               </div>
-              <DoorOpen className="w-8 h-8 text-green-600" />
+              <DoorOpen className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Exits</p>
-                <p className="text-2xl font-bold text-orange-600">{exitsCount}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Exits</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{exitsCount}</p>
               </div>
-              <DoorOpen className="w-8 h-8 text-orange-600 rotate-180" />
+              <DoorOpen className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600 rotate-180" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Currently Inside</p>
-                <p className="text-2xl font-bold text-blue-600">{entriesCount - exitsCount}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Currently Inside</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">{entriesCount - exitsCount}</p>
               </div>
-              <User className="w-8 h-8 text-blue-600" />
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -162,28 +162,30 @@ export default function RoomAccessManagement() {
 
       {/* Scanner Controls */}
       <Card className="bg-white shadow-md">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <Label>Room ID *</Label>
+              <Label className="text-sm">Room ID *</Label>
               <Input
                 value={selectedRoom}
                 onChange={(e) => setSelectedRoom(e.target.value)}
                 placeholder="e.g., LAB-101"
+                className="py-2 text-sm"
               />
             </div>
             <div>
-              <Label>Room Name</Label>
+              <Label className="text-sm">Room Name</Label>
               <Input
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 placeholder="e.g., Computer Lab"
+                className="py-2 text-sm"
               />
             </div>
             <div>
-              <Label>Access Type</Label>
+              <Label className="text-sm">Access Type</Label>
               <Select value={accessType} onValueChange={setAccessType}>
-                <SelectTrigger>
+                <SelectTrigger className="py-2 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,9 +198,9 @@ export default function RoomAccessManagement() {
               <Button
                 onClick={() => setScannerOpen(true)}
                 disabled={!selectedRoom}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-sm py-2"
               >
-                <Camera className="w-4 h-4 mr-2" />
+                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 Scan Access
               </Button>
             </div>
@@ -208,18 +210,18 @@ export default function RoomAccessManagement() {
 
       {/* Access Logs */}
       <Card className="bg-white shadow-md">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Access Logs - {format(new Date(selectedDate), 'MMMM d, yyyy')}</CardTitle>
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+            <CardTitle className="text-base sm:text-lg">Access Logs - {format(new Date(selectedDate), 'MMMM d, yyyy')}</CardTitle>
             <Input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-48"
+              className="w-full sm:w-48 text-sm"
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -228,30 +230,30 @@ export default function RoomAccessManagement() {
             <p className="text-center text-gray-500 py-8">No access logs for this date</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Person</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Access Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Scanned By</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Person</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Room</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Access Type</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Scanned By</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {accessLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.user_name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{log.room_name || log.room_id}</td>
-                      <td className="px-6 py-4">
-                        <Badge className={log.access_type === 'Entry' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium text-gray-900">{log.user_name}</td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600 hidden sm:table-cell">{log.room_name || log.room_id}</td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <Badge className={`${log.access_type === 'Entry' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'} text-xs`}>
                           {log.access_type}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-900">
                         {format(new Date(log.timestamp), 'HH:mm:ss')}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{log.scanned_by_name}</td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600 hidden lg:table-cell">{log.scanned_by_name}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -272,25 +274,25 @@ export default function RoomAccessManagement() {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-xs sm:max-w-md bg-white p-4">
           <DialogHeader>
-            <DialogTitle>Confirm Room Access</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Confirm Room Access</DialogTitle>
           </DialogHeader>
           {scannedPerson && (
             <div className="space-y-4">
-              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+              <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border-2 border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <User className="w-5 h-5 text-blue-600" />
-                  <span className="font-semibold text-blue-900">Person Details</span>
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <span className="font-semibold text-sm sm:text-base text-blue-900">Person Details</span>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Name:</span>
                     <span className="font-medium">{scannedPerson.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Type:</span>
-                    <Badge variant="outline">{scannedPerson.type}</Badge>
+                    <Badge variant="outline" className="text-xs">{scannedPerson.type}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Room:</span>
@@ -298,17 +300,17 @@ export default function RoomAccessManagement() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Access:</span>
-                    <Badge className={accessType === 'Entry' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}>
+                    <Badge className={`${accessType === 'Entry' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'} text-xs`}>
                       {accessType}
                     </Badge>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} className="flex-1">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} className="flex-1 text-sm">
                   Cancel
                 </Button>
-                <Button onClick={handleConfirmAccess} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleConfirmAccess} className="flex-1 bg-blue-600 hover:bg-blue-700 text-sm">
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Confirm
                 </Button>

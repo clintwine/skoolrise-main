@@ -118,55 +118,55 @@ export default function BiometricAttendance() {
   const lateCount = biometricRecords.filter(r => r.status === 'Late').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Biometric Attendance</h1>
-        <p className="text-gray-600 mt-1">Real-time attendance tracking via biometric devices</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Biometric Attendance</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Real-time attendance tracking via biometric devices</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Check-Ins</p>
-                <p className="text-2xl font-bold text-gray-900">{checkIns.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Check-Ins</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{checkIns.length}</p>
               </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
+              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Check-Outs</p>
-                <p className="text-2xl font-bold text-gray-900">{checkOuts.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Check-Outs</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{checkOuts.length}</p>
               </div>
-              <Clock className="w-8 h-8 text-blue-600" />
+              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Late Arrivals</p>
-                <p className="text-2xl font-bold text-orange-600">{lateCount}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Late Arrivals</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{lateCount}</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-orange-600" />
+              <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Devices Active</p>
-                <p className="text-2xl font-bold text-blue-600">3</p>
+                <p className="text-xs sm:text-sm text-gray-600">Devices Active</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">3</p>
               </div>
-              <Fingerprint className="w-8 h-8 text-blue-600" />
+              <Fingerprint className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -174,25 +174,26 @@ export default function BiometricAttendance() {
 
       {/* Controls */}
       <Card className="bg-white shadow-md">
-        <CardContent className="p-4">
-          <div className="flex gap-4 items-center">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
             <div className="flex-1">
               <Input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
+                className="text-sm"
               />
             </div>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
+            <Button variant="outline" className="text-sm px-3 py-2">
+              <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Export
             </Button>
             {attendanceScannerEnabled && (
               <Button
                 onClick={() => setScannerOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 text-sm px-3 py-2"
               >
-                <Camera className="w-4 h-4 mr-2" />
+                <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                 Scan Student
               </Button>
             )}
@@ -205,9 +206,10 @@ export default function BiometricAttendance() {
               }}
               variant="outline"
               disabled={students.length === 0}
+              className="text-sm px-3 py-2"
             >
-              <Fingerprint className="w-4 h-4 mr-2" />
-              Simulate Check-In
+              <Fingerprint className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              Simulate
             </Button>
           </div>
         </CardContent>
@@ -215,10 +217,10 @@ export default function BiometricAttendance() {
 
       {/* Records Table */}
       <Card className="bg-white shadow-md">
-        <CardHeader>
-          <CardTitle>Attendance Records - {format(new Date(selectedDate), 'MMMM d, yyyy')}</CardTitle>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Attendance Records - {format(new Date(selectedDate), 'MMMM d, yyyy')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -227,36 +229,36 @@ export default function BiometricAttendance() {
             <p className="text-center text-gray-500 py-8">No biometric records for this date</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Biometric ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Biometric ID</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Device</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {biometricRecords.map((record) => (
                     <tr key={record.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{record.student_name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{record.biometric_id}</td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium text-gray-900">{record.student_name}</td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600 hidden sm:table-cell">{record.biometric_id}</td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <Badge variant="outline" className="text-xs">
                           {record.type}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-900">
                         {format(new Date(record.timestamp), 'HH:mm:ss')}
                       </td>
-                      <td className="px-6 py-4">
-                        <Badge className={statusColors[record.status]}>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <Badge className={`${statusColors[record.status]} text-xs`}>
                           {record.status}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{record.device_id}</td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600 hidden lg:table-cell">{record.device_id}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -268,12 +270,12 @@ export default function BiometricAttendance() {
 
       {/* API Integration Info */}
       <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">Biometric Device Integration</h3>
-          <p className="text-sm text-blue-800 mb-3">
+        <CardContent className="p-4 sm:p-6">
+          <h3 className="font-semibold text-sm sm:text-base text-blue-900 mb-2">Biometric Device Integration</h3>
+          <p className="text-xs sm:text-sm text-blue-800 mb-3">
             Connect your biometric devices (fingerprint scanners, card readers) via our REST API endpoint:
           </p>
-          <code className="block bg-white p-3 rounded text-sm">
+          <code className="block bg-white p-2 sm:p-3 rounded text-xs sm:text-sm overflow-x-auto">
             POST /api/biometric-attendance
             <br />
             {"{"} student_id, biometric_id, timestamp, type {"}"}
