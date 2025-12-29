@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,7 @@ export default function Scanner({
       try {
         // Clear any existing scanner
         if (scannerRef.current) {
-          await scannerRef.current.clear();
+          await scannerRef.current.stop();
           scannerRef.current = null;
         }
 
@@ -38,29 +38,28 @@ export default function Scanner({
           throw new Error('Scanner element not found in DOM');
         }
 
-        // Create new scanner instance
-        const scanner = new Html5QrcodeScanner(
-          "qr-reader",
-          { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 },
-            formatsToSupport: [
-              0, // QR_CODE
-              1, // UPC_A
-              2, // UPC_E
-              3, // EAN_8
-              4, // EAN_13
-              7, // CODE_39
-              8, // CODE_93
-              9, // CODE_128
-              10, // ITF
-            ],
-            rememberLastUsedCamera: true
-          },
-          false
-        );
+        // Create new scanner instance for direct camera access
+        const scanner = new Html5Qrcode("qr-reader");
 
-        scanner.render(
+        const config = {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          formatsToSupport: [
+            0, // QR_CODE
+            1, // UPC_A
+            2, // UPC_E
+            3, // EAN_8
+            4, // EAN_13
+            7, // CODE_39
+            8, // CODE_93
+            9, // CODE_128
+            10, // ITF
+          ]
+        };
+
+        await scanner.start(
+          { facingMode: "environment" },
+          config,
           (decodedText, decodedResult) => {
             console.log('Scan successful:', decodedText);
             setScanResult(decodedText);
@@ -69,13 +68,7 @@ export default function Scanner({
             }
           },
           (errorMessage) => {
-            if (!errorMessage.includes('NotFoundException')) {
-              console.error('Scanner error:', errorMessage);
-              setError(errorMessage);
-              if (onScanError) {
-                onScanError(errorMessage);
-              }
-            }
+            // Ignore NotFoundException errors (no code in frame)
           }
         );
 
@@ -92,7 +85,7 @@ export default function Scanner({
     return () => {
       if (scannerRef.current) {
         console.log('Cleaning up scanner...');
-        scannerRef.current.clear().catch(err => console.error('Error clearing scanner:', err));
+        scannerRef.current.stop().catch(err => console.error('Error stopping scanner:', err));
         scannerRef.current = null;
       }
     };
@@ -100,7 +93,7 @@ export default function Scanner({
 
   const handleClose = async () => {
     if (scannerRef.current) {
-      await scannerRef.current.clear().catch(err => console.error('Error clearing scanner:', err));
+      await scannerRef.current.stop().catch(err => console.error('Error stopping scanner:', err));
       scannerRef.current = null;
     }
     setScanResult(null);
