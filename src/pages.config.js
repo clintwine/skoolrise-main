@@ -1,11 +1,13 @@
 import AIGradingAssistant from './pages/AIGradingAssistant';
 import AILessonPlanner from './pages/AILessonPlanner';
 import AcademicSessions from './pages/AcademicSessions';
+import ActivationPage from './pages/ActivationPage';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
 import AttendanceManagement from './pages/AttendanceManagement';
+import BackupSettings from './pages/BackupSettings';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import BehaviorManagement from './pages/BehaviorManagement';
 import BiometricAttendance from './pages/BiometricAttendance';
@@ -15,16 +17,20 @@ import ClassArms from './pages/ClassArms';
 import ClassDiscussions from './pages/ClassDiscussions';
 import ClassManagement from './pages/ClassManagement';
 import ClassroomResources from './pages/ClassroomResources';
+import ConferenceScheduling from './pages/ConferenceScheduling';
 import ContactLists from './pages/ContactLists';
 import Contacts from './pages/Contacts';
 import CourseManagement from './pages/CourseManagement';
 import CreateInvoice from './pages/CreateInvoice';
 import CreateReportCard from './pages/CreateReportCard';
+import CurriculumMapping from './pages/CurriculumMapping';
 import Dashboard from './pages/Dashboard';
 import DeliveryReports from './pages/DeliveryReports';
+import DetailedExamAnalytics from './pages/DetailedExamAnalytics';
 import EnrollmentManagement from './pages/EnrollmentManagement';
 import EventCalendar from './pages/EventCalendar';
 import ExamAnalytics from './pages/ExamAnalytics';
+import ExamAttemptReview from './pages/ExamAttemptReview';
 import ExamCreator from './pages/ExamCreator';
 import ExamManagement from './pages/ExamManagement';
 import ExamResults from './pages/ExamResults';
@@ -37,6 +43,7 @@ import GradeExam from './pages/GradeExam';
 import Gradebook from './pages/Gradebook';
 import GradingScales from './pages/GradingScales';
 import InstalmentPlans from './pages/InstalmentPlans';
+import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
 import NotificationsSettings from './pages/NotificationsSettings';
 import ParentAttendance from './pages/ParentAttendance';
@@ -47,7 +54,10 @@ import ParentHomework from './pages/ParentHomework';
 import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
 import ParentStudentView from './pages/ParentStudentView';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProctoringAnalytics from './pages/ProctoringAnalytics';
+import ProctoringMonitor from './pages/ProctoringMonitor';
+import ProfileSetupPage from './pages/ProfileSetupPage';
 import PublicApplicationForm from './pages/PublicApplicationForm';
 import QuestionBank from './pages/QuestionBank';
 import ReportCardsManagement from './pages/ReportCardsManagement';
@@ -68,22 +78,12 @@ import TeacherAssignments from './pages/TeacherAssignments';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
 import TermsManagement from './pages/TermsManagement';
+import TermsOfService from './pages/TermsOfService';
 import TimetableManagement from './pages/TimetableManagement';
 import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ExamAttemptReview from './pages/ExamAttemptReview';
-import ProctoringMonitor from './pages/ProctoringMonitor';
-import DetailedExamAnalytics from './pages/DetailedExamAnalytics';
-import CurriculumMapping from './pages/CurriculumMapping';
-import ConferenceScheduling from './pages/ConferenceScheduling';
-import BackupSettings from './pages/BackupSettings';
-import LandingPage from './pages/LandingPage';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import ActivationPage from './pages/ActivationPage';
-import ProfileSetupPage from './pages/ProfileSetupPage';
 import __Layout from './Layout.jsx';
 
 
@@ -91,11 +91,13 @@ export const PAGES = {
     "AIGradingAssistant": AIGradingAssistant,
     "AILessonPlanner": AILessonPlanner,
     "AcademicSessions": AcademicSessions,
+    "ActivationPage": ActivationPage,
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
     "AdminReportsDashboard": AdminReportsDashboard,
     "AdmissionsManagement": AdmissionsManagement,
     "AttendanceManagement": AttendanceManagement,
+    "BackupSettings": BackupSettings,
     "BehaviorAnalytics": BehaviorAnalytics,
     "BehaviorManagement": BehaviorManagement,
     "BiometricAttendance": BiometricAttendance,
@@ -105,16 +107,20 @@ export const PAGES = {
     "ClassDiscussions": ClassDiscussions,
     "ClassManagement": ClassManagement,
     "ClassroomResources": ClassroomResources,
+    "ConferenceScheduling": ConferenceScheduling,
     "ContactLists": ContactLists,
     "Contacts": Contacts,
     "CourseManagement": CourseManagement,
     "CreateInvoice": CreateInvoice,
     "CreateReportCard": CreateReportCard,
+    "CurriculumMapping": CurriculumMapping,
     "Dashboard": Dashboard,
     "DeliveryReports": DeliveryReports,
+    "DetailedExamAnalytics": DetailedExamAnalytics,
     "EnrollmentManagement": EnrollmentManagement,
     "EventCalendar": EventCalendar,
     "ExamAnalytics": ExamAnalytics,
+    "ExamAttemptReview": ExamAttemptReview,
     "ExamCreator": ExamCreator,
     "ExamManagement": ExamManagement,
     "ExamResults": ExamResults,
@@ -127,6 +133,7 @@ export const PAGES = {
     "Gradebook": Gradebook,
     "GradingScales": GradingScales,
     "InstalmentPlans": InstalmentPlans,
+    "LandingPage": LandingPage,
     "MessagingCenter": MessagingCenter,
     "NotificationsSettings": NotificationsSettings,
     "ParentAttendance": ParentAttendance,
@@ -137,7 +144,10 @@ export const PAGES = {
     "ParentPortal": ParentPortal,
     "ParentReports": ParentReports,
     "ParentStudentView": ParentStudentView,
+    "PrivacyPolicy": PrivacyPolicy,
     "ProctoringAnalytics": ProctoringAnalytics,
+    "ProctoringMonitor": ProctoringMonitor,
+    "ProfileSetupPage": ProfileSetupPage,
     "PublicApplicationForm": PublicApplicationForm,
     "QuestionBank": QuestionBank,
     "ReportCardsManagement": ReportCardsManagement,
@@ -158,22 +168,12 @@ export const PAGES = {
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
     "TermsManagement": TermsManagement,
+    "TermsOfService": TermsOfService,
     "TimetableManagement": TimetableManagement,
     "UserManagement": UserManagement,
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ExamAttemptReview": ExamAttemptReview,
-    "ProctoringMonitor": ProctoringMonitor,
-    "DetailedExamAnalytics": DetailedExamAnalytics,
-    "CurriculumMapping": CurriculumMapping,
-    "ConferenceScheduling": ConferenceScheduling,
-    "BackupSettings": BackupSettings,
-    "LandingPage": LandingPage,
-    "PrivacyPolicy": PrivacyPolicy,
-    "TermsOfService": TermsOfService,
-    "ActivationPage": ActivationPage,
-    "ProfileSetupPage": ProfileSetupPage,
 }
 
 export const pagesConfig = {

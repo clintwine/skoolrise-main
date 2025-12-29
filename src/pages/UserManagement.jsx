@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Users, Key, CheckCircle, XCircle, Mail, Copy, Check, Power } from 'lucide-react';
@@ -23,6 +24,26 @@ export default function UserManagement() {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.asServiceRole.entities.User.list(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: () => base44.asServiceRole.entities.Teacher.list(),
+  });
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => base44.asServiceRole.entities.Student.list(),
+  });
+
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents'],
+    queryFn: () => base44.asServiceRole.entities.Parent.list(),
+  });
+
+  const { data: vendors = [] } = useQuery({
+    queryKey: ['vendors'],
+    queryFn: () => base44.asServiceRole.entities.Vendor.list(),
   });
 
   const updateUserMutation = useMutation({
@@ -82,10 +103,31 @@ export default function UserManagement() {
     });
   };
 
+  const handleToggleUserType = (userId, userType, currentTypes) => {
+    const types = currentTypes || [];
+    const newTypes = types.includes(userType)
+      ? types.filter(t => t !== userType)
+      : [...types, userType];
+    
+    updateUserMutation.mutate({
+      userId,
+      data: { user_types: newTypes }
+    });
+  };
+
+  const getLinkedEntity = (user) => {
+    const teacher = teachers.find(t => t.user_id === user.id);
+    const student = students.find(s => s.user_id === user.id);
+    const parent = parents.find(p => p.user_id === user.id);
+    const vendor = vendors.find(v => v.user_id === user.id);
+    return { teacher, student, parent, vendor };
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || user.user_type === filterType;
+    const userTypes = user.user_types || [];
+    const matchesType = filterType === 'all' || userTypes.includes(filterType);
     return matchesSearch && matchesType;
   });
 
@@ -150,54 +192,51 @@ export default function UserManagement() {
                 <tr className="border-b">
                   <th className="text-left p-3 text-sm font-semibold">Email</th>
                   <th className="text-left p-3 text-sm font-semibold">Name</th>
-                  <th className="text-left p-3 text-sm font-semibold">User Type</th>
+                  <th className="text-left p-3 text-sm font-semibold">User Types</th>
+                  <th className="text-left p-3 text-sm font-semibold">Linked Details</th>
                   <th className="text-left p-3 text-sm font-semibold">Status</th>
-                  <th className="text-left p-3 text-sm font-semibold">Profile</th>
                   <th className="text-right p-3 text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {filteredUsers.map((user) => {
+                  const userTypes = user.user_types || [];
+                  const linked = getLinkedEntity(user);
+                  return (
                   <tr key={user.id} className="border-b hover:bg-gray-50">
                     <td className="p-3 text-sm">{user.email}</td>
                     <td className="p-3 text-sm">{user.full_name || '-'}</td>
                     <td className="p-3">
-                      <Select
-                        value={user.user_type || 'teacher'}
-                        onValueChange={(value) => updateUserMutation.mutate({ 
-                          userId: user.id, 
-                          data: { user_type: value } 
-                        })}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="teacher">Teacher</SelectItem>
-                          <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="parent">Parent</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        {['admin', 'teacher', 'student', 'parent', 'vendor'].map((type) => (
+                          <label key={type} className="flex items-center gap-2 cursor-pointer">
+                            <Checkbox
+                              checked={userTypes.includes(type)}
+                              onCheckedChange={() => handleToggleUserType(user.id, type, userTypes)}
+                            />
+                            <span className="text-xs capitalize">{type}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-3 text-xs">
+                      {linked.teacher && <div>Teacher: {linked.teacher.first_name} {linked.teacher.last_name}</div>}
+                      {linked.student && <div>Student: {linked.student.first_name} {linked.student.last_name}</div>}
+                      {linked.parent && <div>Parent: {linked.parent.first_name} {linked.parent.last_name}</div>}
+                      {linked.vendor && <div>Vendor: {linked.vendor.business_name}</div>}
+                      {!linked.teacher && !linked.student && !linked.parent && !linked.vendor && <span className="text-gray-400">-</span>}
                     </td>
                     <td className="p-3">
                       {user.is_activated ? (
                         <Badge className="bg-green-100 text-green-700">
                           <CheckCircle className="w-3 h-3 mr-1" />
-                          Activated
+                          Active
                         </Badge>
                       ) : (
                         <Badge className="bg-red-100 text-red-700">
                           <XCircle className="w-3 h-3 mr-1" />
-                          Not Activated
+                          Inactive
                         </Badge>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {user.profile_completed ? (
-                        <Badge className="bg-blue-100 text-blue-700">Complete</Badge>
-                      ) : (
-                        <Badge variant="outline">Incomplete</Badge>
                       )}
                     </td>
                     <td className="p-3 text-right">
@@ -262,7 +301,8 @@ export default function UserManagement() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
