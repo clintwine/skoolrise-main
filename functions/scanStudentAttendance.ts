@@ -9,14 +9,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { student_id, action } = await req.json();
+    const { student_id_number, action } = await req.json();
 
-    if (!student_id) {
-      return Response.json({ error: 'student_id is required' }, { status: 400 });
+    if (!student_id_number) {
+      return Response.json({ error: 'student_id_number is required' }, { status: 400 });
     }
 
     // Fetch student details
-    const students = await base44.entities.Student.filter({ id: student_id });
+    const students = await base44.entities.Student.filter({ student_id_number: student_id_number });
     if (students.length === 0) {
       return Response.json({ error: 'Student not found' }, { status: 404 });
     }
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
         student: {
           id: student.id,
           name: `${student.first_name} ${student.last_name}`,
-          student_id: student.student_id_number,
+          student_id_number: student.student_id_number,
           photo_url: student.photo_url,
           grade_level: student.grade_level
         }
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
       student: {
         id: student.id,
         name: `${student.first_name} ${student.last_name}`,
-        student_id: student.student_id_number,
+        student_id_number: student.student_id_number,
         photo_url: student.photo_url,
         grade_level: student.grade_level,
         status: student.status

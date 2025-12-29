@@ -71,7 +71,7 @@ export default function BiometricAttendance() {
     try {
       // Fetch student details
       const response = await base44.functions.invoke('scanStudentAttendance', {
-        student_id: data
+        student_id_number: data
       });
 
       if (response.data.success) {
@@ -89,10 +89,10 @@ export default function BiometricAttendance() {
     if (!scannedStudent) return;
 
     try {
-      const response = await base44.functions.invoke('scanStudentAttendance', {
-        student_id: scannedStudent.id,
-        action: 'confirm'
-      });
+        const response = await base44.functions.invoke('scanStudentAttendance', {
+          student_id_number: scannedStudent.student_id_number,
+          action: 'confirm'
+        });
 
       if (response.data.success) {
         toast.success('Attendance recorded successfully');
@@ -324,7 +324,7 @@ export default function BiometricAttendance() {
                   )}
                   <div className="flex-1">
                     <p className="font-semibold text-blue-900 text-lg">{scannedStudent.name}</p>
-                    <p className="text-sm text-gray-600">ID: {scannedStudent.student_id}</p>
+                    <p className="text-sm text-gray-600">ID: {scannedStudent.student_id_number}</p>
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">
