@@ -420,7 +420,7 @@ export default function UserManagement() {
 
       {/* Edit User Types Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white z-[100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCog className="w-5 h-5 text-blue-600" />
@@ -479,7 +479,7 @@ export default function UserManagement() {
       {/* Activation Code Dialog */}
       {selectedUser && generatedCode && (
         <Dialog open={!!generatedCode} onOpenChange={() => setGeneratedCode('')}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md bg-white z-[100]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -498,12 +498,12 @@ export default function UserManagement() {
                 <p className="text-sm text-gray-600">{selectedUser?.email}</p>
               </div>
               
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border-2 border-purple-200">
-                <Label className="text-xs text-purple-600 uppercase tracking-wide font-semibold block mb-3">
+              <div className="bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl p-6 border-2 border-purple-300">
+                <Label className="text-xs text-purple-700 uppercase tracking-wide font-semibold block mb-3">
                   Activation Code
                 </Label>
-                <div className="bg-white rounded-lg p-4 mb-3 border-2 border-purple-200">
-                  <p className="font-mono text-3xl text-center font-bold text-gray-900 tracking-widest">
+                <div className="bg-gray-900 rounded-lg p-4 mb-3 border-2 border-purple-300">
+                  <p className="font-mono text-3xl text-center font-bold text-white tracking-widest">
                     {generatedCode}
                   </p>
                 </div>
