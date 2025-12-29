@@ -30,6 +30,14 @@ export default function Scanner({
           scannerRef.current = null;
         }
 
+        // Wait for DOM element to be available
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const element = document.getElementById("qr-reader");
+        if (!element) {
+          throw new Error('Scanner element not found in DOM');
+        }
+
         // Create new scanner instance
         const scanner = new Html5QrcodeScanner(
           "qr-reader",
