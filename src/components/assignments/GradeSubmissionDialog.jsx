@@ -18,11 +18,71 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
 
   const gradeMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      return base44.entities.Submission.update(id, data);
+      const updatedSubmission = await base44.entities.Submission.update(id, data);
+      
+      // If this is a group submission, grade all group members
+      if (updatedSubmission.submission_group_id) {
+        const groups = await base44.entities.SubmissionGroup.filter({ 
+          id: updatedSubmission.submission_group_id 
+        });
+        
+        if (groups.length > 0) {
+          const group = groups[0];
+          const studentIds = JSON.parse(group.student_ids || '[]');
+          
+          // Update or create submissions for all group members
+          const updatePromises = studentIds.map(async (studentId) => {
+            // Skip if this is the current submission's student
+            if (studentId === updatedSubmission.student_id) return;
+            
+            // Check if submission exists for this student
+            const existingSubmissions = await base44.entities.Submission.filter({
+              assignment_id: updatedSubmission.assignment_id,
+              student_id: studentId
+            });
+            
+            if (existingSubmissions.length > 0) {
+              // Update existing submission
+              await base44.entities.Submission.update(existingSubmissions[0].id, {
+                grade: data.grade,
+                feedback: data.feedback,
+                status: data.status,
+                rubric_scores: data.rubric_scores
+              });
+            } else {
+              // Create new submission for group member
+              const studentInfo = await base44.entities.Student.filter({ id: studentId });
+              const studentName = studentInfo.length > 0 
+                ? `${studentInfo[0].first_name} ${studentInfo[0].last_name}` 
+                : 'Unknown';
+              
+              await base44.entities.Submission.create({
+                assignment_id: updatedSubmission.assignment_id,
+                student_id: studentId,
+                student_name: studentName,
+                submission_group_id: updatedSubmission.submission_group_id,
+                submitted_date: updatedSubmission.submitted_date,
+                content: updatedSubmission.content,
+                attachments: updatedSubmission.attachments,
+                grade: data.grade,
+                feedback: data.feedback,
+                status: data.status,
+                is_late: updatedSubmission.is_late,
+                late_penalty_applied: updatedSubmission.late_penalty_applied,
+                rubric_scores: data.rubric_scores
+              });
+            }
+          });
+          
+          await Promise.all(updatePromises);
+        }
+      }
+      
+      return updatedSubmission;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-submissions'] });
-      toast.success('Submission graded successfully!');
+      toast.success('Submission graded successfully (applied to all group members)');
       onClose();
     },
     onError: (error) => {
