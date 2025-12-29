@@ -77,7 +77,6 @@ import TakeExam from './pages/TakeExam';
 import TeacherAssignments from './pages/TeacherAssignments';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
-import TermsManagement from './pages/TermsManagement';
 import TermsOfService from './pages/TermsOfService';
 import TimetableManagement from './pages/TimetableManagement';
 import UserManagement from './pages/UserManagement';
@@ -167,7 +166,6 @@ export const PAGES = {
     "TeacherAssignments": TeacherAssignments,
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
-    "TermsManagement": TermsManagement,
     "TermsOfService": TermsOfService,
     "TimetableManagement": TimetableManagement,
     "UserManagement": UserManagement,
