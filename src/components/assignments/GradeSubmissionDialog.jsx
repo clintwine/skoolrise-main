@@ -1,20 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function GradeSubmissionDialog({ open, onClose, submission }) {
   const [grade, setGrade] = useState(submission?.grade || '');
   const [feedback, setFeedback] = useState(submission?.feedback || '');
+  const [rubricScores, setRubricScores] = useState({});
+  const [manualOverride, setManualOverride] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch rubric if assignment has one
+  const { data: rubric } = useQuery({
+    queryKey: ['rubric', submission?.assignment?.rubric_id],
+    queryFn: async () => {
+      if (!submission?.assignment?.rubric_id) return null;
+      const rubrics = await base44.entities.Rubric.filter({ id: submission.assignment.rubric_id });
+      return rubrics[0] || null;
+    },
+    enabled: !!submission?.assignment?.rubric_id,
+  });
+
+  // Parse rubric criteria
+  const rubricCriteria = rubric ? JSON.parse(rubric.criteria || '[]') : [];
+
+  // Initialize rubric scores from existing submission
+  useEffect(() => {
+    if (submission?.rubric_scores) {
+      try {
+        const scores = JSON.parse(submission.rubric_scores);
+        setRubricScores(scores);
+      } catch (e) {
+        console.error('Failed to parse rubric scores:', e);
+      }
+    }
+  }, [submission]);
+
+  // Calculate total from rubric selections
+  useEffect(() => {
+    if (!manualOverride && Object.keys(rubricScores).length > 0) {
+      const total = Object.values(rubricScores).reduce((sum, score) => sum + score, 0);
+      setGrade(total.toString());
+    }
+  }, [rubricScores, manualOverride]);
+
+  const handleRubricClick = (criterionName, score) => {
+    setRubricScores(prev => ({
+      ...prev,
+      [criterionName]: score
+    }));
+    setManualOverride(false);
+  };
+
+  const handleManualGradeChange = (e) => {
+    setGrade(e.target.value);
+    setManualOverride(true);
+  };
 
   const gradeMutation = useMutation({
     mutationFn: async ({ id, data }) => {
@@ -109,6 +158,7 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
         grade: numericGrade,
         feedback,
         status: 'Graded',
+        rubric_scores: Object.keys(rubricScores).length > 0 ? JSON.stringify(rubricScores) : null,
       },
     });
   };
@@ -182,16 +232,64 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
           {/* Right Side - Grading */}
           <div className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Rubric Matrix */}
+              {rubricCriteria.length > 0 && (
+                <div className="bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
+                  <h3 className="text-lg font-bold text-purple-900 mb-4">📋 Grading Rubric</h3>
+                  <div className="space-y-4">
+                    {rubricCriteria.map((criterion, idx) => (
+                      <div key={idx} className="bg-white p-4 rounded-lg border-2 border-gray-200">
+                        <h4 className="font-semibold text-gray-900 mb-2">{criterion.name}</h4>
+                        <p className="text-xs text-gray-600 mb-3">{criterion.description}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {criterion.levels?.map((level, levelIdx) => {
+                            const isSelected = rubricScores[criterion.name] === level.score;
+                            return (
+                              <button
+                                key={levelIdx}
+                                type="button"
+                                onClick={() => handleRubricClick(criterion.name, level.score)}
+                                className={`p-3 rounded-lg border-2 transition-all text-left ${
+                                  isSelected
+                                    ? 'border-purple-600 bg-purple-100 shadow-md'
+                                    : 'border-gray-300 bg-white hover:border-purple-400 hover:bg-purple-50'
+                                }`}
+                              >
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="font-semibold text-sm">{level.label}</span>
+                                  <Badge className={isSelected ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}>
+                                    {level.score} pts
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-gray-600">{level.description}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Grade Input */}
               <div className="bg-green-50 p-6 rounded-xl border-2 border-green-200">
-                <Label htmlFor="grade" className="text-lg font-bold text-green-900">
-                  📊 Grade (out of {submission.assignment.max_points})
-                </Label>
+                <div className="flex items-center justify-between mb-3">
+                  <Label htmlFor="grade" className="text-lg font-bold text-green-900">
+                    📊 Total Grade (out of {submission.assignment.max_points})
+                  </Label>
+                  {rubricCriteria.length > 0 && manualOverride && (
+                    <Badge className="bg-orange-500 text-white">
+                      <Edit2 className="w-3 h-3 mr-1" />
+                      Manual Override
+                    </Badge>
+                  )}
+                </div>
                 <Input
                   id="grade"
                   type="number"
                   value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
+                  onChange={handleManualGradeChange}
                   placeholder="Enter grade"
                   className="mt-3 text-2xl p-6 rounded-xl border-2 text-center font-bold"
                   min="0"
@@ -205,6 +303,11 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                       {((parseFloat(grade) / submission.assignment.max_points) * 100).toFixed(1)}%
                     </span>
                   </div>
+                )}
+                {rubricCriteria.length > 0 && !manualOverride && (
+                  <p className="text-xs text-gray-600 text-center mt-2">
+                    Auto-calculated from rubric selections
+                  </p>
                 )}
               </div>
 
