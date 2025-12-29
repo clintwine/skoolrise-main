@@ -223,7 +223,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Settings', icon: Settings, path: 'Settings' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
-          { name: 'Student Exit', icon: LogOut, path: 'StudentExitMonitoring' },
+          { name: 'Student Exit', icon: LogOutIcon, path: 'StudentExitMonitoring' },
         ]
       }
     ];

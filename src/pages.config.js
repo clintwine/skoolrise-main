@@ -63,13 +63,16 @@ import QuestionBank from './pages/QuestionBank';
 import ReportCardsManagement from './pages/ReportCardsManagement';
 import Reports from './pages/Reports';
 import RewardsStore from './pages/RewardsStore';
+import RoomAccessManagement from './pages/RoomAccessManagement';
 import SalaryManagement from './pages/SalaryManagement';
+import ScannerSettings from './pages/ScannerSettings';
 import SchoolSettings from './pages/SchoolSettings';
 import SecureMessaging from './pages/SecureMessaging';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
 import StudentAssignments from './pages/StudentAssignments';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentExitMonitoring from './pages/StudentExitMonitoring';
 import StudentManagement from './pages/StudentManagement';
 import StudentProgressTracking from './pages/StudentProgressTracking';
 import StudentRecords from './pages/StudentRecords';
@@ -83,9 +86,6 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ScannerSettings from './pages/ScannerSettings';
-import RoomAccessManagement from './pages/RoomAccessManagement';
-import StudentExitMonitoring from './pages/StudentExitMonitoring';
 import __Layout from './Layout.jsx';
 
 
@@ -155,13 +155,16 @@ export const PAGES = {
     "ReportCardsManagement": ReportCardsManagement,
     "Reports": Reports,
     "RewardsStore": RewardsStore,
+    "RoomAccessManagement": RoomAccessManagement,
     "SalaryManagement": SalaryManagement,
+    "ScannerSettings": ScannerSettings,
     "SchoolSettings": SchoolSettings,
     "SecureMessaging": SecureMessaging,
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
     "StudentAssignments": StudentAssignments,
     "StudentDashboard": StudentDashboard,
+    "StudentExitMonitoring": StudentExitMonitoring,
     "StudentManagement": StudentManagement,
     "StudentProgressTracking": StudentProgressTracking,
     "StudentRecords": StudentRecords,
@@ -175,9 +178,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ScannerSettings": ScannerSettings,
-    "RoomAccessManagement": RoomAccessManagement,
-    "StudentExitMonitoring": StudentExitMonitoring,
 }
 
 export const pagesConfig = {
