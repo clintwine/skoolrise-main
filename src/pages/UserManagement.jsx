@@ -420,7 +420,7 @@ export default function UserManagement() {
 
       {/* Edit User Types Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md z-50">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCog className="w-5 h-5 text-blue-600" />
@@ -479,7 +479,7 @@ export default function UserManagement() {
       {/* Activation Code Dialog */}
       {selectedUser && generatedCode && (
         <Dialog open={!!generatedCode} onOpenChange={() => setGeneratedCode('')}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md z-50">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
