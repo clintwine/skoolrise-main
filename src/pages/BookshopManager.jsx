@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Package, ShoppingCart, AlertCircle, Camera } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ProcurementView from '../components/bookshop/ProcurementView';
 import InventoryView from '../components/bookshop/InventoryView';
 import PurchaseOrdersView from '../components/bookshop/PurchaseOrdersView';
@@ -18,6 +19,15 @@ export default function BookshopManager() {
     queryKey: ['purchase-orders'],
     queryFn: () => base44.entities.PurchaseOrder.list('-order_date'),
   });
+
+  const { data: scannerSettings = [] } = useQuery({
+    queryKey: ['scanner-settings'],
+    queryFn: () => base44.entities.ScannerSettings.list(),
+  });
+
+  const isbnScannerEnabled = scannerSettings.find(
+    s => s.feature_name === 'bookshop_isbn' && s.enabled
+  );
 
   const lowStockItems = inventory.filter(item => item.current_stock < item.reorder_level);
   const pendingPOs = purchaseOrders.filter(po => po.status === 'Pending Approval' || po.status === 'Approved');
@@ -75,7 +85,7 @@ export default function BookshopManager() {
         </TabsList>
 
         <TabsContent value="procurement" className="mt-6">
-          <ProcurementView />
+          <ProcurementView scannerEnabled={isbnScannerEnabled} />
         </TabsContent>
 
         <TabsContent value="inventory" className="mt-6">
