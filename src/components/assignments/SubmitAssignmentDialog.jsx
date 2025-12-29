@@ -1,19 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tantml:react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Upload, FileText } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { differenceInHours, differenceInDays } from 'date-fns';
 
 export default function SubmitAssignmentDialog({ open, onClose, assignment, studentId }) {
   const [textContent, setTextContent] = useState('');
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
+
+  const lateInfo = useMemo(() => {
+    if (!assignment) return null;
+
+    const dueDate = new Date(assignment.due_date);
+    const now = new Date();
+    const isLate = now > dueDate;
+
+    let latePolicy = { type: 'flag', deduction_percent: 0, grace_period_hours: 0 };
+    try {
+      if (assignment.late_policy_config) {
+        latePolicy = JSON.parse(assignment.late_policy_config);
+      }
+    } catch (e) {
+      console.error('Failed to parse late policy:', e);
+    }
+
+    if (!isLate) {
+      return { isLate: false, policy: latePolicy };
+    }
+
+    // Check grace period
+    const hoursLate = differenceInHours(now, dueDate);
+    if (hoursLate <= (latePolicy.grace_period_hours || 0)) {
+      return { isLate: false, policy: latePolicy, inGracePeriod: true };
+    }
+
+    // Calculate penalty for auto-deduct
+    let penalty = 0;
+    if (latePolicy.type === 'deduct') {
+      const daysLate = Math.ceil(differenceInDays(now, dueDate));
+      const deductionPerDay = (assignment.max_points * (latePolicy.deduction_percent || 10)) / 100;
+      penalty = Math.min(daysLate * deductionPerDay, assignment.max_points);
+    }
+
+    return {
+      isLate: true,
+      policy: latePolicy,
+      hoursLate,
+      daysLate: Math.ceil(differenceInDays(now, dueDate)),
+      penalty,
+      inGracePeriod: false,
+    };
+  }, [assignment]);
 
   const submitMutation = useMutation({
     mutationFn: async (data) => {
@@ -32,11 +77,6 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
         setUploading(false);
       }
 
-      // Check late status
-      const dueDate = new Date(assignment.due_date);
-      const now = new Date();
-      const isLate = now > dueDate;
-
       return base44.entities.Submission.create({
         assignment_id: assignment.id,
         student_id: studentId,
@@ -44,8 +84,9 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
         submitted_date: new Date().toISOString(),
         content: textContent,
         attachments: JSON.stringify(uploadedUrls),
-        status: isLate ? 'Late' : 'Submitted',
-        is_late: isLate,
+        status: lateInfo.isLate ? 'Late' : 'Submitted',
+        is_late: lateInfo.isLate,
+        late_penalty_applied: lateInfo.penalty || 0,
       });
     },
     onSuccess: () => {
@@ -73,6 +114,12 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
       return;
     }
 
+    // Check if strict block policy prevents submission
+    if (lateInfo?.isLate && lateInfo.policy.type === 'strict') {
+      toast.error('Submissions are not allowed after the due date');
+      return;
+    }
+
     // Get student name
     const students = await base44.entities.Student.filter({ id: studentId });
     const student = students[0];
@@ -80,6 +127,8 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
 
     submitMutation.mutate({ student_name: studentName });
   };
+
+  const isSubmitDisabled = lateInfo?.isLate && lateInfo.policy.type === 'strict';
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -131,17 +180,77 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
             </div>
           )}
 
-          {/* Due Date Warning */}
+          {/* Due Date and Late Policy Warnings */}
           <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
             <p className="text-sm text-blue-900">
               <strong>Due:</strong> {new Date(assignment?.due_date).toLocaleString()}
             </p>
-            {new Date() > new Date(assignment?.due_date) && (
-              <p className="text-sm text-red-600 font-semibold mt-2">
-                ⚠️ This assignment is past due and will be marked as late
-              </p>
-            )}
           </div>
+
+          {/* Strict Block Warning */}
+          {lateInfo?.isLate && lateInfo.policy.type === 'strict' && (
+            <div className="bg-red-500 text-white p-4 rounded-xl border-2 border-red-600 flex items-center gap-3">
+              <XCircle className="w-8 h-8 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-lg">Submissions Closed</p>
+                <p className="text-sm">This assignment is past due and no longer accepts submissions.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Auto-Deduct Warning */}
+          {lateInfo?.isLate && lateInfo.policy.type === 'deduct' && (
+            <div className="bg-orange-500 text-white p-4 rounded-xl border-2 border-orange-600">
+              <div className="flex items-start gap-3 mb-3">
+                <AlertTriangle className="w-8 h-8 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-lg">Late Submission Penalty</p>
+                  <p className="text-sm">You are submitting {lateInfo.daysLate} day(s) late.</p>
+                </div>
+              </div>
+              <div className="bg-white/20 rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm">Original Points:</span>
+                  <span className="text-lg font-bold">{assignment?.max_points}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm">Late Penalty ({lateInfo.policy.deduction_percent}% per day):</span>
+                  <span className="text-lg font-bold">-{lateInfo.penalty.toFixed(1)}</span>
+                </div>
+                <div className="border-t border-white/30 pt-2 flex justify-between items-center">
+                  <span className="font-semibold">Maximum Possible Grade:</span>
+                  <span className="text-2xl font-bold">
+                    {Math.max(0, assignment?.max_points - lateInfo.penalty).toFixed(1)}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs mt-3 opacity-90">
+                This penalty will be automatically applied to your grade when graded.
+              </p>
+            </div>
+          )}
+
+          {/* Flag Late Warning */}
+          {lateInfo?.isLate && lateInfo.policy.type === 'flag' && (
+            <div className="bg-yellow-500 text-white p-4 rounded-xl border-2 border-yellow-600 flex items-center gap-3">
+              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+              <div>
+                <p className="font-semibold">Late Submission</p>
+                <p className="text-sm">This assignment is past due and will be marked as late.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Grace Period Notice */}
+          {lateInfo?.inGracePeriod && (
+            <div className="bg-green-500 text-white p-4 rounded-xl border-2 border-green-600 flex items-center gap-3">
+              <FileText className="w-6 h-6 flex-shrink-0" />
+              <div>
+                <p className="font-semibold">Within Grace Period</p>
+                <p className="text-sm">You're submitting within the grace period. No penalty will be applied.</p>
+              </div>
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="flex gap-4">
@@ -150,10 +259,15 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-lg py-6 rounded-xl"
-              disabled={submitMutation.isPending || uploading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-lg py-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={submitMutation.isPending || uploading || isSubmitDisabled}
             >
-              {uploading ? (
+              {isSubmitDisabled ? (
+                <>
+                  <XCircle className="w-5 h-5 mr-2" />
+                  Submissions Closed
+                </>
+              ) : uploading ? (
                 'Uploading...'
               ) : submitMutation.isPending ? (
                 'Submitting...'
