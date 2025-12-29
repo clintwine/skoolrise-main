@@ -86,6 +86,9 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
+import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
+import ParentAssignmentView from './pages/ParentAssignmentView';
 import __Layout from './Layout.jsx';
 
 
@@ -178,6 +181,9 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "TeacherAssignmentManager": TeacherAssignmentManager,
+    "StudentAssignmentDashboard": StudentAssignmentDashboard,
+    "ParentAssignmentView": ParentAssignmentView,
 }
 
 export const pagesConfig = {
