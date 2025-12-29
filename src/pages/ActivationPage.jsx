@@ -38,16 +38,21 @@ export default function ActivationPage() {
   }, [navigate]);
 
   const redirectToDashboard = (user) => {
-    if (user.role === 'admin' || user.user_type === 'admin') {
+    const userTypes = user.user_types || [];
+    const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+
+    if (isAdmin) {
       navigate('/admin-dashboard');
-    } else if (user.user_type === 'teacher') {
+    } else if (userTypes.includes('teacher')) {
       navigate('/teacher-dashboard');
-    } else if (user.user_type === 'student') {
+    } else if (userTypes.includes('student')) {
       navigate('/student-dashboard');
-    } else if (user.user_type === 'parent') {
+    } else if (userTypes.includes('parent')) {
       navigate('/parent-portal');
+    } else if (userTypes.includes('vendor')) {
+      navigate('/vendor-dashboard');
     } else {
-      navigate('/dashboard');
+      navigate('/admin-dashboard');
     }
   };
 

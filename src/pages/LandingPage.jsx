@@ -46,18 +46,21 @@ export default function LandingPage() {
           }
           
           // Redirect to appropriate dashboard
-          if (user.role === 'admin' || user.user_type === 'admin') {
+          const userTypes = user.user_types || [];
+          const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+
+          if (isAdmin) {
             navigate(createPageUrl('AdminDashboard'));
-          } else if (user.user_type === 'parent') {
-            navigate(createPageUrl('ParentPortal'));
-          } else if (user.role === 'vendor' || user.vendor_id) {
+          } else if (userTypes.includes('vendor')) {
             navigate(createPageUrl('VendorDashboard'));
-          } else if (user.user_type === 'teacher') {
-            navigate(createPageUrl('TeacherDashboard'));
-          } else if (user.user_type === 'student') {
+          } else if (userTypes.includes('parent')) {
+            navigate(createPageUrl('ParentPortal'));
+          } else if (userTypes.includes('student')) {
             navigate(createPageUrl('StudentDashboard'));
-          } else {
+          } else if (userTypes.includes('teacher')) {
             navigate(createPageUrl('TeacherDashboard'));
+          } else {
+            navigate(createPageUrl('AdminDashboard'));
           }
         }
       } catch (error) {

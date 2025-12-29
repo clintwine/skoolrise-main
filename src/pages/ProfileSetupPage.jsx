@@ -36,7 +36,9 @@ export default function ProfileSetupPage() {
         }
 
         // Initialize form data based on user type
-        if (currentUser.user_type === 'teacher') {
+        const userTypes = currentUser.user_types || [];
+
+        if (userTypes.includes('teacher')) {
           // Try to fetch existing teacher record if linked
           if (currentUser.linked_teacher_id) {
             const teacher = await base44.entities.Teacher.filter({ id: currentUser.linked_teacher_id });
@@ -52,8 +54,8 @@ export default function ProfileSetupPage() {
                 hire_date: teacher[0].hire_date || '',
               });
             }
-          }
-        } else if (currentUser.user_type === 'student') {
+            }
+            } else if (userTypes.includes('student')) {
           if (currentUser.linked_student_id) {
             const student = await base44.entities.Student.filter({ id: currentUser.linked_student_id });
             if (student.length > 0) {
@@ -77,16 +79,21 @@ export default function ProfileSetupPage() {
   }, [navigate]);
 
   const redirectToDashboard = (user) => {
-    if (user.role === 'admin' || user.user_type === 'admin') {
+    const userTypes = user.user_types || [];
+    const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+
+    if (isAdmin) {
       navigate('/admin-dashboard');
-    } else if (user.user_type === 'teacher') {
+    } else if (userTypes.includes('teacher')) {
       navigate('/teacher-dashboard');
-    } else if (user.user_type === 'student') {
+    } else if (userTypes.includes('student')) {
       navigate('/student-dashboard');
-    } else if (user.user_type === 'parent') {
+    } else if (userTypes.includes('parent')) {
       navigate('/parent-portal');
+    } else if (userTypes.includes('vendor')) {
+      navigate('/vendor-dashboard');
     } else {
-      navigate('/dashboard');
+      navigate('/admin-dashboard');
     }
   };
 
@@ -96,8 +103,11 @@ export default function ProfileSetupPage() {
     setError('');
 
     try {
+      const userTypes = user.user_types || [];
+      const primaryType = userTypes[0] || 'teacher';
+
       const response = await base44.functions.invoke('completeUserProfile', {
-        user_type: user.user_type,
+        user_type: primaryType,
         profile_data: formData
       });
 
@@ -337,13 +347,13 @@ export default function ProfileSetupPage() {
         <CardContent>
           <div className="mb-6 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">Account Type:</p>
-            <p className="font-medium capitalize">{user.user_type}</p>
+            <p className="font-medium capitalize">{(user.user_types || []).join(', ') || 'User'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {user.user_type === 'teacher' && renderTeacherForm()}
-            {user.user_type === 'student' && renderStudentForm()}
-            {user.user_type === 'parent' && renderParentForm()}
+            {(user.user_types || []).includes('teacher') && renderTeacherForm()}
+            {(user.user_types || []).includes('student') && renderStudentForm()}
+            {(user.user_types || []).includes('parent') && renderParentForm()}
 
             {error && (
               <Alert variant="destructive">

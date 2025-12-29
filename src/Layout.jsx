@@ -52,18 +52,18 @@ export default function Layout({ children, currentPageName }) {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
-        
+
         // Check activation and profile completion
         if (!currentUser.is_activated) {
           navigate(createPageUrl('ActivationPage'));
           return;
         }
-        
+
         if (!currentUser.profile_completed) {
           navigate(createPageUrl('ProfileSetupPage'));
           return;
         }
-        
+
         setUser(currentUser);
       } catch (error) {
         console.error('Failed to fetch user:', error);
@@ -91,6 +91,13 @@ export default function Layout({ children, currentPageName }) {
   // Navigation items based on user role
   const getNavigationItems = () => {
     if (!user) return [];
+
+    const userTypes = user.user_types || [];
+    const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+    const isTeacher = userTypes.includes('teacher');
+    const isStudent = userTypes.includes('student');
+    const isParent = userTypes.includes('parent');
+    const isVendor = userTypes.includes('vendor');
 
     const vendorGroups = [
       {
@@ -288,9 +295,11 @@ export default function Layout({ children, currentPageName }) {
       }
     ];
 
-    if (user.role === 'admin') return adminGroups;
-    if (user.role === 'parent') return parentGroups;
-    if (user.role === 'vendor' || user.vendor_id) return vendorGroups;
+    if (isAdmin) return adminGroups;
+    if (isVendor) return vendorGroups;
+    if (isParent) return parentGroups;
+    if (isStudent) return studentGroups;
+    if (isTeacher) return teacherGroups;
     return teacherGroups;
   };
 
