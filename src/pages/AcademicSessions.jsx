@@ -99,76 +99,76 @@ export default function AcademicSessions() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Academic Sessions & Terms</h1>
-        <p className="text-gray-600 mt-1">Manage academic years and terms</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Academic Sessions & Terms</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Manage academic years and terms</p>
       </div>
 
       <Tabs defaultValue="sessions" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="sessions">Academic Sessions</TabsTrigger>
-          <TabsTrigger value="terms">Terms</TabsTrigger>
+        <TabsList className="grid w-full max-w-xs sm:max-w-md grid-cols-2 h-10 sm:h-auto p-1 mx-auto">
+          <TabsTrigger value="sessions" className="text-sm sm:text-base py-2">Academic Sessions</TabsTrigger>
+          <TabsTrigger value="terms" className="text-sm sm:text-base py-2">Terms</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="sessions" className="space-y-4 mt-6">
+        <TabsContent value="sessions" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
           <div className="flex justify-end">
             <Button
               onClick={() => {
                 setEditingSession(null);
                 setIsSessionFormOpen(true);
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3 h-3 mr-2 sm:w-4 sm:h-4" />
               Add Session
             </Button>
           </div>
 
           {sessionsLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="text-center py-8 sm:py-12">
+              <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-6">
               {sessions.map((session) => {
                 const sessionTerms = terms.filter(t => t.session_id === session.id);
                 return (
                   <Card key={session.id} className="bg-white shadow-md">
-                    <CardHeader>
+                    <CardHeader className="p-4 sm:p-6">
                       <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-3">
-                          <Calendar className="w-8 h-8 text-blue-600" />
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                           <div>
-                            <CardTitle className="text-xl">{session.session_name}</CardTitle>
-                            <p className="text-sm text-gray-600">
+                            <CardTitle className="text-lg sm:text-xl">{session.session_name}</CardTitle>
+                            <p className="text-xs sm:text-sm text-gray-600">
                               {format(new Date(session.start_date), 'MMM d, yyyy')} - {format(new Date(session.end_date), 'MMM d, yyyy')}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           {session.is_current && (
-                            <Badge className="bg-green-600 text-white">
+                            <Badge className="bg-green-600 text-white text-xs">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               Current
                             </Badge>
                           )}
-                          <Badge className={statusColors[session.status]}>
+                          <Badge className={`${statusColors[session.status]} text-xs`}>
                             {session.status}
                           </Badge>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
+                    <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                      <div className="space-y-2 sm:space-y-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Terms ({sessionTerms.length})</p>
+                          <p className="text-sm font-medium text-gray-700 mb-1 sm:mb-2">Terms ({sessionTerms.length})</p>
                           {sessionTerms.length > 0 ? (
-                            <div className="space-y-2">
+                            <div className="space-y-1 sm:space-y-2">
                               {sessionTerms.map(term => (
                                 <div key={term.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                                   <div>
-                                    <p className="text-sm font-medium">{term.term_name}</p>
+                                    <p className="text-xs sm:text-sm font-medium">{term.term_name}</p>
                                     <p className="text-xs text-gray-600">
                                       {format(new Date(term.start_date), 'MMM d')} - {format(new Date(term.end_date), 'MMM d, yyyy')}
                                     </p>
@@ -180,7 +180,7 @@ export default function AcademicSessions() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500">No terms configured</p>
+                            <p className="text-xs sm:text-sm text-gray-500">No terms configured</p>
                           )}
                         </div>
                         <Button
@@ -190,9 +190,9 @@ export default function AcademicSessions() {
                             setEditingSession(session);
                             setIsSessionFormOpen(true);
                           }}
-                          className="w-full"
+                          className="w-full text-xs sm:text-sm"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
+                          <Edit className="w-3 h-3 mr-1" />
                           Edit Session
                         </Button>
                       </div>
@@ -204,51 +204,51 @@ export default function AcademicSessions() {
           )}
         </TabsContent>
 
-        <TabsContent value="terms" className="space-y-4 mt-6">
+        <TabsContent value="terms" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
           <div className="flex justify-end">
             <Button
               onClick={() => {
                 setEditingTerm(null);
                 setIsTermFormOpen(true);
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3 h-3 mr-2 sm:w-4 sm:h-4" />
               Add Term
             </Button>
           </div>
 
           {termsLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="text-center py-8 sm:py-12">
+              <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {terms.map((term) => {
                 const session = sessions.find(s => s.id === term.session_id);
                 return (
                   <Card key={term.id} className="bg-white shadow-md">
-                    <CardHeader>
+                    <CardHeader className="p-4 sm:p-6">
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-lg">{term.term_name}</CardTitle>
-                          <p className="text-sm text-gray-600">{session?.session_name}</p>
+                          <CardTitle className="text-base sm:text-lg">{term.term_name}</CardTitle>
+                          <p className="text-xs sm:text-sm text-gray-600">{session?.session_name}</p>
                         </div>
-                        <Badge className={statusColors[term.status]}>
+                        <Badge className={`${statusColors[term.status]} text-xs`}>
                           {term.status}
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Calendar className="w-4 h-4" />
-                          <span>
+                    <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="flex items-center gap-1 sm:gap-2 text-sm text-gray-600">
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="text-xs sm:text-sm">
                             {format(new Date(term.start_date), 'MMM d, yyyy')} - {format(new Date(term.end_date), 'MMM d, yyyy')}
                           </span>
                         </div>
                         {term.is_current && (
-                          <Badge className="bg-green-600 text-white">Active Term</Badge>
+                          <Badge className="bg-green-600 text-white text-xs">Active Term</Badge>
                         )}
                         <Button
                           variant="outline"
@@ -257,9 +257,9 @@ export default function AcademicSessions() {
                             setEditingTerm(term);
                             setIsTermFormOpen(true);
                           }}
-                          className="w-full mt-2"
+                          className="w-full mt-2 text-xs sm:text-sm"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
+                          <Edit className="w-3 h-3 mr-1" />
                           Edit
                         </Button>
                       </div>
@@ -322,44 +322,47 @@ function SessionFormDialog({ open, onOpenChange, session, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white">
+      <DialogContent className="max-w-xs sm:max-w-md bg-white p-4">
         <DialogHeader>
-          <DialogTitle className="text-gray-900">{session ? 'Edit Session' : 'Add New Session'}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg text-gray-900">{session ? 'Edit Session' : 'Add New Session'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <Label>Session Name *</Label>
+            <Label className="text-sm">Session Name *</Label>
             <Input
               value={formData.session_name}
               onChange={(e) => setFormData({ ...formData, session_name: e.target.value })}
               placeholder="e.g., 2024-2025"
               required
+              className="py-2 text-sm"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <Label>Start Date *</Label>
+              <Label className="text-sm">Start Date *</Label>
               <Input
                 type="date"
                 value={formData.start_date}
                 onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 required
+                className="py-2 text-sm"
               />
             </div>
             <div>
-              <Label>End Date *</Label>
+              <Label className="text-sm">End Date *</Label>
               <Input
                 type="date"
                 value={formData.end_date}
                 onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                 required
+                className="py-2 text-sm"
               />
             </div>
           </div>
           <div>
-            <Label>Status</Label>
+            <Label className="text-sm">Status</Label>
             <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="py-2 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -377,13 +380,13 @@ function SessionFormDialog({ open, onOpenChange, session, onSubmit }) {
               onChange={(e) => setFormData({ ...formData, is_current: e.target.checked })}
               className="w-4 h-4"
             />
-            <Label htmlFor="is_current">Set as current session</Label>
+            <Label htmlFor="is_current" className="text-sm">Set as current session</Label>
           </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 sm:pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none text-sm py-2">
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none text-sm py-2">
               {session ? 'Update' : 'Create'}
             </Button>
           </div>
@@ -429,20 +432,20 @@ function TermFormDialog({ open, onOpenChange, term, sessions, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white">
+      <DialogContent className="max-w-xs sm:max-w-md bg-white p-4">
         <DialogHeader>
-          <DialogTitle className="text-gray-900">{term ? 'Edit Term' : 'Add New Term'}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg text-gray-900">{term ? 'Edit Term' : 'Add New Term'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <Label>Academic Session *</Label>
+            <Label className="text-sm">Academic Session *</Label>
             <Select value={formData.session_id} onValueChange={(value) => setFormData({ ...formData, session_id: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="py-2 text-sm">
                 <SelectValue placeholder="Select session" />
               </SelectTrigger>
               <SelectContent>
                 {sessions.map(session => (
-                  <SelectItem key={session.id} value={session.id}>
+                  <SelectItem key={session.id} value={session.id} className="text-sm">
                     {session.session_name}
                   </SelectItem>
                 ))}
@@ -450,48 +453,52 @@ function TermFormDialog({ open, onOpenChange, term, sessions, onSubmit }) {
             </Select>
           </div>
           <div>
-            <Label>Term Name *</Label>
+            <Label className="text-sm">Term Name *</Label>
             <Input
               value={formData.term_name}
               onChange={(e) => setFormData({ ...formData, term_name: e.target.value })}
               placeholder="e.g., First Term, Fall Semester"
               required
+              className="py-2 text-sm"
             />
           </div>
           <div>
-            <Label>Term Number *</Label>
+            <Label className="text-sm">Term Number *</Label>
             <Input
               type="number"
               value={formData.term_number}
               onChange={(e) => setFormData({ ...formData, term_number: parseInt(e.target.value) })}
               min="1"
               required
+              className="py-2 text-sm"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <Label>Start Date *</Label>
+              <Label className="text-sm">Start Date *</Label>
               <Input
                 type="date"
                 value={formData.start_date}
                 onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 required
+                className="py-2 text-sm"
               />
             </div>
             <div>
-              <Label>End Date *</Label>
+              <Label className="text-sm">End Date *</Label>
               <Input
                 type="date"
                 value={formData.end_date}
                 onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                 required
+                className="py-2 text-sm"
               />
             </div>
           </div>
           <div>
-            <Label>Status</Label>
+            <Label className="text-sm">Status</Label>
             <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="py-2 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -509,13 +516,13 @@ function TermFormDialog({ open, onOpenChange, term, sessions, onSubmit }) {
               onChange={(e) => setFormData({ ...formData, is_current: e.target.checked })}
               className="w-4 h-4"
             />
-            <Label htmlFor="is_current_term">Set as current term</Label>
+            <Label htmlFor="is_current_term" className="text-sm">Set as current term</Label>
           </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 sm:pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none text-sm py-2">
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none text-sm py-2">
               {term ? 'Update' : 'Create'}
             </Button>
           </div>
