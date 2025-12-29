@@ -105,18 +105,18 @@ export default function ScannerSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Scanner Settings</h1>
-        <p className="text-gray-600 mt-1">Configure QR/Barcode scanner features and permissions</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Scanner Settings</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Configure QR/Barcode scanner features and permissions</p>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="text-center py-8 sm:py-12">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4">
           {SCANNER_FEATURES.map((feature) => {
             const setting = getFeatureSetting(feature.id);
             const isEnabled = setting?.enabled || false;
@@ -127,34 +127,35 @@ export default function ScannerSettings() {
 
             return (
               <Card key={feature.id} className="bg-white shadow-md">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Camera className="w-6 h-6 text-blue-600" />
-                      <div>
-                        <CardTitle className="text-lg">{feature.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{feature.description}</p>
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base sm:text-lg">{feature.name}</CardTitle>
+                        <p className="text-xs sm:text-sm text-gray-600">{feature.description}</p>
                       </div>
                     </div>
                     <Switch
                       checked={isEnabled}
                       onCheckedChange={(checked) => handleToggleFeature(feature.id, checked)}
+                      className="flex-shrink-0"
                     />
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
                       <Label className="text-sm font-medium text-gray-700 mb-2 block">
                         Status
                       </Label>
                       {isEnabled ? (
-                        <Badge className="bg-green-100 text-green-800">
+                        <Badge className="bg-green-100 text-green-800 text-xs">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Enabled
                         </Badge>
                       ) : (
-                        <Badge className="bg-gray-100 text-gray-800">
+                        <Badge className="bg-gray-100 text-gray-800 text-xs">
                           Disabled
                         </Badge>
                       )}
@@ -171,6 +172,7 @@ export default function ScannerSettings() {
                               variant="ghost"
                               size="sm"
                               onClick={() => setEditingFeature(feature.id)}
+                              className="text-xs sm:text-sm"
                             >
                               Edit
                             </Button>
@@ -190,22 +192,22 @@ export default function ScannerSettings() {
                                     handleUpdateRoles(feature.id, newRoles);
                                   }}
                                 />
-                                <Label className="capitalize cursor-pointer">{role}</Label>
+                                <Label className="capitalize cursor-pointer text-sm">{role}</Label>
                               </div>
                             ))}
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => setEditingFeature(null)}
-                              className="mt-2"
+                              className="mt-2 text-xs sm:text-sm"
                             >
                               Done
                             </Button>
                           </div>
                         ) : (
-                          <div className="flex gap-2 flex-wrap">
+                          <div className="flex gap-1 sm:gap-2 flex-wrap">
                             {allowedRoles.map((role) => (
-                              <Badge key={role} variant="outline" className="capitalize">
+                              <Badge key={role} variant="outline" className="capitalize text-xs">
                                 {role}
                               </Badge>
                             ))}
@@ -222,9 +224,9 @@ export default function ScannerSettings() {
       )}
 
       <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">Scanner Integration Notes</h3>
-          <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+        <CardContent className="p-4 sm:p-6">
+          <h3 className="font-semibold text-sm sm:text-base text-blue-900 mb-2">Scanner Integration Notes</h3>
+          <ul className="text-xs sm:text-sm text-blue-800 space-y-1 list-disc list-inside">
             <li>Student PVC cards should contain the student_id</li>
             <li>Book barcodes should contain ISBN numbers</li>
             <li>Scanner features are only visible to users with allowed roles</li>
