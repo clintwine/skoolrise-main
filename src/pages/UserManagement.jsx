@@ -420,14 +420,14 @@ export default function UserManagement() {
 
       {/* Edit User Types Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md z-50">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCog className="w-5 h-5 text-blue-600" />
               Edit User Types
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 overflow-y-auto max-h-[60vh]">
             <div className="bg-gray-50 rounded-lg p-4">
               <Label className="text-xs text-gray-500 uppercase tracking-wide">User Account</Label>
               <p className="font-medium text-gray-900 mt-1">{editingUser?.full_name || 'No name'}</p>
@@ -479,7 +479,7 @@ export default function UserManagement() {
       {/* Activation Code Dialog */}
       {selectedUser && generatedCode && (
         <Dialog open={!!generatedCode} onOpenChange={() => setGeneratedCode('')}>
-          <DialogContent className="sm:max-w-md z-50">
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -491,7 +491,7 @@ export default function UserManagement() {
                 </div>
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-4 overflow-y-auto max-h-[60vh]">
               <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-100">
                 <Label className="text-xs text-blue-600 uppercase tracking-wide font-semibold">User Account</Label>
                 <p className="font-medium text-gray-900 mt-1">{selectedUser?.full_name || 'No name'}</p>
