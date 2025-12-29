@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,71 +13,88 @@ export default function Scanner({
   title = "Scan QR/Barcode",
   description = "Position the code within the frame"
 }) {
-  const [scanner, setScanner] = useState(null);
+  const scannerRef = useRef(null);
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let html5QrcodeScannerInstance;
+    if (!isOpen) return;
 
-    if (isOpen && !scanner) {
-      html5QrcodeScannerInstance = new Html5QrcodeScanner(
-        "qr-reader",
-        { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          formatsToSupport: [
-            0, // QR_CODE
-            1, // UPC_A
-            2, // UPC_E
-            3, // EAN_8
-            4, // EAN_13
-            7, // CODE_39
-            8, // CODE_93
-            9, // CODE_128
-            10, // ITF
-          ],
-          videoConstraints: { facingMode: { exact: "environment" } }
-        },
-        false
-      );
+    console.log('Scanner dialog opened, initializing scanner...');
+    
+    const initScanner = async () => {
+      try {
+        // Clear any existing scanner
+        if (scannerRef.current) {
+          await scannerRef.current.clear();
+          scannerRef.current = null;
+        }
 
-      html5QrcodeScannerInstance.render(
-        (decodedText, decodedResult) => {
-          setScanResult(decodedText);
-          if (html5QrcodeScannerInstance) {
-            html5QrcodeScannerInstance.clear().catch(err => console.error('Error clearing scanner after success:', err));
-          }
-          if (onScanSuccess) {
-            onScanSuccess(decodedText);
-          }
-        },
-        (errorMessage) => {
-          if (!errorMessage.includes('NotFoundException')) {
-            setError(errorMessage);
-            if (onScanError) {
-              onScanError(errorMessage);
+        // Create new scanner instance
+        const scanner = new Html5QrcodeScanner(
+          "qr-reader",
+          { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            formatsToSupport: [
+              0, // QR_CODE
+              1, // UPC_A
+              2, // UPC_E
+              3, // EAN_8
+              4, // EAN_13
+              7, // CODE_39
+              8, // CODE_93
+              9, // CODE_128
+              10, // ITF
+            ]
+          },
+          false
+        );
+
+        scanner.render(
+          (decodedText, decodedResult) => {
+            console.log('Scan successful:', decodedText);
+            setScanResult(decodedText);
+            if (onScanSuccess) {
+              onScanSuccess(decodedText);
+            }
+          },
+          (errorMessage) => {
+            if (!errorMessage.includes('NotFoundException')) {
+              console.error('Scanner error:', errorMessage);
+              setError(errorMessage);
+              if (onScanError) {
+                onScanError(errorMessage);
+              }
             }
           }
-        }
-      );
+        );
 
-      setScanner(html5QrcodeScannerInstance);
-    }
-
-    return () => {
-      if (html5QrcodeScannerInstance) {
-        html5QrcodeScannerInstance.clear().catch(err => console.error('Error clearing scanner:', err));
+        scannerRef.current = scanner;
+        console.log('Scanner initialized successfully');
+      } catch (err) {
+        console.error('Failed to initialize scanner:', err);
+        setError('Failed to initialize camera: ' + err.message);
       }
     };
-  }, [isOpen]);
 
-  const handleClose = () => {
-    if (scanner) {
-      scanner.clear().catch(err => console.error('Error clearing scanner:', err));
+    initScanner();
+
+    return () => {
+      if (scannerRef.current) {
+        console.log('Cleaning up scanner...');
+        scannerRef.current.clear().catch(err => console.error('Error clearing scanner:', err));
+        scannerRef.current = null;
+      }
+    };
+  }, [isOpen, onScanSuccess, onScanError]);
+
+  const handleClose = async () => {
+    if (scannerRef.current) {
+      await scannerRef.current.clear().catch(err => console.error('Error clearing scanner:', err));
+      scannerRef.current = null;
     }
-    setScanner(null);
     setScanResult(null);
     setError(null);
     onClose();
