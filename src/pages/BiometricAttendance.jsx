@@ -5,11 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Fingerprint, Clock, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Fingerprint, Clock, CheckCircle, AlertCircle, Download, Camera, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import Scanner from '../components/Scanner';
 
 export default function BiometricAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [scannedStudent, setScannedStudent] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: biometricRecords = [], isLoading } = useQuery({
@@ -24,6 +30,15 @@ export default function BiometricAttendance() {
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
   });
+
+  const { data: scannerSettings = [] } = useQuery({
+    queryKey: ['scanner-settings'],
+    queryFn: () => base44.entities.ScannerSettings.list(),
+  });
+
+  const attendanceScannerEnabled = scannerSettings.find(
+    s => s.feature_name === 'biometric_attendance' && s.enabled
+  );
 
   const simulateCheckInMutation = useMutation({
     mutationFn: async (studentId) => {
@@ -49,6 +64,48 @@ export default function BiometricAttendance() {
       queryClient.invalidateQueries({ queryKey: ['biometric-attendance'] });
     },
   });
+
+  const handleScanSuccess = async (data) => {
+    setScannerOpen(false);
+
+    try {
+      // Fetch student details
+      const response = await base44.functions.invoke('scanStudentAttendance', {
+        student_id: data
+      });
+
+      if (response.data.success) {
+        setScannedStudent(response.data.student);
+        setConfirmDialogOpen(true);
+      } else {
+        toast.error(response.data.error || 'Student not found');
+      }
+    } catch (error) {
+      toast.error('Error processing scan: ' + error.message);
+    }
+  };
+
+  const handleConfirmAttendance = async () => {
+    if (!scannedStudent) return;
+
+    try {
+      const response = await base44.functions.invoke('scanStudentAttendance', {
+        student_id: scannedStudent.id,
+        action: 'confirm'
+      });
+
+      if (response.data.success) {
+        toast.success('Attendance recorded successfully');
+        queryClient.invalidateQueries({ queryKey: ['biometric-attendance'] });
+        setConfirmDialogOpen(false);
+        setScannedStudent(null);
+      } else {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      toast.error('Error recording attendance: ' + error.message);
+    }
+  };
 
   const statusColors = {
     'On Time': 'bg-green-100 text-green-800',
@@ -130,6 +187,15 @@ export default function BiometricAttendance() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
+            {attendanceScannerEnabled && (
+              <Button
+                onClick={() => setScannerOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Scan Student
+              </Button>
+            )}
             <Button
               onClick={() => {
                 const randomStudent = students[Math.floor(Math.random() * students.length)];
@@ -137,7 +203,7 @@ export default function BiometricAttendance() {
                   simulateCheckInMutation.mutate(randomStudent.id);
                 }
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              variant="outline"
               disabled={students.length === 0}
             >
               <Fingerprint className="w-4 h-4 mr-2" />
@@ -217,6 +283,69 @@ export default function BiometricAttendance() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Scanner Dialog */}
+      <Scanner
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScanSuccess={handleScanSuccess}
+        title="Scan Student Card"
+        description="Scan student's PVC card for attendance"
+      />
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Confirm Student Attendance</DialogTitle>
+          </DialogHeader>
+          {scannedStudent && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                <div className="flex items-center gap-3 mb-3">
+                  {scannedStudent.photo_url ? (
+                    <img 
+                      src={scannedStudent.photo_url} 
+                      alt={scannedStudent.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                      <User className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="font-semibold text-blue-900 text-lg">{scannedStudent.name}</p>
+                    <p className="text-sm text-gray-600">ID: {scannedStudent.student_id}</p>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Grade:</span>
+                    <span className="font-medium">{scannedStudent.grade_level}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <Badge variant="outline">{scannedStudent.status}</Badge>
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 text-center">
+                Is this the correct student?
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={handleConfirmAttendance} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
