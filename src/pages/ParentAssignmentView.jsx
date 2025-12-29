@@ -196,50 +196,68 @@ export default function ParentAssignmentView() {
               s.assignment_id === assignment.id && s.student_id === selectedStudentId
             );
 
+            const isMissing = status.label === 'MISSING';
+            
             return (
-              <Card key={assignment.id} className="border-2 border-gray-200">
+              <Card 
+                key={assignment.id} 
+                className={`border-2 transition-all ${
+                  isMissing 
+                    ? 'bg-red-50 border-red-300 shadow-md' 
+                    : 'border-gray-200 hover:border-blue-200'
+                }`}
+              >
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-2xl font-bold text-gray-900">{assignment.title}</h3>
-                        <Badge className={`${status.color} px-4 py-1.5 rounded-full font-semibold border-2 flex items-center gap-2`}>
-                          <StatusIcon className="w-4 h-4" />
-                          {status.label}
-                        </Badge>
-                      </div>
-                      
-                      <p className="text-gray-600 mb-3">{assignment.class_name}</p>
-                      
-                      <div className="flex gap-4 text-sm mb-3">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-700 font-medium">
-                            Due: {format(dueDate, 'MMM dd, yyyy h:mm a')}
+                  <div className="space-y-4">
+                    {/* Title and Status */}
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-2xl font-bold text-gray-900 flex-1">{assignment.title}</h3>
+                      <Badge className={`${status.color} px-4 py-1.5 rounded-full font-semibold border-2 flex items-center gap-2 flex-shrink-0`}>
+                        <StatusIcon className="w-4 h-4" />
+                        {status.label}
+                      </Badge>
+                    </div>
+
+                    {/* Due Date */}
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <Clock className="w-5 h-5 text-gray-500" />
+                      <span className="font-semibold text-sm">Due:</span>
+                      <span className="text-sm">{format(dueDate, 'EEEE, MMMM dd, yyyy \'at\' h:mm a')}</span>
+                    </div>
+
+                    {/* Grade (if graded) */}
+                    {submission?.status === 'Graded' && (
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border-2 border-green-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-green-900 font-bold text-lg">Grade Received:</span>
+                          <span className="text-3xl font-bold text-green-600">
+                            {submission.grade}/{assignment.max_points}
                           </span>
                         </div>
-                        <div className="text-gray-700">
-                          <span className="font-semibold">{assignment.max_points}</span> points
+                        <div className="text-sm text-gray-600">
+                          {((submission.grade / assignment.max_points) * 100).toFixed(1)}%
                         </div>
                       </div>
+                    )}
 
-                      {submission?.status === 'Graded' && (
-                        <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200">
-                          <div className="flex items-center justify-between">
-                            <span className="text-green-900 font-semibold">Grade Received:</span>
-                            <span className="text-3xl font-bold text-green-600">
-                              {submission.grade}/{assignment.max_points}
-                            </span>
-                          </div>
-                          {submission.feedback && (
-                            <div className="mt-2 text-sm text-gray-700">
-                              <span className="font-semibold">Teacher Feedback: </span>
-                              {submission.feedback}
-                            </div>
-                          )}
+                    {/* Teacher Feedback */}
+                    {submission?.feedback && (
+                      <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+                        <p className="text-sm font-bold text-blue-900 mb-2">Teacher Feedback:</p>
+                        <p className="text-gray-800 leading-relaxed">{submission.feedback}</p>
+                      </div>
+                    )}
+
+                    {/* Missing Warning */}
+                    {isMissing && (
+                      <div className="bg-red-100 p-4 rounded-xl border-2 border-red-300 flex items-start gap-3">
+                        <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-red-900">Assignment Not Submitted</p>
+                          <p className="text-sm text-red-700 mt-1">This assignment was due and has not been completed.</p>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
