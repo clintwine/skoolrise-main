@@ -15,7 +15,9 @@ export default function BiometricAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [notFoundDialogOpen, setNotFoundDialogOpen] = useState(false);
   const [scannedStudent, setScannedStudent] = useState(null);
+  const [scannedId, setScannedId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: biometricRecords = [], isLoading } = useQuery({
@@ -77,11 +79,18 @@ export default function BiometricAttendance() {
       if (response.data.success) {
         setScannedStudent(response.data.student);
         setConfirmDialogOpen(true);
+        setNotFoundDialogOpen(false);
       } else {
-        toast.error(response.data.error || 'Student not found');
+        setScannedId(data);
+        setNotFoundDialogOpen(true);
+        setConfirmDialogOpen(false);
+        setScannedStudent(null);
       }
     } catch (error) {
-      toast.error('Error processing scan: ' + error.message);
+      setScannedId(data);
+      setNotFoundDialogOpen(true);
+      setConfirmDialogOpen(false);
+      setScannedStudent(null);
     }
   };
 
@@ -352,6 +361,37 @@ export default function BiometricAttendance() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Not Found Dialog */}
+      <Dialog open={notFoundDialogOpen} onOpenChange={setNotFoundDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-red-700">Student Not Recognized</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center py-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+              <AlertCircle className="w-10 h-10 text-red-600" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-gray-800 mb-2">
+                ID Not Found
+              </p>
+              <p className="text-sm text-gray-600">
+                The ID <span className="font-mono px-2 py-1 bg-red-50 text-red-700 rounded font-semibold">{scannedId}</span> is not recognized in the system.
+              </p>
+            </div>
+            <p className="text-xs text-gray-500">
+              Please verify the student ID or contact administration to register this student.
+            </p>
+            <Button 
+              onClick={() => setNotFoundDialogOpen(false)} 
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
