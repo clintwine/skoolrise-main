@@ -36,13 +36,11 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
       return { isLate: false, policy: latePolicy };
     }
 
-    // Check grace period
     const hoursLate = differenceInHours(now, dueDate);
     if (hoursLate <= (latePolicy.grace_period_hours || 0)) {
       return { isLate: false, policy: latePolicy, inGracePeriod: true };
     }
 
-    // Calculate penalty for auto-deduct
     let penalty = 0;
     if (latePolicy.type === 'deduct') {
       const daysLate = Math.ceil(differenceInDays(now, dueDate));
@@ -62,7 +60,6 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
 
   const submitMutation = useMutation({
     mutationFn: async (data) => {
-      // Upload files first
       const uploadedUrls = [];
       if (files.length > 0) {
         setUploading(true);
@@ -114,13 +111,11 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
       return;
     }
 
-    // Check if strict block policy prevents submission
     if (lateInfo?.isLate && lateInfo.policy.type === 'strict') {
       toast.error('Submissions are not allowed after the due date');
       return;
     }
 
-    // Get student name
     const students = await base44.entities.Student.filter({ id: studentId });
     const student = students[0];
     const studentName = student ? `${student.first_name} ${student.last_name}` : 'Unknown';
@@ -132,22 +127,22 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-white">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold">📤 Submit Assignment</DialogTitle>
-          <p className="text-lg text-gray-600 mt-2">{assignment?.title}</p>
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">📤 Submit Assignment</DialogTitle>
+          <p className="text-base sm:text-lg text-gray-600 mt-2">{assignment?.title}</p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4">
           {/* Text Entry */}
           {(assignment?.submission_type === 'Text' || assignment?.submission_type === 'Both') && (
             <div>
-              <Label className="text-lg font-semibold">✍️ Your Response</Label>
+              <Label className="text-base sm:text-lg font-semibold">✍️ Your Response</Label>
               <Textarea
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
                 placeholder="Type your response here..."
-                className="mt-2 min-h-[200px] text-lg rounded-xl border-2"
+                className="mt-2 min-h-[150px] sm:min-h-[200px] text-base sm:text-lg rounded-xl border-2"
               />
             </div>
           )}
@@ -155,21 +150,21 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
           {/* File Upload */}
           {(assignment?.submission_type === 'File' || assignment?.submission_type === 'Both') && (
             <div>
-              <Label className="text-lg font-semibold">📎 Upload Files</Label>
+              <Label className="text-base sm:text-lg font-semibold">📎 Upload Files</Label>
               <div className="mt-2">
                 <Input
                   type="file"
                   onChange={handleFileChange}
                   multiple
-                  className="text-lg rounded-xl border-2"
+                  className="text-sm sm:text-lg rounded-xl border-2"
                 />
                 {files.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {files.map((file, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm font-medium">{file.name}</span>
-                        <span className="text-xs text-gray-500">
+                      <div key={idx} className="flex items-center gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm font-medium truncate flex-1">{file.name}</span>
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
                           ({(file.size / 1024 / 1024).toFixed(2)} MB)
                         </span>
                       </div>
@@ -180,51 +175,51 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
             </div>
           )}
 
-          {/* Due Date and Late Policy Warnings */}
-          <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
-            <p className="text-sm text-blue-900">
+          {/* Due Date */}
+          <div className="bg-blue-50 p-3 sm:p-4 rounded-xl border-2 border-blue-200">
+            <p className="text-xs sm:text-sm text-blue-900">
               <strong>Due:</strong> {new Date(assignment?.due_date).toLocaleString()}
             </p>
           </div>
 
           {/* Strict Block Warning */}
           {lateInfo?.isLate && lateInfo.policy.type === 'strict' && (
-            <div className="bg-red-500 text-white p-4 rounded-xl border-2 border-red-600 flex items-center gap-3">
-              <XCircle className="w-8 h-8 flex-shrink-0" />
+            <div className="bg-red-500 text-white p-3 sm:p-4 rounded-xl border-2 border-red-600 flex items-start gap-2 sm:gap-3">
+              <XCircle className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0" />
               <div>
-                <p className="font-bold text-lg">Submissions Closed</p>
-                <p className="text-sm">This assignment is past due and no longer accepts submissions.</p>
+                <p className="font-bold text-base sm:text-lg">Submissions Closed</p>
+                <p className="text-xs sm:text-sm">This assignment is past due and no longer accepts submissions.</p>
               </div>
             </div>
           )}
 
           {/* Auto-Deduct Warning */}
           {lateInfo?.isLate && lateInfo.policy.type === 'deduct' && (
-            <div className="bg-orange-500 text-white p-4 rounded-xl border-2 border-orange-600">
-              <div className="flex items-start gap-3 mb-3">
-                <AlertTriangle className="w-8 h-8 flex-shrink-0" />
+            <div className="bg-orange-500 text-white p-3 sm:p-4 rounded-xl border-2 border-orange-600">
+              <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0" />
                 <div>
-                  <p className="font-bold text-lg">Late Submission Penalty</p>
-                  <p className="text-sm">You are submitting {lateInfo.daysLate} day(s) late.</p>
+                  <p className="font-bold text-base sm:text-lg">Late Submission Penalty</p>
+                  <p className="text-xs sm:text-sm">You are submitting {lateInfo.daysLate} day(s) late.</p>
                 </div>
               </div>
-              <div className="bg-white/20 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm">Original Points:</span>
-                  <span className="text-lg font-bold">{assignment?.max_points}</span>
+              <div className="bg-white/20 rounded-lg p-2 sm:p-3 text-xs sm:text-sm">
+                <div className="flex justify-between items-center mb-1 sm:mb-2">
+                  <span>Original Points:</span>
+                  <span className="text-base sm:text-lg font-bold">{assignment?.max_points}</span>
                 </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm">Late Penalty ({lateInfo.policy.deduction_percent}% per day):</span>
-                  <span className="text-lg font-bold">-{lateInfo.penalty.toFixed(1)}</span>
+                <div className="flex justify-between items-center mb-1 sm:mb-2">
+                  <span>Late Penalty ({lateInfo.policy.deduction_percent}% per day):</span>
+                  <span className="text-base sm:text-lg font-bold">-{lateInfo.penalty.toFixed(1)}</span>
                 </div>
-                <div className="border-t border-white/30 pt-2 flex justify-between items-center">
+                <div className="border-t border-white/30 pt-1 sm:pt-2 flex justify-between items-center">
                   <span className="font-semibold">Maximum Possible Grade:</span>
-                  <span className="text-2xl font-bold">
+                  <span className="text-xl sm:text-2xl font-bold">
                     {Math.max(0, assignment?.max_points - lateInfo.penalty).toFixed(1)}
                   </span>
                 </div>
               </div>
-              <p className="text-xs mt-3 opacity-90">
+              <p className="text-xs mt-2 sm:mt-3 opacity-90">
                 This penalty will be automatically applied to your grade when graded.
               </p>
             </div>
@@ -232,39 +227,39 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
 
           {/* Flag Late Warning */}
           {lateInfo?.isLate && lateInfo.policy.type === 'flag' && (
-            <div className="bg-yellow-500 text-white p-4 rounded-xl border-2 border-yellow-600 flex items-center gap-3">
-              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+            <div className="bg-yellow-500 text-white p-3 sm:p-4 rounded-xl border-2 border-yellow-600 flex items-center gap-2 sm:gap-3">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
               <div>
-                <p className="font-semibold">Late Submission</p>
-                <p className="text-sm">This assignment is past due and will be marked as late.</p>
+                <p className="font-semibold text-sm sm:text-base">Late Submission</p>
+                <p className="text-xs sm:text-sm">This assignment is past due and will be marked as late.</p>
               </div>
             </div>
           )}
 
           {/* Grace Period Notice */}
           {lateInfo?.inGracePeriod && (
-            <div className="bg-green-500 text-white p-4 rounded-xl border-2 border-green-600 flex items-center gap-3">
-              <FileText className="w-6 h-6 flex-shrink-0" />
+            <div className="bg-green-500 text-white p-3 sm:p-4 rounded-xl border-2 border-green-600 flex items-center gap-2 sm:gap-3">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
               <div>
-                <p className="font-semibold">Within Grace Period</p>
-                <p className="text-sm">You're submitting within the grace period. No penalty will be applied.</p>
+                <p className="font-semibold text-sm sm:text-base">Within Grace Period</p>
+                <p className="text-xs sm:text-sm">You're submitting within the grace period. No penalty will be applied.</p>
               </div>
             </div>
           )}
 
           {/* Buttons */}
-          <div className="flex gap-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 text-lg py-6 rounded-xl">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sticky bottom-0 bg-white py-3 -mx-4 px-4 sm:static sm:bg-transparent sm:p-0">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 text-base sm:text-lg py-4 sm:py-6 rounded-xl order-2 sm:order-1">
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-lg py-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-base sm:text-lg py-4 sm:py-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
               disabled={submitMutation.isPending || uploading || isSubmitDisabled}
             >
               {isSubmitDisabled ? (
                 <>
-                  <XCircle className="w-5 h-5 mr-2" />
+                  <XCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Submissions Closed
                 </>
               ) : uploading ? (
@@ -273,7 +268,7 @@ export default function SubmitAssignmentDialog({ open, onClose, assignment, stud
                 'Submitting...'
               ) : (
                 <>
-                  <Upload className="w-5 h-5 mr-2" />
+                  <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Submit Assignment
                 </>
               )}

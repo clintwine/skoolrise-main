@@ -43,58 +43,58 @@ export default function TeacherAssignmentManager() {
   };
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
             📚 Assignment Manager
           </h1>
-          <p className="text-gray-600 mt-1 text-lg">Create, manage, and grade assignments</p>
+          <p className="text-gray-600 mt-1 text-sm sm:text-lg">Create, manage, and grade assignments</p>
         </div>
         <Button
           onClick={() => setCreateDialogOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-6 text-lg rounded-2xl shadow-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 sm:px-6 sm:py-6 text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-lg w-full sm:w-auto"
         >
-          <Plus className="w-6 h-6 mr-2" />
+          <Plus className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
           New Assignment
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Active</p>
-                <p className="text-5xl font-bold text-blue-900 mt-2">{activeAssignments.length}</p>
+                <p className="text-xs sm:text-sm font-semibold text-blue-700 uppercase tracking-wide">Active</p>
+                <p className="text-3xl sm:text-5xl font-bold text-blue-900 mt-1 sm:mt-2">{activeAssignments.length}</p>
               </div>
-              <BookOpen className="w-16 h-16 text-blue-600 opacity-50" />
+              <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-blue-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-orange-700 uppercase tracking-wide">Pending Grading</p>
-                <p className="text-5xl font-bold text-orange-900 mt-2">{pendingGrading.length}</p>
+                <p className="text-xs sm:text-sm font-semibold text-orange-700 uppercase tracking-wide">Pending Grading</p>
+                <p className="text-3xl sm:text-5xl font-bold text-orange-900 mt-1 sm:mt-2">{pendingGrading.length}</p>
               </div>
-              <Clock className="w-16 h-16 text-orange-600 opacity-50" />
+              <Clock className="w-12 h-12 sm:w-16 sm:h-16 text-orange-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-green-700 uppercase tracking-wide">Total Submissions</p>
-                <p className="text-5xl font-bold text-green-900 mt-2">{submissions.length}</p>
+                <p className="text-xs sm:text-sm font-semibold text-green-700 uppercase tracking-wide">Total Submissions</p>
+                <p className="text-3xl sm:text-5xl font-bold text-green-900 mt-1 sm:mt-2">{submissions.length}</p>
               </div>
-              <CheckCircle className="w-16 h-16 text-green-600 opacity-50" />
+              <CheckCircle className="w-12 h-12 sm:w-16 sm:h-16 text-green-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
@@ -102,33 +102,33 @@ export default function TeacherAssignmentManager() {
 
       {/* Tabs */}
       <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-14 bg-gray-100 rounded-2xl p-2">
-          <TabsTrigger value="active" className="text-lg font-semibold rounded-xl">Active</TabsTrigger>
-          <TabsTrigger value="grading" className="text-lg font-semibold rounded-xl">Needs Grading</TabsTrigger>
-          <TabsTrigger value="all" className="text-lg font-semibold rounded-xl">All Assignments</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-12 sm:h-14 bg-gray-100 rounded-xl sm:rounded-2xl p-1 sm:p-2">
+          <TabsTrigger value="active" className="text-sm sm:text-lg font-semibold rounded-lg sm:rounded-xl">Active</TabsTrigger>
+          <TabsTrigger value="grading" className="text-sm sm:text-lg font-semibold rounded-lg sm:rounded-xl">Needs Grading</TabsTrigger>
+          <TabsTrigger value="all" className="text-sm sm:text-lg font-semibold rounded-lg sm:rounded-xl">All</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="active" className="mt-6">
-          <div className="grid gap-4">
+        <TabsContent value="active" className="mt-4 sm:mt-6">
+          <div className="grid gap-3 sm:gap-4">
             {activeAssignments.map((assignment) => {
               const stats = getSubmissionStats(assignment.id);
               const dueDate = new Date(assignment.due_date);
               const isOverdue = dueDate < new Date();
               return (
                 <Card key={assignment.id} className="border-2 border-gray-200 hover:border-blue-300 transition-all hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-2xl font-bold text-gray-900">{assignment.title}</h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{assignment.title}</h3>
                           {isOverdue && (
-                            <Badge className="bg-red-100 text-red-700 text-sm px-3 py-1">Overdue</Badge>
+                            <Badge className="bg-red-100 text-red-700 text-xs sm:text-sm px-2 py-0.5 sm:px-3 sm:py-1 w-fit">Overdue</Badge>
                           )}
                         </div>
-                        <p className="text-gray-600 mb-3">{assignment.class_name}</p>
-                        <div className="flex gap-4 text-sm">
+                        <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{assignment.class_name}</p>
+                        <div className="flex flex-col sm:flex-row sm:gap-4 gap-1 text-xs sm:text-sm">
                           <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-gray-500" />
+                            <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                             <span className="text-gray-700 font-medium">
                               Due: {format(dueDate, 'MMM dd, yyyy h:mm a')}
                             </span>
@@ -138,14 +138,14 @@ export default function TeacherAssignmentManager() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="mb-2">
-                          <span className="text-3xl font-bold text-blue-600">{stats.submitted}</span>
-                          <span className="text-gray-500 text-lg"> submitted</span>
+                      <div className="text-left sm:text-right flex sm:flex-col gap-3 sm:gap-0">
+                        <div className="flex-1 sm:mb-2">
+                          <span className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.submitted}</span>
+                          <span className="text-gray-500 text-sm sm:text-lg"> submitted</span>
                         </div>
-                        <div>
-                          <span className="text-2xl font-bold text-green-600">{stats.graded}</span>
-                          <span className="text-gray-500"> graded</span>
+                        <div className="flex-1">
+                          <span className="text-xl sm:text-2xl font-bold text-green-600">{stats.graded}</span>
+                          <span className="text-gray-500 text-sm"> graded</span>
                         </div>
                       </div>
                     </div>
@@ -155,38 +155,38 @@ export default function TeacherAssignmentManager() {
             })}
             {activeAssignments.length === 0 && (
               <Card className="border-2 border-dashed border-gray-300">
-                <CardContent className="p-12 text-center">
-                  <BookOpen className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-xl">No active assignments</p>
-                  <p className="text-gray-400 mt-2">Create your first assignment to get started!</p>
+                <CardContent className="p-8 sm:p-12 text-center">
+                  <BookOpen className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-gray-500 text-lg sm:text-xl">No active assignments</p>
+                  <p className="text-gray-400 text-sm sm:text-base mt-2">Create your first assignment to get started!</p>
                 </CardContent>
               </Card>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="grading" className="mt-6">
-          <div className="grid gap-4">
+        <TabsContent value="grading" className="mt-4 sm:mt-6">
+          <div className="grid gap-3 sm:gap-4">
             {pendingGrading.map((submission) => {
               const assignment = assignments.find(a => a.id === submission.assignment_id);
               if (!assignment) return null;
               return (
                 <Card key={submission.id} className="border-2 border-orange-200 hover:border-orange-400 transition-all hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900">{assignment.title}</h3>
-                        <p className="text-gray-600 mt-1">Submitted by: {submission.student_name}</p>
-                        <p className="text-sm text-gray-500 mt-1">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">{assignment.title}</h3>
+                        <p className="text-sm sm:text-base text-gray-600 mt-1">Submitted by: {submission.student_name}</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
                           {format(new Date(submission.submitted_date), 'MMM dd, yyyy h:mm a')}
                         </p>
                         {submission.is_late && (
-                          <Badge className="bg-red-100 text-red-700 mt-2">Late Submission</Badge>
+                          <Badge className="bg-red-100 text-red-700 mt-2 text-xs">Late Submission</Badge>
                         )}
                       </div>
                       <Button
                         onClick={() => handleOpenGrading(submission, assignment)}
-                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl"
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl w-full sm:w-auto text-sm sm:text-base"
                       >
                         Grade Now
                       </Button>
@@ -197,33 +197,33 @@ export default function TeacherAssignmentManager() {
             })}
             {pendingGrading.length === 0 && (
               <Card className="border-2 border-dashed border-gray-300">
-                <CardContent className="p-16 text-center">
-                  <div className="w-32 h-32 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-7xl">✅</span>
+                <CardContent className="p-12 sm:p-16 text-center">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <span className="text-5xl sm:text-7xl">✅</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">All Graded!</h3>
-                  <p className="text-gray-600 text-lg">No submissions need grading at this time.</p>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">All Graded!</h3>
+                  <p className="text-gray-600 text-base sm:text-lg">No submissions need grading at this time.</p>
                 </CardContent>
               </Card>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="all" className="mt-6">
-          <div className="grid gap-4">
+        <TabsContent value="all" className="mt-4 sm:mt-6">
+          <div className="grid gap-3 sm:gap-4">
             {assignments.map((assignment) => (
               <Card key={assignment.id} className="border-2 border-gray-200">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">{assignment.title}</h3>
-                      <p className="text-gray-600">{assignment.class_name}</p>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">{assignment.title}</h3>
+                      <p className="text-sm sm:text-base text-gray-600">{assignment.class_name}</p>
                     </div>
-                    <Badge className={
+                    <Badge className={`w-fit ${
                       assignment.status === 'Published' ? 'bg-green-100 text-green-700' :
                       assignment.status === 'Draft' ? 'bg-gray-100 text-gray-700' :
                       'bg-red-100 text-red-700'
-                    }>
+                    }`}>
                       {assignment.status}
                     </Badge>
                   </div>

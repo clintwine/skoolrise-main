@@ -18,7 +18,6 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
   const [manualOverride, setManualOverride] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch rubric if assignment has one
   const { data: rubric } = useQuery({
     queryKey: ['rubric', submission?.assignment?.rubric_id],
     queryFn: async () => {
@@ -29,10 +28,8 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
     enabled: !!submission?.assignment?.rubric_id,
   });
 
-  // Parse rubric criteria
   const rubricCriteria = rubric ? JSON.parse(rubric.criteria || '[]') : [];
 
-  // Initialize rubric scores from existing submission
   useEffect(() => {
     if (submission?.rubric_scores) {
       try {
@@ -44,7 +41,6 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
     }
   }, [submission]);
 
-  // Calculate total from rubric selections
   useEffect(() => {
     if (!manualOverride && Object.keys(rubricScores).length > 0) {
       const total = Object.values(rubricScores).reduce((sum, score) => sum + score, 0);
@@ -69,7 +65,6 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
     mutationFn: async ({ id, data }) => {
       const updatedSubmission = await base44.entities.Submission.update(id, data);
       
-      // If this is a group submission, grade all group members
       if (updatedSubmission.submission_group_id) {
         const groups = await base44.entities.SubmissionGroup.filter({ 
           id: updatedSubmission.submission_group_id 
@@ -79,19 +74,15 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
           const group = groups[0];
           const studentIds = JSON.parse(group.student_ids || '[]');
           
-          // Update or create submissions for all group members
           const updatePromises = studentIds.map(async (studentId) => {
-            // Skip if this is the current submission's student
             if (studentId === updatedSubmission.student_id) return;
             
-            // Check if submission exists for this student
             const existingSubmissions = await base44.entities.Submission.filter({
               assignment_id: updatedSubmission.assignment_id,
               student_id: studentId
             });
             
             if (existingSubmissions.length > 0) {
-              // Update existing submission
               await base44.entities.Submission.update(existingSubmissions[0].id, {
                 grade: data.grade,
                 feedback: data.feedback,
@@ -99,7 +90,6 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                 rubric_scores: data.rubric_scores
               });
             } else {
-              // Create new submission for group member
               const studentInfo = await base44.entities.Student.filter({ id: studentId });
               const studentName = studentInfo.length > 0 
                 ? `${studentInfo[0].first_name} ${studentInfo[0].last_name}` 
@@ -171,24 +161,24 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold">📝 Grade Submission</DialogTitle>
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">📝 Grade Submission</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-6 mt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4">
           {/* Left Side - Student Work */}
-          <div className="space-y-4">
-            <div className="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
-              <h3 className="text-xl font-bold text-blue-900 mb-2">Student Work</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="bg-blue-50 p-4 sm:p-6 rounded-xl border-2 border-blue-200">
+              <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-2">Student Work</h3>
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
+                <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Student:</span>
-                  <span className="font-semibold">{submission.student_name}</span>
+                  <span className="font-semibold text-right">{submission.student_name}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Assignment:</span>
-                  <span className="font-semibold">{submission.assignment.title}</span>
+                  <span className="font-semibold text-right">{submission.assignment.title}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-gray-600">Submitted:</span>
                   <span className="font-semibold">{format(new Date(submission.submitted_date), 'MMM dd, h:mm a')}</span>
                 </div>
@@ -198,18 +188,16 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
               </div>
             </div>
 
-            {/* Text Content */}
             {submission.content && (
-              <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-3">Text Response:</h4>
-                <div className="text-gray-700 whitespace-pre-wrap">{submission.content}</div>
+              <div className="bg-white p-4 sm:p-6 rounded-xl border-2 border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">Text Response:</h4>
+                <div className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap break-words">{submission.content}</div>
               </div>
             )}
 
-            {/* File Attachments */}
             {attachments.length > 0 && (
-              <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-3">📎 Attachments:</h4>
+              <div className="bg-white p-4 sm:p-6 rounded-xl border-2 border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">📎 Attachments:</h4>
                 <div className="space-y-2">
                   {attachments.map((file, idx) => (
                     <a
@@ -217,11 +205,11 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                       href={file}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      <span className="flex-1 text-blue-600 font-medium">View File {idx + 1}</span>
-                      <Download className="w-4 h-4 text-gray-400" />
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                      <span className="flex-1 text-xs sm:text-sm text-blue-600 font-medium truncate">View File {idx + 1}</span>
+                      <Download className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
                     </a>
                   ))}
                 </div>
@@ -230,17 +218,16 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
           </div>
 
           {/* Right Side - Grading */}
-          <div className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Rubric Matrix */}
+          <div className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {rubricCriteria.length > 0 && (
-                <div className="bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
-                  <h3 className="text-lg font-bold text-purple-900 mb-4">📋 Grading Rubric</h3>
-                  <div className="space-y-4">
+                <div className="bg-purple-50 p-4 sm:p-6 rounded-xl border-2 border-purple-200">
+                  <h3 className="text-base sm:text-lg font-bold text-purple-900 mb-3 sm:mb-4">📋 Grading Rubric</h3>
+                  <div className="space-y-3 sm:space-y-4 max-h-96 overflow-y-auto">
                     {rubricCriteria.map((criterion, idx) => (
-                      <div key={idx} className="bg-white p-4 rounded-lg border-2 border-gray-200">
-                        <h4 className="font-semibold text-gray-900 mb-2">{criterion.name}</h4>
-                        <p className="text-xs text-gray-600 mb-3">{criterion.description}</p>
+                      <div key={idx} className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+                        <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">{criterion.name}</h4>
+                        <p className="text-xs text-gray-600 mb-2 sm:mb-3">{criterion.description}</p>
                         <div className="grid grid-cols-2 gap-2">
                           {criterion.levels?.map((level, levelIdx) => {
                             const isSelected = rubricScores[criterion.name] === level.score;
@@ -249,15 +236,15 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                                 key={levelIdx}
                                 type="button"
                                 onClick={() => handleRubricClick(criterion.name, level.score)}
-                                className={`p-3 rounded-lg border-2 transition-all text-left ${
+                                className={`p-2 sm:p-3 rounded-lg border-2 transition-all text-left ${
                                   isSelected
                                     ? 'border-purple-600 bg-purple-100 shadow-md'
                                     : 'border-gray-300 bg-white hover:border-purple-400 hover:bg-purple-50'
                                 }`}
                               >
                                 <div className="flex justify-between items-center mb-1">
-                                  <span className="font-semibold text-sm">{level.label}</span>
-                                  <Badge className={isSelected ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}>
+                                  <span className="font-semibold text-xs sm:text-sm">{level.label}</span>
+                                  <Badge className={isSelected ? 'bg-purple-600 text-white text-xs' : 'bg-gray-200 text-gray-700 text-xs'}>
                                     {level.score} pts
                                   </Badge>
                                 </div>
@@ -272,14 +259,13 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                 </div>
               )}
 
-              {/* Grade Input */}
-              <div className="bg-green-50 p-6 rounded-xl border-2 border-green-200">
-                <div className="flex items-center justify-between mb-3">
-                  <Label htmlFor="grade" className="text-lg font-bold text-green-900">
+              <div className="bg-green-50 p-4 sm:p-6 rounded-xl border-2 border-green-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                  <Label htmlFor="grade" className="text-base sm:text-lg font-bold text-green-900">
                     📊 Total Grade (out of {submission.assignment.max_points})
                   </Label>
                   {rubricCriteria.length > 0 && manualOverride && (
-                    <Badge className="bg-orange-500 text-white">
+                    <Badge className="bg-orange-500 text-white text-xs">
                       <Edit2 className="w-3 h-3 mr-1" />
                       Manual Override
                     </Badge>
@@ -291,15 +277,15 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                   value={grade}
                   onChange={handleManualGradeChange}
                   placeholder="Enter grade"
-                  className="mt-3 text-2xl p-6 rounded-xl border-2 text-center font-bold"
+                  className="mt-2 sm:mt-3 text-xl sm:text-2xl p-4 sm:p-6 rounded-xl border-2 text-center font-bold"
                   min="0"
                   max={submission.assignment.max_points}
                   step="0.5"
                   required
                 />
                 {grade && (
-                  <div className="mt-3 text-center">
-                    <span className="text-3xl font-bold text-green-600">
+                  <div className="mt-2 sm:mt-3 text-center">
+                    <span className="text-2xl sm:text-3xl font-bold text-green-600">
                       {((parseFloat(grade) / submission.assignment.max_points) * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -311,26 +297,24 @@ export default function GradeSubmissionDialog({ open, onClose, submission }) {
                 )}
               </div>
 
-              {/* Feedback */}
               <div>
-                <Label htmlFor="feedback" className="text-lg font-semibold">💬 Feedback</Label>
+                <Label htmlFor="feedback" className="text-base sm:text-lg font-semibold">💬 Feedback</Label>
                 <Textarea
                   id="feedback"
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="Great work! I especially liked..."
-                  className="mt-2 min-h-[200px] text-lg rounded-xl border-2"
+                  className="mt-2 min-h-[120px] sm:min-h-[200px] text-sm sm:text-lg rounded-xl border-2"
                 />
               </div>
 
-              {/* Buttons */}
-              <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={onClose} className="flex-1 text-lg py-6 rounded-xl">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
+                <Button type="button" variant="outline" onClick={onClose} className="flex-1 text-base sm:text-lg py-4 sm:py-6 rounded-xl">
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-lg py-6 rounded-xl"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-base sm:text-lg py-4 sm:py-6 rounded-xl"
                   disabled={gradeMutation.isPending}
                 >
                   {gradeMutation.isPending ? 'Saving...' : '✅ Submit Grade'}

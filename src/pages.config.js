@@ -6,6 +6,7 @@ import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
+import AssignmentManagement from './pages/AssignmentManagement';
 import AttendanceManagement from './pages/AttendanceManagement';
 import BackupSettings from './pages/BackupSettings';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
@@ -46,6 +47,7 @@ import InstalmentPlans from './pages/InstalmentPlans';
 import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
 import NotificationsSettings from './pages/NotificationsSettings';
+import ParentAssignmentView from './pages/ParentAssignmentView';
 import ParentAttendance from './pages/ParentAttendance';
 import ParentBehavior from './pages/ParentBehavior';
 import ParentCalendar from './pages/ParentCalendar';
@@ -70,6 +72,7 @@ import SchoolSettings from './pages/SchoolSettings';
 import SecureMessaging from './pages/SecureMessaging';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
+import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
 import StudentAssignments from './pages/StudentAssignments';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentExitMonitoring from './pages/StudentExitMonitoring';
@@ -77,6 +80,7 @@ import StudentManagement from './pages/StudentManagement';
 import StudentProgressTracking from './pages/StudentProgressTracking';
 import StudentRecords from './pages/StudentRecords';
 import TakeExam from './pages/TakeExam';
+import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
 import TeacherAssignments from './pages/TeacherAssignments';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
@@ -86,10 +90,6 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
-import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
-import ParentAssignmentView from './pages/ParentAssignmentView';
-import AssignmentManagement from './pages/AssignmentManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +102,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminReportsDashboard": AdminReportsDashboard,
     "AdmissionsManagement": AdmissionsManagement,
+    "AssignmentManagement": AssignmentManagement,
     "AttendanceManagement": AttendanceManagement,
     "BackupSettings": BackupSettings,
     "BehaviorAnalytics": BehaviorAnalytics,
@@ -142,6 +143,7 @@ export const PAGES = {
     "LandingPage": LandingPage,
     "MessagingCenter": MessagingCenter,
     "NotificationsSettings": NotificationsSettings,
+    "ParentAssignmentView": ParentAssignmentView,
     "ParentAttendance": ParentAttendance,
     "ParentBehavior": ParentBehavior,
     "ParentCalendar": ParentCalendar,
@@ -166,6 +168,7 @@ export const PAGES = {
     "SecureMessaging": SecureMessaging,
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
+    "StudentAssignmentDashboard": StudentAssignmentDashboard,
     "StudentAssignments": StudentAssignments,
     "StudentDashboard": StudentDashboard,
     "StudentExitMonitoring": StudentExitMonitoring,
@@ -173,6 +176,7 @@ export const PAGES = {
     "StudentProgressTracking": StudentProgressTracking,
     "StudentRecords": StudentRecords,
     "TakeExam": TakeExam,
+    "TeacherAssignmentManager": TeacherAssignmentManager,
     "TeacherAssignments": TeacherAssignments,
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
@@ -182,10 +186,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "TeacherAssignmentManager": TeacherAssignmentManager,
-    "StudentAssignmentDashboard": StudentAssignmentDashboard,
-    "ParentAssignmentView": ParentAssignmentView,
-    "AssignmentManagement": AssignmentManagement,
 }
 
 export const pagesConfig = {
