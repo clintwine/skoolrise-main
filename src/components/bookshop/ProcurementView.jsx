@@ -5,10 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ShoppingCart, Camera, CheckCircle, BookOpen } from 'lucide-react';
+import { toast } from 'sonner';
+import Scanner from '../Scanner';
 
-export default function ProcurementView() {
+export default function ProcurementView({ scannerEnabled }) {
   const [selectedItems, setSelectedItems] = useState([]);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [scannedBook, setScannedBook] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: catalogItems = [] } = useQuery({
@@ -82,19 +88,70 @@ export default function ProcurementView() {
     createPOMutation.mutate(selectedItems);
   };
 
+  const handleScanSuccess = async (isbn) => {
+    setScannerOpen(false);
+
+    try {
+      const response = await base44.functions.invoke('scanBookISBN', { isbn });
+
+      if (response.data.success) {
+        setScannedBook(response.data.book);
+        setConfirmDialogOpen(true);
+      } else {
+        toast.error(response.data.error || 'Book not found');
+      }
+    } catch (error) {
+      toast.error('Error processing scan: ' + error.message);
+    }
+  };
+
+  const handleConfirmAddBook = async () => {
+    if (!scannedBook) return;
+
+    try {
+      const response = await base44.functions.invoke('scanBookISBN', {
+        isbn: scannedBook.isbn,
+        action: 'confirm'
+      });
+
+      if (response.data.success) {
+        toast.success('Book added to catalog successfully');
+        queryClient.invalidateQueries({ queryKey: ['book-catalog'] });
+        setConfirmDialogOpen(false);
+        setScannedBook(null);
+      } else {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      toast.error('Error adding book: ' + error.message);
+    }
+  };
+
   return (
     <Card className="bg-white shadow-md">
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>Recommended Books from Vendors</CardTitle>
-          <Button 
-            onClick={handleCreatePO}
-            disabled={selectedItems.length === 0 || createPOMutation.isPending}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Create Purchase Request ({selectedItems.length})
-          </Button>
+          <div className="flex gap-2">
+            {scannerEnabled && (
+              <Button
+                onClick={() => setScannerOpen(true)}
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Scan ISBN
+              </Button>
+            )}
+            <Button 
+              onClick={handleCreatePO}
+              disabled={selectedItems.length === 0 || createPOMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Create Purchase Request ({selectedItems.length})
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -142,6 +199,73 @@ export default function ProcurementView() {
           </div>
         )}
       </CardContent>
+
+      {/* Scanner Dialog */}
+      <Scanner
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScanSuccess={handleScanSuccess}
+        title="Scan Book ISBN"
+        description="Scan the ISBN barcode on the book"
+      />
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Confirm Add Book to Catalog</DialogTitle>
+          </DialogHeader>
+          {scannedBook && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                <div className="flex gap-3">
+                  {scannedBook.cover_image_url ? (
+                    <img 
+                      src={scannedBook.cover_image_url} 
+                      alt={scannedBook.title}
+                      className="w-20 h-28 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-20 h-28 bg-gray-200 rounded flex items-center justify-center">
+                      <BookOpen className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="font-semibold text-blue-900 mb-1">{scannedBook.title}</p>
+                    <p className="text-sm text-gray-600 mb-1">by {scannedBook.author}</p>
+                    <Badge variant="outline" className="text-xs">{scannedBook.category}</Badge>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">ISBN:</span>
+                    <span className="font-medium">{scannedBook.isbn}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Publisher:</span>
+                    <span className="font-medium">{scannedBook.publisher}</span>
+                  </div>
+                  {scannedBook.publication_year && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Year:</span>
+                      <span className="font-medium">{scannedBook.publication_year}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={handleConfirmAddBook} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Add to Catalog
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

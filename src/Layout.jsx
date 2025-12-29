@@ -13,7 +13,7 @@ import {
   Settings,
   Menu,
   X,
-  LogOut,
+  LogOut as LogOutIcon,
   UserCircle,
   Award,
   CheckSquare,
@@ -28,7 +28,9 @@ import {
   Plus,
   Gift,
   MessageSquare,
-  Bell
+  Bell,
+  Camera,
+  DoorOpen
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -219,6 +221,9 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'SYSTEM',
         items: [
           { name: 'Settings', icon: Settings, path: 'Settings' },
+          { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
+          { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
+          { name: 'Student Exit', icon: LogOut, path: 'StudentExitMonitoring' },
         ]
       }
     ];
@@ -350,7 +355,7 @@ export default function Layout({ children, currentPageName }) {
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               title="Logout"
             >
-              <LogOut className="w-5 h-5 text-gray-600" />
+              <LogOutIcon className="w-5 h-5 text-gray-600" />
             </button>
           </div>
         </div>
