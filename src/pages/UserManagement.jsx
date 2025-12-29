@@ -420,40 +420,56 @@ export default function UserManagement() {
 
       {/* Edit User Types Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit User Types</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCog className="w-5 h-5 text-blue-600" />
+              Edit User Types
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>User</Label>
+          <div className="space-y-6 py-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <Label className="text-xs text-gray-500 uppercase tracking-wide">User Account</Label>
+              <p className="font-medium text-gray-900 mt-1">{editingUser?.full_name || 'No name'}</p>
               <p className="text-sm text-gray-600">{editingUser?.email}</p>
             </div>
             <div>
-              <Label className="mb-3 block">User Types</Label>
-              <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-900 mb-4 block">Assign User Types</Label>
+              <div className="space-y-2">
                 {['admin', 'teacher', 'student', 'parent', 'vendor'].map((type) => (
-                  <label key={type} className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border hover:bg-gray-50">
+                  <div
+                    key={type}
+                    className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      editingUserTypes.includes(type)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => toggleEditUserType(type)}
+                  >
                     <Checkbox
                       checked={editingUserTypes.includes(type)}
                       onCheckedChange={() => toggleEditUserType(type)}
                     />
                     <div className="flex-1">
-                      <span className="font-medium capitalize">{type}</span>
+                      <span className="font-medium capitalize text-gray-900">{type}</span>
                     </div>
                     {editingUserTypes.includes(type) && (
-                      <Badge className={getUserTypeColor(type)}>Selected</Badge>
+                      <Badge className={`${getUserTypeColor(type)} border-0`}>
+                        <Check className="w-3 h-3 mr-1" />
+                        Active
+                      </Badge>
                     )}
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1 sm:flex-none">
               Cancel
             </Button>
-            <Button onClick={handleSaveUserTypes}>
+            <Button onClick={handleSaveUserTypes} className="flex-1 sm:flex-none">
+              <Check className="w-4 h-4 mr-2" />
               Save Changes
             </Button>
           </DialogFooter>
@@ -463,36 +479,73 @@ export default function UserManagement() {
       {/* Activation Code Dialog */}
       {selectedUser && generatedCode && (
         <Dialog open={!!generatedCode} onOpenChange={() => setGeneratedCode('')}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Activation Code Generated</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Key className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-lg">Activation Code Generated</p>
+                  <p className="text-sm font-normal text-gray-500">Share this code with the user</p>
+                </div>
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>User</Label>
+            <div className="space-y-6 py-4">
+              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-100">
+                <Label className="text-xs text-blue-600 uppercase tracking-wide font-semibold">User Account</Label>
+                <p className="font-medium text-gray-900 mt-1">{selectedUser?.full_name || 'No name'}</p>
                 <p className="text-sm text-gray-600">{selectedUser?.email}</p>
               </div>
-              <div>
-                <Label>Activation Code</Label>
-                <div className="flex gap-2 mt-2">
-                  <Input
-                    value={generatedCode}
-                    readOnly
-                    className="font-mono text-lg text-center bg-gray-50"
-                  />
-                  <Button onClick={handleCopyCode} variant="outline" size="icon">
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border-2 border-purple-200">
+                <Label className="text-xs text-purple-600 uppercase tracking-wide font-semibold block mb-3">
+                  Activation Code
+                </Label>
+                <div className="bg-white rounded-lg p-4 mb-3 border-2 border-purple-200">
+                  <p className="font-mono text-3xl text-center font-bold text-gray-900 tracking-widest">
+                    {generatedCode}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-green-600" />
+                    Valid for 48 hours
+                  </span>
+                  <Button 
+                    onClick={handleCopyCode} 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-auto py-1 px-3"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3 h-3 mr-1 text-green-600" />
+                        <span className="text-green-600">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 mr-1" />
+                        Copy Code
+                      </>
+                    )}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Valid for 48 hours</p>
               </div>
-              <Button 
-                onClick={() => handleSendCodeByEmail(selectedUser)}
-                className="w-full"
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Send Code via Email
-              </Button>
+
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => handleSendCodeByEmail(selectedUser)}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Send Code via Email
+                </Button>
+                <p className="text-xs text-center text-gray-500">
+                  The code will be sent to {selectedUser?.email}
+                </p>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
