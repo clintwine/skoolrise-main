@@ -84,18 +84,18 @@ export default function ActivationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4 sm:p-6">
       <Card className="max-w-md w-full">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Key className="w-8 h-8 text-blue-600" />
+        <CardHeader className="text-center p-4 sm:p-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Key className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl">Activate Your Account</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">Activate Your Account</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Enter the activation code provided by your administrator to access SkoolRise
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
           {user && (
             <div className="mb-4 p-3 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Logged in as:</p>
@@ -105,7 +105,7 @@ export default function ActivationPage() {
 
           <form onSubmit={handleActivation} className="space-y-4">
             <div>
-              <Label htmlFor="activation_code">Activation Code</Label>
+              <Label htmlFor="activation_code" className="text-sm">Activation Code</Label>
               <Input
                 id="activation_code"
                 type="text"
@@ -113,7 +113,7 @@ export default function ActivationPage() {
                 onChange={(e) => setActivationCode(e.target.value)}
                 placeholder="Enter your activation code"
                 required
-                className="text-center text-lg tracking-wider font-mono"
+                className="text-center text-base sm:text-lg tracking-wider font-mono py-2.5 sm:py-3"
               />
             </div>
 
@@ -124,20 +124,20 @@ export default function ActivationPage() {
               </Alert>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full text-sm sm:text-base py-2.5 sm:py-3" disabled={loading}>
               {loading ? 'Verifying...' : 'Activate Account'}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Don't have an activation code? Contact your school administrator.
             </p>
           </div>
 
           <Button
             variant="ghost"
-            className="w-full mt-4"
+            className="w-full mt-4 text-sm sm:text-base py-2.5 sm:py-3"
             onClick={() => base44.auth.logout(window.location.origin)}
           >
             Log Out

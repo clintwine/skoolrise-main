@@ -128,85 +128,91 @@ export default function ProfileSetupPage() {
 
   const renderTeacherForm = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label htmlFor="first_name">First Name *</Label>
+          <Label htmlFor="first_name" className="text-sm">First Name *</Label>
           <Input
             id="first_name"
             value={formData.first_name || ''}
             onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
             required
+            className="py-2 text-sm"
           />
         </div>
         <div>
-          <Label htmlFor="last_name">Last Name *</Label>
+          <Label htmlFor="last_name" className="text-sm">Last Name *</Label>
           <Input
             id="last_name"
             value={formData.last_name || ''}
             onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
             required
+            className="py-2 text-sm"
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="staff_id">Staff ID</Label>
+        <Label htmlFor="staff_id" className="text-sm">Staff ID</Label>
         <Input
           id="staff_id"
           value={formData.staff_id || ''}
           disabled
-          className="bg-gray-50"
+          className="bg-gray-50 py-2 text-sm"
         />
         <p className="text-xs text-gray-500 mt-1">This field cannot be edited</p>
       </div>
 
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="text-sm">Email</Label>
         <Input
           id="email"
           type="email"
           value={formData.email || user?.email || ''}
           disabled
-          className="bg-gray-50"
+          className="bg-gray-50 py-2 text-sm"
         />
         <p className="text-xs text-gray-500 mt-1">This field cannot be edited</p>
       </div>
 
       <div>
-        <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="phone" className="text-sm">Phone Number</Label>
         <Input
           id="phone"
           type="tel"
           value={formData.phone || ''}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
 
       <div>
-        <Label htmlFor="department">Department or Subject Area</Label>
+        <Label htmlFor="department" className="text-sm">Department or Subject Area</Label>
         <Input
           id="department"
           value={formData.department || ''}
           onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
 
       <div>
-        <Label htmlFor="position">Job Title/Position</Label>
+        <Label htmlFor="position" className="text-sm">Job Title/Position</Label>
         <Input
           id="position"
           value={formData.position || ''}
           onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
 
       <div>
-        <Label htmlFor="hire_date">Date of Hire</Label>
+        <Label htmlFor="hire_date" className="text-sm">Date of Hire</Label>
         <Input
           id="hire_date"
           type="date"
           value={formData.hire_date || ''}
           onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
     </>
@@ -214,66 +220,70 @@ export default function ProfileSetupPage() {
 
   const renderStudentForm = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label htmlFor="first_name">First Name *</Label>
+          <Label htmlFor="first_name" className="text-sm">First Name *</Label>
           <Input
             id="first_name"
             value={formData.first_name || ''}
             onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
             required
+            className="py-2 text-sm"
           />
         </div>
         <div>
-          <Label htmlFor="last_name">Last Name *</Label>
+          <Label htmlFor="last_name" className="text-sm">Last Name *</Label>
           <Input
             id="last_name"
             value={formData.last_name || ''}
             onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
             required
+            className="py-2 text-sm"
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="student_id">Student ID</Label>
+        <Label htmlFor="student_id" className="text-sm">Student ID</Label>
         <Input
           id="student_id"
           value={formData.student_id || ''}
           disabled
-          className="bg-gray-50"
+          className="bg-gray-50 py-2 text-sm"
         />
         <p className="text-xs text-gray-500 mt-1">This field cannot be edited</p>
       </div>
 
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="text-sm">Email</Label>
         <Input
           id="email"
           type="email"
           value={formData.email || user?.email || ''}
           disabled
-          className="bg-gray-50"
+          className="bg-gray-50 py-2 text-sm"
         />
         <p className="text-xs text-gray-500 mt-1">This field cannot be edited</p>
       </div>
 
       <div>
-        <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="phone" className="text-sm">Phone Number</Label>
         <Input
           id="phone"
           type="tel"
           value={formData.phone || ''}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
 
       <div>
-        <Label htmlFor="address">Address</Label>
+        <Label htmlFor="address" className="text-sm">Address</Label>
         <Textarea
           id="address"
           value={formData.address || ''}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
     </>
@@ -281,44 +291,48 @@ export default function ProfileSetupPage() {
 
   const renderParentForm = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label htmlFor="first_name">First Name *</Label>
+          <Label htmlFor="first_name" className="text-sm">First Name *</Label>
           <Input
             id="first_name"
             value={formData.first_name || ''}
             onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
             required
+            className="py-2 text-sm"
           />
         </div>
         <div>
-          <Label htmlFor="last_name">Last Name *</Label>
+          <Label htmlFor="last_name" className="text-sm">Last Name *</Label>
           <Input
             id="last_name"
             value={formData.last_name || ''}
             onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
             required
+            className="py-2 text-sm"
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="phone">Phone Number *</Label>
+        <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
         <Input
           id="phone"
           type="tel"
           value={formData.phone || ''}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           required
+          className="py-2 text-sm"
         />
       </div>
 
       <div>
-        <Label htmlFor="address">Address</Label>
+        <Label htmlFor="address" className="text-sm">Address</Label>
         <Textarea
           id="address"
           value={formData.address || ''}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          className="py-2 text-sm"
         />
       </div>
     </>
@@ -327,30 +341,30 @@ export default function ProfileSetupPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4 sm:p-6">
       <Card className="max-w-2xl w-full">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <UserCircle className="w-8 h-8 text-blue-600" />
+        <CardHeader className="text-center p-4 sm:p-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <UserCircle className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">Complete Your Profile</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Please review and update your information to complete your profile setup
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+          <div className="mb-4 sm:mb-6 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">Account Type:</p>
             <p className="font-medium capitalize">{(user.user_types || []).join(', ') || 'User'}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             {(user.user_types || []).includes('teacher') && renderTeacherForm()}
             {(user.user_types || []).includes('student') && renderStudentForm()}
             {(user.user_types || []).includes('parent') && renderParentForm()}
@@ -362,7 +376,7 @@ export default function ProfileSetupPage() {
               </Alert>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full text-sm sm:text-base py-2.5 sm:py-3" disabled={loading}>
               {loading ? 'Saving...' : 'Complete Profile'}
             </Button>
           </form>
