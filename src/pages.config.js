@@ -89,6 +89,7 @@ import VendorProfile from './pages/VendorProfile';
 import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
 import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
 import ParentAssignmentView from './pages/ParentAssignmentView';
+import AssignmentManagement from './pages/AssignmentManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -184,6 +185,7 @@ export const PAGES = {
     "TeacherAssignmentManager": TeacherAssignmentManager,
     "StudentAssignmentDashboard": StudentAssignmentDashboard,
     "ParentAssignmentView": ParentAssignmentView,
+    "AssignmentManagement": AssignmentManagement,
 }
 
 export const pagesConfig = {
