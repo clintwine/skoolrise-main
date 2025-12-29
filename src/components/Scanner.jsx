@@ -36,7 +36,6 @@ export default function Scanner({
           { 
             fps: 10, 
             qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
             formatsToSupport: [
               0, // QR_CODE
               1, // UPC_A
@@ -47,7 +46,8 @@ export default function Scanner({
               8, // CODE_93
               9, // CODE_128
               10, // ITF
-            ]
+            ],
+            rememberLastUsedCamera: true
           },
           false
         );
