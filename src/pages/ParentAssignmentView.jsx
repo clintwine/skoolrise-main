@@ -64,20 +64,20 @@ export default function ParentAssignmentView() {
       if (submission.status === 'Graded') {
         return {
           label: 'Graded',
-          color: 'bg-green-500 text-white',
+          color: 'bg-green-100 text-green-700 border-green-300',
           icon: CheckCircle,
         };
       }
       if (submission.is_late) {
         return {
           label: 'Submitted Late',
-          color: 'bg-orange-500 text-white',
+          color: 'bg-orange-100 text-orange-700 border-orange-300',
           icon: Clock,
         };
       }
       return {
         label: 'Submitted',
-        color: 'bg-blue-500 text-white',
+        color: 'bg-blue-100 text-blue-700 border-blue-300',
         icon: CheckCircle,
       };
     }
@@ -85,14 +85,14 @@ export default function ParentAssignmentView() {
     if (isPast(dueDate)) {
       return {
         label: 'MISSING',
-        color: 'bg-red-500 text-white text-lg font-bold',
+        color: 'bg-red-100 text-red-700 border-red-300 text-lg font-bold',
         icon: XCircle,
       };
     }
 
     return {
       label: 'Not Submitted',
-      color: 'bg-gray-400 text-white',
+      color: 'bg-purple-100 text-purple-700 border-purple-300',
       icon: Clock,
     };
   };
@@ -203,7 +203,7 @@ export default function ParentAssignmentView() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-2xl font-bold text-gray-900">{assignment.title}</h3>
-                        <Badge className={`${status.color} px-4 py-1 flex items-center gap-2`}>
+                        <Badge className={`${status.color} px-4 py-1.5 rounded-full font-semibold border-2 flex items-center gap-2`}>
                           <StatusIcon className="w-4 h-4" />
                           {status.label}
                         </Badge>
@@ -248,9 +248,12 @@ export default function ParentAssignmentView() {
 
           {studentAssignments.length === 0 && (
             <Card className="border-2 border-dashed border-gray-300">
-              <CardContent className="p-12 text-center">
-                <CheckCircle className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-xl">No assignments found</p>
+              <CardContent className="p-16 text-center">
+                <div className="w-32 h-32 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-7xl">✅</span>
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-3">All Caught Up!</h3>
+                <p className="text-gray-600 text-lg">No assignments found for this student.</p>
               </CardContent>
             </Card>
           )}

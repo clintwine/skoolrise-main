@@ -197,10 +197,12 @@ export default function TeacherAssignmentManager() {
             })}
             {pendingGrading.length === 0 && (
               <Card className="border-2 border-dashed border-gray-300">
-                <CardContent className="p-12 text-center">
-                  <CheckCircle className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-xl">All caught up!</p>
-                  <p className="text-gray-400 mt-2">No submissions waiting to be graded</p>
+                <CardContent className="p-16 text-center">
+                  <div className="w-32 h-32 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-7xl">✅</span>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">All Graded!</h3>
+                  <p className="text-gray-600 text-lg">No submissions need grading at this time.</p>
                 </CardContent>
               </Card>
             )}

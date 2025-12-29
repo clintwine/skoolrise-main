@@ -58,21 +58,21 @@ export default function StudentAssignmentDashboard() {
 
     if (submission) {
       if (submission.status === 'Graded') {
-        return { label: 'Graded', color: 'bg-green-100 text-green-700', icon: CheckCircle };
+        return { label: 'Graded', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle };
       }
-      return { label: 'Submitted', color: 'bg-blue-100 text-blue-700', icon: CheckCircle };
+      return { label: 'Submitted', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: CheckCircle };
     }
 
     if (isPast(dueDate)) {
-      return { label: 'MISSING', color: 'bg-red-500 text-white', icon: AlertTriangle };
+      return { label: 'MISSING', color: 'bg-red-100 text-red-700 border-red-300', icon: AlertTriangle };
     }
 
     const daysUntilDue = differenceInDays(dueDate, now);
     if (daysUntilDue <= 1) {
-      return { label: 'Due Soon', color: 'bg-orange-100 text-orange-700', icon: Clock };
+      return { label: 'Due Soon', color: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: Clock };
     }
 
-    return { label: 'To Do', color: 'bg-gray-100 text-gray-700', icon: Clock };
+    return { label: 'To Do', color: 'bg-purple-100 text-purple-700 border-purple-300', icon: Clock };
   };
 
   const sortedAssignments = [...myAssignments].sort((a, b) => 
@@ -147,7 +147,7 @@ export default function StudentAssignmentDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-2xl font-bold text-gray-900">{assignment.title}</h3>
-                      <Badge className={`${status.color} text-sm px-3 py-1 flex items-center gap-1`}>
+                      <Badge className={`${status.color} px-4 py-1.5 rounded-full font-semibold border-2 flex items-center gap-1`}>
                         <StatusIcon className="w-4 h-4" />
                         {status.label}
                       </Badge>
@@ -209,10 +209,12 @@ export default function StudentAssignmentDashboard() {
 
         {sortedAssignments.length === 0 && (
           <Card className="border-2 border-dashed border-gray-300">
-            <CardContent className="p-12 text-center">
-              <CheckCircle className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-xl">No assignments yet</p>
-              <p className="text-gray-400 mt-2">Check back later for new work!</p>
+            <CardContent className="p-16 text-center">
+              <div className="w-32 h-32 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-7xl">🎉</span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-3">All Caught Up!</h3>
+              <p className="text-gray-600 text-lg">You have no assignments right now. Great job!</p>
             </CardContent>
           </Card>
         )}
