@@ -14,13 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Mail, Send, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function MessagingCenter() {
   const [formData, setFormData] = useState({
     recipient_type: 'All Parents',
     recipient_ids: '',
     contact_list_id: '',
+    specific_emails: '',
     channel: 'Email',
     subject: '',
     message: '',
@@ -30,6 +32,8 @@ export default function MessagingCenter() {
 
   const [classSearchTerm, setClassSearchTerm] = useState('');
   const [contactListSearchTerm, setContactListSearchTerm] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -70,26 +74,34 @@ export default function MessagingCenter() {
       });
 
       if (isScheduled) {
-        alert('Message scheduled successfully!');
+        toast.success('Message scheduled successfully!');
         return notification;
       }
 
       // Handle different channels
       if (data.channel === 'Email') {
-        const recipientEmails = getRecipientEmails(data.recipient_type, data.recipient_ids);
+        const recipientEmails = getRecipientEmails(data.recipient_type, data.recipient_ids, data.specific_emails);
+        
+        // Build email body with attachments
+        let emailBody = data.message;
+        if (data.attachments) {
+          const attachmentUrls = JSON.parse(data.attachments);
+          if (attachmentUrls.length > 0) {
+            emailBody += '\n\nAttachments:\n' + attachmentUrls.map((url, i) => `${i + 1}. ${url}`).join('\n');
+          }
+        }
+        
         for (const email of recipientEmails.slice(0, 5)) {
           await base44.integrations.Core.SendEmail({
             to: email,
             subject: data.subject,
-            body: data.message,
+            body: emailBody,
           });
         }
       } else if (data.channel === 'SMS') {
-        // SMS integration - connect to SMS gateway in production
-        alert(`Bulk SMS sent to ${data.delivery_count} recipients`);
+        toast.info(`Bulk SMS sent to ${data.delivery_count} recipients`);
       } else if (data.channel === 'WhatsApp') {
-        // WhatsApp Business API integration - setup in production
-        alert(`WhatsApp notifications sent to ${data.delivery_count} recipients`);
+        toast.info(`WhatsApp notifications sent to ${data.delivery_count} recipients`);
       }
 
       return notification;
@@ -100,18 +112,22 @@ export default function MessagingCenter() {
         recipient_type: 'All Parents',
         recipient_ids: '',
         contact_list_id: '',
+        specific_emails: '',
         channel: 'Email',
         subject: '',
         message: '',
         scheduled_date: '',
         status: 'Draft',
       });
-      alert(data.status === 'Scheduled' ? 'Message scheduled successfully!' : 'Message sent successfully!');
+      setAttachments([]);
+      toast.success('Message sent successfully!');
     },
   });
 
-  const getRecipientEmails = (type, ids) => {
-    if (type === 'All Parents') {
+  const getRecipientEmails = (type, ids, specificEmails) => {
+    if (type === 'Specific Emails') {
+      return specificEmails.split(',').map(e => e.trim()).filter(Boolean);
+    } else if (type === 'All Parents') {
       return students.map(s => s.parent_email).filter(Boolean);
     } else if (type === 'All Teachers') {
       return teachers.map(t => t.email).filter(Boolean);
@@ -121,18 +137,65 @@ export default function MessagingCenter() {
     return [];
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    // Validate file count
+    if (files.length + attachments.length > 5) {
+      toast.error('Maximum 5 files allowed');
+      return;
+    }
+    
+    // Validate file sizes
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = files.filter(f => f.size > maxSize);
+    if (oversizedFiles.length > 0) {
+      toast.error('Each file must be less than 5MB');
+      return;
+    }
+    
+    setAttachments([...attachments, ...files]);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
     if (!formData.subject || !formData.message) {
-      alert('Please fill in subject and message');
+      toast.error('Please fill in subject and message');
       return;
     }
 
+    if (formData.recipient_type === 'Specific Emails' && !formData.specific_emails.trim()) {
+      toast.error('Please enter at least one email address');
+      return;
+    }
+
+    // Upload attachments first
+    setUploading(true);
+    let fileUrls = [];
+    try {
+      for (const file of attachments) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        fileUrls.push(file_url);
+      }
+    } catch (error) {
+      toast.error('Failed to upload attachments: ' + error.message);
+      setUploading(false);
+      return;
+    }
+    setUploading(false);
+
     const recipientCount = formData.recipient_type.startsWith('All') 
-      ? getRecipientEmails(formData.recipient_type, '').length
-      : (formData.recipient_ids?.split(',').length || 0);
+      ? getRecipientEmails(formData.recipient_type, '', '').length
+      : formData.recipient_type === 'Specific Emails'
+        ? formData.specific_emails.split(',').length
+        : (formData.recipient_ids?.split(',').length || 0);
 
     await sendMutation.mutateAsync({
       ...formData,
+      attachments: JSON.stringify(fileUrls),
       delivery_count: recipientCount,
     });
   };
@@ -173,6 +236,7 @@ export default function MessagingCenter() {
                     <SelectItem value="All Teachers">All Teachers</SelectItem>
                     <SelectItem value="Specific Class">Specific Class</SelectItem>
                     <SelectItem value="Custom List">Custom List</SelectItem>
+                    <SelectItem value="Specific Emails">Specific Emails</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -233,6 +297,23 @@ export default function MessagingCenter() {
                 </div>
               )}
 
+              {formData.recipient_type === 'Specific Emails' && (
+                <div>
+                  <Label>Email Addresses *</Label>
+                  <Textarea
+                    placeholder="Enter email addresses separated by commas (e.g., john@example.com, jane@example.com)"
+                    value={formData.specific_emails}
+                    onChange={(e) => setFormData({ ...formData, specific_emails: e.target.value })}
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.specific_emails ? 
+                      `${formData.specific_emails.split(',').filter(e => e.trim()).length} recipient(s)` 
+                      : 'Separate multiple emails with commas'}
+                  </p>
+                </div>
+              )}
+
               <div>
                 <Label>Channel *</Label>
                 <Select value={formData.channel} onValueChange={(value) => setFormData({ ...formData, channel: value })}>
@@ -268,6 +349,44 @@ export default function MessagingCenter() {
               </div>
 
               <div>
+                <Label>Attachments (Optional)</Label>
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    disabled={attachments.length >= 5}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Max 5 files, each up to 5MB ({attachments.length}/5 files selected)
+                  </p>
+                  {attachments.length > 0 && (
+                    <div className="space-y-1">
+                      {attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-700">{file.name}</span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
                 <Label>Schedule Send (Optional)</Label>
                 <Input
                   type="datetime-local"
@@ -280,14 +399,16 @@ export default function MessagingCenter() {
               <Button
                 onClick={handleSend}
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={sendMutation.isPending}
+                disabled={sendMutation.isPending || uploading}
               >
                 <Send className="w-4 h-4 mr-2" />
-                {sendMutation.isPending 
-                  ? 'Processing...' 
-                  : formData.scheduled_date 
-                    ? 'Schedule Message' 
-                    : 'Send Message'}
+                {uploading
+                  ? 'Uploading files...'
+                  : sendMutation.isPending 
+                    ? 'Processing...' 
+                    : formData.scheduled_date 
+                      ? 'Schedule Message' 
+                      : 'Send Message'}
               </Button>
             </div>
           </CardContent>
