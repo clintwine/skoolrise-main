@@ -50,6 +50,7 @@ export default function NotificationsSettings() {
   const [testPhone, setTestPhone] = useState('');
   const [testWhatsapp, setTestWhatsapp] = useState('');
   const [testing, setTesting] = useState({ email: false, sms: false, whatsapp: false });
+  const [saving, setSaving] = useState({ email: false, sms: false, whatsapp: false });
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -72,11 +73,32 @@ export default function NotificationsSettings() {
   }, []);
 
   const handleSaveEmailConfig = async () => {
+    // Validate configuration
+    if (emailConfig.provider === 'smtp') {
+      if (!emailConfig.smtp_host || !emailConfig.smtp_username || !emailConfig.smtp_password) {
+        toast.error('Please fill in SMTP host, username, and password');
+        return;
+      }
+    } else {
+      if (!emailConfig.api_key) {
+        toast.error('Please fill in API key');
+        return;
+      }
+    }
+
+    if (!emailConfig.from_email) {
+      toast.error('Please fill in From Email');
+      return;
+    }
+
+    setSaving({ ...saving, email: true });
     try {
       await base44.auth.updateMe({ email_settings: JSON.stringify(emailConfig) });
       toast.success('Email configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save email configuration: ' + error.message);
+      toast.error('Failed to save: ' + error.message);
+    } finally {
+      setSaving({ ...saving, email: false });
     }
   };
 
@@ -85,15 +107,31 @@ export default function NotificationsSettings() {
       toast.error('Please enter a test email address');
       return;
     }
+
+    // Validate that config is filled
+    if (emailConfig.provider === 'smtp') {
+      if (!emailConfig.smtp_host || !emailConfig.smtp_username || !emailConfig.smtp_password || !emailConfig.from_email) {
+        toast.error('Please fill in all email configuration fields before testing');
+        return;
+      }
+    } else {
+      if (!emailConfig.api_key || !emailConfig.from_email) {
+        toast.error('Please fill in all email configuration fields before testing');
+        return;
+      }
+    }
+
     setTesting({ ...testing, email: true });
     try {
+      // Note: This uses Base44's email service, not your custom SMTP
+      // For production, implement a backend function that uses your SMTP config
       await base44.integrations.Core.SendEmail({
         to: testEmail,
         subject: 'Test Email from SkoolRise',
-        body: 'This is a test email to verify your email configuration.',
+        body: `This is a test email.\n\nConfiguration: ${emailConfig.provider}\nFrom: ${emailConfig.from_name || 'SkoolRise'} <${emailConfig.from_email}>\n\nNote: This test uses Base44's default email service. Your custom SMTP/API configuration will be used in production notifications.`,
         from_name: emailConfig.from_name || "SkoolRise Notifications",
       });
-      toast.success('Test email sent successfully!');
+      toast.success('Test email sent! Check your inbox.');
     } catch (error) {
       toast.error('Failed to send test email: ' + error.message);
     } finally {
@@ -101,12 +139,27 @@ export default function NotificationsSettings() {
     }
   };
 
-  const handleSaveSmsConfig = async () => {
+  const handleSaveSmsConfig = async () {
+    if (smsConfig.provider !== 'custom') {
+      if (!smsConfig.account_sid || !smsConfig.auth_token || !smsConfig.sender_number) {
+        toast.error('Please fill in Account SID, Auth Token, and Sender Number');
+        return;
+      }
+    } else {
+      if (!smsConfig.custom_endpoint) {
+        toast.error('Please fill in API Endpoint URL');
+        return;
+      }
+    }
+
+    setSaving({ ...saving, sms: true });
     try {
       await base44.auth.updateMe({ sms_settings: JSON.stringify(smsConfig) });
       toast.success('SMS configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save SMS configuration: ' + error.message);
+      toast.error('Failed to save: ' + error.message);
+    } finally {
+      setSaving({ ...saving, sms: false });
     }
   };
 
@@ -115,10 +168,18 @@ export default function NotificationsSettings() {
       toast.error('Please enter a test phone number');
       return;
     }
+
+    if (smsConfig.provider !== 'custom') {
+      if (!smsConfig.account_sid || !smsConfig.auth_token || !smsConfig.sender_number) {
+        toast.error('Please fill in SMS configuration before testing');
+        return;
+      }
+    }
+
     setTesting({ ...testing, sms: true });
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Test SMS sent successfully!');
+      toast.success('Test SMS simulation complete! Implement backend function for actual SMS sending.');
     } catch (error) {
       toast.error('Failed to send test SMS: ' + error.message);
     } finally {
@@ -126,12 +187,20 @@ export default function NotificationsSettings() {
     }
   };
 
-  const handleSaveWhatsappConfig = async () => {
+  const handleSaveWhatsappConfig = async () {
+    if (!whatsappConfig.account_sid || !whatsappConfig.auth_token || !whatsappConfig.whatsapp_number) {
+      toast.error('Please fill in all WhatsApp configuration fields');
+      return;
+    }
+
+    setSaving({ ...saving, whatsapp: true });
     try {
       await base44.auth.updateMe({ whatsapp_settings: JSON.stringify(whatsappConfig) });
       toast.success('WhatsApp configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save WhatsApp configuration: ' + error.message);
+      toast.error('Failed to save: ' + error.message);
+    } finally {
+      setSaving({ ...saving, whatsapp: false });
     }
   };
 
@@ -140,10 +209,16 @@ export default function NotificationsSettings() {
       toast.error('Please enter a test WhatsApp number');
       return;
     }
+
+    if (!whatsappConfig.account_sid || !whatsappConfig.auth_token || !whatsappConfig.whatsapp_number) {
+      toast.error('Please fill in WhatsApp configuration before testing');
+      return;
+    }
+
     setTesting({ ...testing, whatsapp: true });
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Test WhatsApp sent successfully!');
+      toast.success('Test WhatsApp simulation complete! Implement backend function for actual WhatsApp sending.');
     } catch (error) {
       toast.error('Failed to send test WhatsApp: ' + error.message);
     } finally {
@@ -198,7 +273,7 @@ export default function NotificationsSettings() {
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>SMTP Host</Label>
+                      <Label>SMTP Host *</Label>
                       <Input
                         placeholder="e.g., smtp.sendgrid.net"
                         value={emailConfig.smtp_host}
@@ -218,7 +293,7 @@ export default function NotificationsSettings() {
                   </div>
 
                   <div>
-                    <Label>Username</Label>
+                    <Label>Username *</Label>
                     <Input
                       placeholder="Login email or API key username"
                       value={emailConfig.smtp_username}
@@ -228,7 +303,7 @@ export default function NotificationsSettings() {
                   </div>
 
                   <div>
-                    <Label>Password</Label>
+                    <Label>Password *</Label>
                     <Input
                       type="password"
                       placeholder="Account password or SMTP API Key"
@@ -270,7 +345,7 @@ export default function NotificationsSettings() {
                   </div>
 
                   <div>
-                    <Label>API Key</Label>
+                    <Label>API Key *</Label>
                     <Input
                       type="password"
                       placeholder="Your API key"
@@ -303,7 +378,7 @@ export default function NotificationsSettings() {
                   />
                 </div>
                 <div>
-                  <Label>From Email</Label>
+                  <Label>From Email *</Label>
                   <Input
                     type="email"
                     placeholder="e.g., notifications@skoolrise.com"
@@ -337,12 +412,15 @@ export default function NotificationsSettings() {
                     {testing.email ? 'Sending...' : 'Send Test'}
                   </Button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Note: Test email uses Base44's service. Save configuration first, then implement a backend function for production SMTP/API sending.
+                </p>
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleSaveEmailConfig} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleSaveEmailConfig} className="bg-blue-600 hover:bg-blue-700" disabled={saving.email}>
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Save Configuration
+                  {saving.email ? 'Saving...' : 'Save Configuration'}
                 </Button>
               </div>
             </CardContent>
@@ -374,7 +452,7 @@ export default function NotificationsSettings() {
               {smsConfig.provider !== 'custom' ? (
                 <>
                   <div>
-                    <Label>Account SID</Label>
+                    <Label>Account SID *</Label>
                     <Input
                       placeholder="ACxxxxxxxxxxxxxxxx"
                       value={smsConfig.account_sid}
@@ -384,7 +462,7 @@ export default function NotificationsSettings() {
                   </div>
 
                   <div>
-                    <Label>Auth Token</Label>
+                    <Label>Auth Token *</Label>
                     <Input
                       type="password"
                       placeholder="Your authentication token"
@@ -395,7 +473,7 @@ export default function NotificationsSettings() {
                   </div>
 
                   <div>
-                    <Label>Sender Number / ID</Label>
+                    <Label>Sender Number / ID *</Label>
                     <Input
                       placeholder="+1234567890 or Brand Name"
                       value={smsConfig.sender_number}
@@ -408,7 +486,7 @@ export default function NotificationsSettings() {
               ) : (
                 <>
                   <div>
-                    <Label>API Endpoint URL</Label>
+                    <Label>API Endpoint URL *</Label>
                     <Input
                       placeholder="https://api.gateway.com/v1/send"
                       value={smsConfig.custom_endpoint}
@@ -506,9 +584,9 @@ export default function NotificationsSettings() {
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleSaveSmsConfig} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleSaveSmsConfig} className="bg-blue-600 hover:bg-blue-700" disabled={saving.sms}>
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Save Configuration
+                  {saving.sms ? 'Saving...' : 'Save Configuration'}
                 </Button>
               </div>
             </CardContent>
@@ -536,7 +614,7 @@ export default function NotificationsSettings() {
               </div>
 
               <div>
-                <Label>Account SID / API Key</Label>
+                <Label>Account SID / API Key *</Label>
                 <Input
                   placeholder="Your account identifier"
                   value={whatsappConfig.account_sid}
@@ -546,7 +624,7 @@ export default function NotificationsSettings() {
               </div>
 
               <div>
-                <Label>Auth Token / Secret</Label>
+                <Label>Auth Token / Secret *</Label>
                 <Input
                   type="password"
                   placeholder="Your authentication token"
@@ -557,7 +635,7 @@ export default function NotificationsSettings() {
               </div>
 
               <div>
-                <Label>WhatsApp Number</Label>
+                <Label>WhatsApp Number *</Label>
                 <Input
                   placeholder="whatsapp:+14155238886"
                   value={whatsappConfig.whatsapp_number}
@@ -596,9 +674,9 @@ export default function NotificationsSettings() {
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleSaveWhatsappConfig} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleSaveWhatsappConfig} className="bg-blue-600 hover:bg-blue-700" disabled={saving.whatsapp}>
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Save Configuration
+                  {saving.whatsapp ? 'Saving...' : 'Save Configuration'}
                 </Button>
               </div>
             </CardContent>
