@@ -91,12 +91,32 @@ export default function MessagingCenter() {
           }
         }
         
-        for (const email of recipientEmails.slice(0, 5)) {
-          await base44.integrations.Core.SendEmail({
-            to: email,
-            subject: data.subject,
-            body: emailBody,
-          });
+        // Send using custom email configuration
+        let successCount = 0;
+        let failureCount = 0;
+        
+        for (const email of recipientEmails) {
+          try {
+            const response = await base44.functions.invoke('sendCustomEmail', {
+              to: email,
+              subject: data.subject,
+              body: emailBody,
+              attachments: data.attachments,
+            });
+            
+            if (response.data.success) {
+              successCount++;
+            } else {
+              failureCount++;
+            }
+          } catch (error) {
+            console.error(`Failed to send to ${email}:`, error);
+            failureCount++;
+          }
+        }
+        
+        if (failureCount > 0) {
+          toast.warning(`Sent to ${successCount} recipients, ${failureCount} failed`);
         }
       } else if (data.channel === 'SMS') {
         toast.info(`Bulk SMS sent to ${data.delivery_count} recipients`);
