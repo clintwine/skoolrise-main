@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Fingerprint, Clock, CheckCircle, AlertCircle, Download, Camera, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Scanner from '../components/Scanner';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 
 export default function BiometricAttendance() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dateRange, setDateRange] = useState({
+    from: new Date(),
+    to: new Date(),
+  });
   const [scannerOpen, setScannerOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [notFoundDialogOpen, setNotFoundDialogOpen] = useState(false);
@@ -21,10 +24,15 @@ export default function BiometricAttendance() {
   const queryClient = useQueryClient();
 
   const { data: biometricRecords = [], isLoading } = useQuery({
-    queryKey: ['biometric-attendance', selectedDate],
+    queryKey: ['biometric-attendance', dateRange],
     queryFn: async () => {
+      if (!dateRange.from || !dateRange.to) return [];
+
+      const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+      const toDate = format(dateRange.to, 'yyyy-MM-dd');
+
       const all = await base44.entities.BiometricAttendance.list('-timestamp');
-      return all.filter(r => r.date === selectedDate);
+      return all.filter(r => r.date >= fromDate && r.date <= toDate);
     },
   });
 
@@ -41,31 +49,6 @@ export default function BiometricAttendance() {
   const attendanceScannerEnabled = scannerSettings.find(
     s => s.feature_name === 'biometric_attendance' && s.enabled
   );
-
-  const simulateCheckInMutation = useMutation({
-    mutationFn: async (studentId) => {
-      const student = students.find(s => s.id === studentId);
-      if (!student) return;
-
-      const now = new Date();
-      const time = format(now, 'HH:mm:ss');
-      const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 30);
-
-      return base44.entities.BiometricAttendance.create({
-        student_id: studentId,
-        student_name: `${student.first_name} ${student.last_name}`,
-        biometric_id: `BIO${student.student_id}`,
-        timestamp: now.toISOString(),
-        date: selectedDate,
-        type: 'Check-In',
-        device_id: 'DEVICE-001',
-        status: isLate ? 'Late' : 'On Time',
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['biometric-attendance'] });
-    },
-  });
 
   const handleScanSuccess = async (data) => {
     setScannerOpen(false);
@@ -114,6 +97,40 @@ export default function BiometricAttendance() {
     } catch (error) {
       toast.error('Error recording attendance: ' + error.message);
     }
+  };
+
+  const handleExport = () => {
+    if (biometricRecords.length === 0) {
+      toast.error('No records to export');
+      return;
+    }
+
+    const headers = ['Student Name', 'Biometric ID', 'Type', 'Time', 'Status', 'Device', 'Date'];
+    const csvData = biometricRecords.map(record => [
+      record.student_name,
+      record.biometric_id,
+      record.type,
+      format(new Date(record.timestamp), 'HH:mm:ss'),
+      record.status,
+      record.device_id,
+      record.date
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `biometric_attendance_${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to, 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+    toast.success('Report exported successfully');
   };
 
   const statusColors = {
@@ -186,14 +203,13 @@ export default function BiometricAttendance() {
         <CardContent className="p-3 sm:p-4">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
             <div className="flex-1">
-              <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="text-sm"
+              <DateRangePicker
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                className="w-full"
               />
             </div>
-            <Button variant="outline" className="text-sm px-3 py-2">
+            <Button variant="outline" className="text-sm px-3 py-2" onClick={handleExport}>
               <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Export
             </Button>
@@ -204,20 +220,6 @@ export default function BiometricAttendance() {
             >
               <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Scan Student
-            </Button>
-            <Button
-              onClick={() => {
-                const randomStudent = students[Math.floor(Math.random() * students.length)];
-                if (randomStudent) {
-                  simulateCheckInMutation.mutate(randomStudent.id);
-                }
-              }}
-              variant="outline"
-              disabled={students.length === 0}
-              className="text-sm px-3 py-2"
-            >
-              <Fingerprint className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              Simulate
             </Button>
           </div>
         </CardContent>
@@ -233,7 +235,9 @@ export default function BiometricAttendance() {
       {/* Records Table */}
       <Card className="bg-white shadow-md">
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="text-base sm:text-lg">Attendance Records - {format(new Date(selectedDate), 'MMMM d, yyyy')}</CardTitle>
+          <CardTitle className="text-base sm:text-lg">
+            Attendance Records - {dateRange.from && dateRange.to ? `${format(dateRange.from, 'MMM dd, yyyy')} - ${format(dateRange.to, 'MMM dd, yyyy')}` : 'Select a date range'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
           {isLoading ? (
@@ -241,7 +245,7 @@ export default function BiometricAttendance() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             </div>
           ) : biometricRecords.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">No biometric records for this date</p>
+            <p className="text-center text-gray-500 py-8">No biometric records for this date range</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

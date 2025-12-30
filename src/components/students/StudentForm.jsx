@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +17,7 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
     student || {
       first_name: '',
       last_name: '',
-      student_id: '',
+      student_id_number: '',
       date_of_birth: '',
       gender: 'Male',
       admission_date: new Date().toISOString().split('T')[0],
@@ -35,13 +36,38 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
     }
   );
 
+  const [photoFile, setPhotoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setPhotoFile(e.target.files[0]);
+    }
+  };
+
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    let finalFormData = { ...formData };
+
+    if (photoFile) {
+      setUploading(true);
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
+        finalFormData = { ...finalFormData, photo_url: file_url };
+      } catch (error) {
+        console.error("Error uploading photo:", error);
+        alert("Failed to upload photo. Please try again.");
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+    
+    onSubmit(finalFormData);
   };
 
   return (
@@ -75,11 +101,11 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="student_id">Student ID *</Label>
+            <Label htmlFor="student_id_number">Student ID *</Label>
             <Input
-              id="student_id"
-              value={formData.student_id}
-              onChange={(e) => handleChange('student_id', e.target.value)}
+              id="student_id_number"
+              value={formData.student_id_number}
+              onChange={(e) => handleChange('student_id_number', e.target.value)}
               required
               placeholder="e.g., STU2024001"
             />
@@ -260,13 +286,22 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
         </div>
 
         <div>
-          <Label htmlFor="photo_url">Photo URL</Label>
+          <Label htmlFor="photo_upload">Student Photo</Label>
           <Input
-            id="photo_url"
-            value={formData.photo_url}
-            onChange={(e) => handleChange('photo_url', e.target.value)}
-            placeholder="https://example.com/photo.jpg"
+            id="photo_upload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
+          {formData.photo_url && (
+            <div className="mt-2 flex items-center gap-2">
+              <img src={formData.photo_url} alt="Student Photo" className="w-20 h-20 rounded-full object-cover" />
+              <a href={formData.photo_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                View current photo
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
@@ -275,8 +310,8 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-          {student ? 'Update Student' : 'Add Student'}
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={uploading}>
+          {uploading ? 'Uploading...' : student ? 'Update Student' : 'Add Student'}
         </Button>
       </div>
     </form>

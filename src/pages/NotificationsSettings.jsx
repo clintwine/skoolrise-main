@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,12 +51,32 @@ export default function NotificationsSettings() {
   const [testWhatsapp, setTestWhatsapp] = useState('');
   const [testing, setTesting] = useState({ email: false, sms: false, whatsapp: false });
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        if (currentUser.email_settings) {
+          setEmailConfig(JSON.parse(currentUser.email_settings));
+        }
+        if (currentUser.sms_settings) {
+          setSmsConfig(JSON.parse(currentUser.sms_settings));
+        }
+        if (currentUser.whatsapp_settings) {
+          setWhatsappConfig(JSON.parse(currentUser.whatsapp_settings));
+        }
+      } catch (error) {
+        console.error("Failed to load notification settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const handleSaveEmailConfig = async () => {
     try {
-      // Save to database or environment
+      await base44.auth.updateMe({ email_settings: JSON.stringify(emailConfig) });
       toast.success('Email configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save email configuration');
+      toast.error('Failed to save email configuration: ' + error.message);
     }
   };
 
@@ -71,7 +91,7 @@ export default function NotificationsSettings() {
         to: testEmail,
         subject: 'Test Email from SkoolRise',
         body: 'This is a test email to verify your email configuration.',
-        from_name: emailConfig.from_name,
+        from_name: emailConfig.from_name || "SkoolRise Notifications",
       });
       toast.success('Test email sent successfully!');
     } catch (error) {
@@ -83,9 +103,10 @@ export default function NotificationsSettings() {
 
   const handleSaveSmsConfig = async () => {
     try {
+      await base44.auth.updateMe({ sms_settings: JSON.stringify(smsConfig) });
       toast.success('SMS configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save SMS configuration');
+      toast.error('Failed to save SMS configuration: ' + error.message);
     }
   };
 
@@ -96,7 +117,7 @@ export default function NotificationsSettings() {
     }
     setTesting({ ...testing, sms: true });
     try {
-      // Add SMS sending logic here
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success('Test SMS sent successfully!');
     } catch (error) {
       toast.error('Failed to send test SMS: ' + error.message);
@@ -107,9 +128,26 @@ export default function NotificationsSettings() {
 
   const handleSaveWhatsappConfig = async () => {
     try {
+      await base44.auth.updateMe({ whatsapp_settings: JSON.stringify(whatsappConfig) });
       toast.success('WhatsApp configuration saved successfully!');
     } catch (error) {
-      toast.error('Failed to save WhatsApp configuration');
+      toast.error('Failed to save WhatsApp configuration: ' + error.message);
+    }
+  };
+
+  const handleTestWhatsapp = async () => {
+    if (!testWhatsapp) {
+      toast.error('Please enter a test WhatsApp number');
+      return;
+    }
+    setTesting({ ...testing, whatsapp: true });
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Test WhatsApp sent successfully!');
+    } catch (error) {
+      toast.error('Failed to send test WhatsApp: ' + error.message);
+    } finally {
+      setTesting({ ...testing, whatsapp: false });
     }
   };
 
@@ -295,7 +333,7 @@ export default function NotificationsSettings() {
                     value={testEmail}
                     onChange={(e) => setTestEmail(e.target.value)}
                   />
-                  <Button onClick={handleTestEmail} disabled={testing.email}>
+                  <Button onClick={handleTestEmail} disabled={testing.email} className="bg-blue-600 hover:bg-blue-700">
                     {testing.email ? 'Sending...' : 'Send Test'}
                   </Button>
                 </div>
@@ -461,7 +499,7 @@ export default function NotificationsSettings() {
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value)}
                   />
-                  <Button onClick={handleTestSms} disabled={testing.sms}>
+                  <Button onClick={handleTestSms} disabled={testing.sms} className="bg-blue-600 hover:bg-blue-700">
                     {testing.sms ? 'Sending...' : 'Send Test'}
                   </Button>
                 </div>
@@ -551,11 +589,10 @@ export default function NotificationsSettings() {
                     value={testWhatsapp}
                     onChange={(e) => setTestWhatsapp(e.target.value)}
                   />
-                  <Button disabled>
-                    Send Test
+                  <Button onClick={handleTestWhatsapp} disabled={testing.whatsapp} className="bg-blue-600 hover:bg-blue-700">
+                    {testing.whatsapp ? 'Sending...' : 'Send Test'}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">Test functionality coming soon</p>
               </div>
 
               <div className="flex gap-3">

@@ -38,7 +38,14 @@ export default function StudentRecords() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Student.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const studentData = { ...data };
+      delete studentData.id;
+      delete studentData.created_date;
+      delete studentData.updated_date;
+      delete studentData.created_by;
+      return base44.entities.Student.update(id, studentData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       setIsFormOpen(false);
@@ -59,7 +66,7 @@ export default function StudentRecords() {
     return (
       student.first_name?.toLowerCase().includes(search) ||
       student.last_name?.toLowerCase().includes(search) ||
-      student.student_id?.toLowerCase().includes(search) ||
+      student.student_id_number?.toLowerCase().includes(search) ||
       student.email?.toLowerCase().includes(search)
     );
   });
@@ -177,7 +184,7 @@ export default function StudentRecords() {
                       <h3 className="font-semibold text-gray-900">
                         {student.first_name} {student.last_name}
                       </h3>
-                      <p className="text-sm text-gray-600">{student.student_id}</p>
+                      <p className="text-sm text-gray-600">{student.student_id_number}</p>
                     </div>
                   </div>
                   <Badge className={statusColors[student.status] || statusColors.Active}>

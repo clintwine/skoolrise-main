@@ -141,6 +141,7 @@ export default function Layout({ children, currentPageName }) {
         items: [
           { name: 'Students', icon: Users, path: 'StudentRecords' },
           { name: 'Enrollments', icon: BookOpen, path: 'EnrollmentManagement' },
+          { name: 'Student Exit', icon: LogOutIcon, path: 'StudentExitMonitoring' },
         ]
       },
       {
@@ -223,7 +224,6 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Settings', icon: Settings, path: 'Settings' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
-          { name: 'Student Exit', icon: LogOutIcon, path: 'StudentExitMonitoring' },
         ]
       }
     ];
