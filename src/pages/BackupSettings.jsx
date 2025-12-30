@@ -32,40 +32,9 @@ export default function BackupSettings() {
   };
 
   const handleConnect = async () => {
-    try {
-      // Request OAuth authorization for Google Drive
-      const authUrl = await base44.connectors.requestAuthorization('googledrive', {
-        scopes: ['https://www.googleapis.com/auth/drive.file']
-      });
-      
-      // Open authorization window
-      window.open(authUrl, '_blank');
-      
-      // Poll for connection status
-      const pollInterval = setInterval(async () => {
-        try {
-          const result = await base44.functions.invoke('checkGoogleDriveConnection', {});
-          if (result.data?.connected) {
-            setIsConnected(true);
-            clearInterval(pollInterval);
-            toast.success('Successfully connected to Google Drive!');
-          }
-        } catch (pollError) {
-          // Ignore polling errors
-        }
-      }, 3000);
-      
-      // Clear interval after 2 minutes
-      setTimeout(() => {
-        clearInterval(pollInterval);
-        if (!isConnected) {
-          toast.error('Connection timed out. Please try again.');
-        }
-      }, 120000);
-    } catch (error) {
-      console.error('Connection error:', error);
-      toast.error('Failed to connect to Google Drive. Please try again.');
-    }
+    toast.info('Google Drive authorization is already set up. Please refresh the page to see the updated connection status.');
+    // Recheck connection
+    await checkConnection();
   };
 
   const handleDisconnect = async () => {
