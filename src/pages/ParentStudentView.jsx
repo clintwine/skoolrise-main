@@ -37,15 +37,11 @@ export default function ParentStudentView() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      // Get parent entity using linked_parent_id
-      if (currentUser.linked_parent_id) {
-        const allStudents = await base44.entities.Student.filter({ parent_id: currentUser.linked_parent_id });
-        const ids = allStudents.map(s => s.id);
-        setStudentIds(ids);
-        if (ids.length > 0) setSelectedStudentId(ids[0]);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
       }
     };
     fetchUser();
@@ -250,47 +246,10 @@ export default function ParentStudentView() {
             <p className="text-gray-600 mb-6">You don't have any children linked to your account yet.</p>
             <Dialog>
               <DialogTrigger asChild>
-                <Button>Request Student Linking</Button>
+                <Button onClick={() => window.location.href = '/ParentLinkingRequests'}>
+                  Request Student Linking
+                </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Request to Link Children</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Please provide your children's names and student IDs below. An administrator will review and link them to your account.
-                  </p>
-                  <div>
-                    <Label>Children's Information</Label>
-                    <Textarea
-                      placeholder="Example:&#10;John Doe - STU12345&#10;Jane Doe - STU12346"
-                      rows={5}
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                    />
-                  </div>
-                  <Button 
-                    onClick={async () => {
-                      await base44.integrations.Core.SendEmail({
-                        to: 'admin@skoolrise.com',
-                        subject: 'Student Linking Request',
-                        body: `
-                          <h3>Parent Linking Request</h3>
-                          <p><strong>Parent Name:</strong> ${user.full_name}</p>
-                          <p><strong>Parent Email:</strong> ${user.email}</p>
-                          <p><strong>Children Information:</strong></p>
-                          <pre>${messageText}</pre>
-                        `
-                      });
-                      setMessageText('');
-                      toast.success('Request sent to administrator');
-                    }}
-                    className="w-full"
-                  >
-                    Send Request
-                  </Button>
-                </div>
-              </DialogContent>
             </Dialog>
           </CardContent>
         </Card>

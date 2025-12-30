@@ -99,6 +99,8 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import ParentLinkingRequests from './pages/ParentLinkingRequests';
+import AdminLinkingRequests from './pages/AdminLinkingRequests';
 import __Layout from './Layout.jsx';
 
 
@@ -204,6 +206,8 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "ParentLinkingRequests": ParentLinkingRequests,
+    "AdminLinkingRequests": AdminLinkingRequests,
 }
 
 export const pagesConfig = {
