@@ -15,6 +15,7 @@ export default function AdminLinkingRequests() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const queryClient = useQueryClient();
 
   const { data: allRequests = [] } = useQuery({
@@ -97,6 +98,12 @@ export default function AdminLinkingRequests() {
 
   const pendingRequests = allRequests.filter(r => r.status === 'Pending');
   const processedRequests = allRequests.filter(r => r.status !== 'Pending');
+  const approvedRequests = allRequests.filter(r => r.status === 'Approved');
+  const rejectedRequests = allRequests.filter(r => r.status === 'Rejected');
+  
+  const displayedRequests = filterStatus === 'all' ? allRequests :
+    filterStatus === 'Pending' ? pendingRequests :
+    filterStatus === 'Approved' ? approvedRequests : rejectedRequests;
 
   return (
     <div className="space-y-6">
@@ -106,7 +113,10 @@ export default function AdminLinkingRequests() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => setFilterStatus(filterStatus === 'Pending' ? 'all' : 'Pending')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -117,23 +127,29 @@ export default function AdminLinkingRequests() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => setFilterStatus(filterStatus === 'Approved' ? 'all' : 'Approved')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Approved</p>
-                <p className="text-3xl font-bold text-green-600">{allRequests.filter(r => r.status === 'Approved').length}</p>
+                <p className="text-3xl font-bold text-green-600">{approvedRequests.length}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => setFilterStatus(filterStatus === 'Rejected' ? 'all' : 'Rejected')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Rejected</p>
-                <p className="text-3xl font-bold text-red-600">{allRequests.filter(r => r.status === 'Rejected').length}</p>
+                <p className="text-3xl font-bold text-red-600">{rejectedRequests.length}</p>
               </div>
               <XCircle className="w-8 h-8 text-red-600" />
             </div>
@@ -141,26 +157,30 @@ export default function AdminLinkingRequests() {
         </Card>
       </div>
 
-      <Tabs defaultValue="pending">
-        <TabsList>
-          <TabsTrigger value="pending">Pending ({pendingRequests.length})</TabsTrigger>
-          <TabsTrigger value="processed">Processed ({processedRequests.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pending" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {pendingRequests.length === 0 ? (
-                  <div className="text-center py-12">
-                    <UserCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No pending requests</p>
-                  </div>
-                ) : (
-                  pendingRequests.map((request) => (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {filterStatus === 'all' ? 'All Requests' : 
+               filterStatus === 'Pending' ? 'Pending Requests' :
+               filterStatus === 'Approved' ? 'Approved Requests' : 'Rejected Requests'}
+            </CardTitle>
+            {filterStatus !== 'all' && (
+              <Button variant="outline" size="sm" onClick={() => setFilterStatus('all')}>
+                Show All
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {displayedRequests.length === 0 ? (
+              <div className="text-center py-12">
+                <UserCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No {filterStatus !== 'all' ? filterStatus.toLowerCase() : ''} requests</p>
+              </div>
+            ) : (
+              displayedRequests.map((request) => (
                     <div key={request.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
@@ -179,65 +199,33 @@ export default function AdminLinkingRequests() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleApprove(request)} className="bg-green-600 hover:bg-green-700">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleReject(request)} className="text-red-600 border-red-200">
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="processed" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Processed Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {processedRequests.map((request) => (
-                  <div key={request.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-gray-900">{request.parent_name}</h3>
-                          <Badge className={
-                            request.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }>
-                            {request.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">{request.parent_email}</p>
-                        <div className="mt-2 space-y-1">
-                          <p className="text-sm"><strong>Student:</strong> {request.student_name}</p>
-                          <p className="text-sm"><strong>Student ID:</strong> {request.student_id_number}</p>
-                          {request.admin_notes && (
-                            <p className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
-                              <strong>Admin Note:</strong> {request.admin_notes}
-                            </p>
+                          {request.status === 'Pending' ? (
+                            <>
+                              <Button size="sm" onClick={() => handleApprove(request)} className="bg-green-600 hover:bg-green-700">
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => handleReject(request)} className="text-red-600 border-red-200">
+                                <XCircle className="w-4 h-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          ) : (
+                            <Badge className={request.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                              {request.status}
+                            </Badge>
                           )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Approve Linking Request</DialogTitle>
           </DialogHeader>
