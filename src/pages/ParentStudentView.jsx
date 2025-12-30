@@ -17,7 +17,8 @@ import {
   CheckCircle,
   XCircle,
   ClipboardList,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
