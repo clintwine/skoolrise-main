@@ -244,8 +244,12 @@ export default function ParentStudentView() {
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Children Linked</h2>
             <p className="text-gray-600 mb-6">You don't have any children linked to your account yet.</p>
-            <Button onClick={() => window.location.href = '/ParentLinkingRequests'}>
-              Request Student Linking
+            <Button 
+              onClick={() => window.location.href = createPageUrl('ParentLinkingRequests')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Link New Student
             </Button>
           </CardContent>
         </Card>

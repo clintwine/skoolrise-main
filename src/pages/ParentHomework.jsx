@@ -34,10 +34,22 @@ export default function ParentHomework() {
     enabled: studentIds.length > 0,
   });
 
-  const { data: assignments = [] } = useQuery({
+  const { data: enrollments = [] } = useQuery({
+    queryKey: ['enrollments'],
+    queryFn: () => base44.entities.Enrollment.list(),
+  });
+
+  const { data: allAssignments = [] } = useQuery({
     queryKey: ['assignments'],
     queryFn: () => base44.entities.Assignment.list('-due_date'),
   });
+
+  // Filter assignments to only show those for student's enrolled classes
+  const studentClassIds = enrollments
+    .filter(e => studentIds.includes(e.student_id))
+    .map(e => e.class_id);
+  
+  const assignments = allAssignments.filter(a => studentClassIds.includes(a.class_id));
 
   const { data: submissions = [] } = useQuery({
     queryKey: ['student-submissions', selectedStudent],

@@ -17,24 +17,29 @@ export default function ParentReports() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.parent_of_student_ids) {
-        const ids = currentUser.parent_of_student_ids.split(',').map(id => id.trim());
-        setStudentIds(ids);
-        if (ids.length > 0) setSelectedStudent(ids[0]);
-      }
     };
     fetchUser();
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', studentIds],
-    queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => studentIds.includes(s.id));
-    },
-    enabled: studentIds.length > 0,
+  useEffect(() => {
+    if (students.length > 0 && !selectedStudent) {
+      setSelectedStudent(students[0].id);
+    }
+  }, [students, selectedStudent]);
+
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents'],
+    queryFn: () => base44.entities.Parent.list(),
   });
+
+  const { data: allStudents = [] } = useQuery({
+    queryKey: ['all-students'],
+    queryFn: () => base44.entities.Student.list(),
+  });
+
+  // Get students linked to this parent
+  const parentProfile = parents.find(p => p.user_id === user?.id);
+  const students = allStudents.filter(s => s.parent_id === parentProfile?.id);
 
   const { data: reportCards = [] } = useQuery({
     queryKey: ['report-cards', selectedStudent],
