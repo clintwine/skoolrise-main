@@ -72,15 +72,18 @@ export default function BackupSettings() {
     console.log('Attempting to disconnect Google Drive...');
     try {
       const result = await base44.functions.invoke('disconnectGoogleDrive', {});
-      if (result.data.success) {
+      console.log('Disconnect result:', result);
+      
+      if (result.data?.success) {
         setIsConnected(false);
+        await checkConnection(); // Verify disconnection
         toast.success('Successfully disconnected from Google Drive.');
       } else {
-        toast.error(result.data.error || 'Failed to disconnect.');
+        toast.error(result.data?.error || 'Failed to disconnect.');
       }
     } catch (error) {
       console.error('Disconnect error:', error);
-      toast.error('Failed to disconnect from Google Drive. Please try again.');
+      toast.error('Failed to disconnect from Google Drive: ' + error.message);
     }
   };
 
