@@ -67,6 +67,28 @@ export default function Layout({ children, currentPageName }) {
         }
 
         setUser(currentUser);
+
+        // Redirect root Dashboard page to user-specific dashboard
+        if (currentPageName === 'Dashboard') {
+          const userTypes = currentUser.user_types || [];
+          const isAdmin = currentUser.role === 'admin' || userTypes.includes('admin');
+          const isTeacher = userTypes.includes('teacher');
+          const isStudent = userTypes.includes('student');
+          const isParent = userTypes.includes('parent');
+          const isVendor = userTypes.includes('vendor');
+
+          if (isAdmin) {
+            navigate(createPageUrl('AdminDashboard'));
+          } else if (isVendor) {
+            navigate(createPageUrl('VendorDashboard'));
+          } else if (isParent) {
+            navigate(createPageUrl('ParentPortal'));
+          } else if (isStudent) {
+            navigate(createPageUrl('StudentDashboard'));
+          } else if (isTeacher) {
+            navigate(createPageUrl('TeacherDashboard'));
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch user:', error);
         // Redirect to landing page if not authenticated
@@ -76,7 +98,7 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     fetchUser();
-  }, [navigate, isPublicPage]);
+    }, [navigate, isPublicPage, currentPageName]);
 
   const handleLogout = () => {
     base44.auth.logout();

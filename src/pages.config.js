@@ -25,7 +25,6 @@ import CourseManagement from './pages/CourseManagement';
 import CreateInvoice from './pages/CreateInvoice';
 import CreateReportCard from './pages/CreateReportCard';
 import CurriculumMapping from './pages/CurriculumMapping';
-import Dashboard from './pages/Dashboard';
 import DeliveryReports from './pages/DeliveryReports';
 import DetailedExamAnalytics from './pages/DetailedExamAnalytics';
 import EnrollmentManagement from './pages/EnrollmentManagement';
@@ -121,7 +120,6 @@ export const PAGES = {
     "CreateInvoice": CreateInvoice,
     "CreateReportCard": CreateReportCard,
     "CurriculumMapping": CurriculumMapping,
-    "Dashboard": Dashboard,
     "DeliveryReports": DeliveryReports,
     "DetailedExamAnalytics": DetailedExamAnalytics,
     "EnrollmentManagement": EnrollmentManagement,
@@ -189,7 +187,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Dashboard",
+    mainPage: "AIGradingAssistant",
     Pages: PAGES,
     Layout: __Layout,
 };
