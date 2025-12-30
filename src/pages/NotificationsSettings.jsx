@@ -73,7 +73,6 @@ export default function NotificationsSettings() {
   }, []);
 
   const handleSaveEmailConfig = async () => {
-    // Validate configuration
     if (emailConfig.provider === 'smtp') {
       if (!emailConfig.smtp_host || !emailConfig.smtp_username || !emailConfig.smtp_password) {
         toast.error('Please fill in SMTP host, username, and password');
@@ -108,7 +107,6 @@ export default function NotificationsSettings() {
       return;
     }
 
-    // Validate that config is filled
     if (emailConfig.provider === 'smtp') {
       if (!emailConfig.smtp_host || !emailConfig.smtp_username || !emailConfig.smtp_password || !emailConfig.from_email) {
         toast.error('Please fill in all email configuration fields before testing');
@@ -123,12 +121,10 @@ export default function NotificationsSettings() {
 
     setTesting({ ...testing, email: true });
     try {
-      // Note: This uses Base44's email service, not your custom SMTP
-      // For production, implement a backend function that uses your SMTP config
       await base44.integrations.Core.SendEmail({
         to: testEmail,
         subject: 'Test Email from SkoolRise',
-        body: `This is a test email.\n\nConfiguration: ${emailConfig.provider}\nFrom: ${emailConfig.from_name || 'SkoolRise'} <${emailConfig.from_email}>\n\nNote: This test uses Base44's default email service. Your custom SMTP/API configuration will be used in production notifications.`,
+        body: 'This is a test email.\n\nConfiguration: ' + emailConfig.provider + '\nFrom: ' + (emailConfig.from_name || 'SkoolRise') + ' <' + emailConfig.from_email + '>\n\nNote: This test uses Base44 default email service. Your custom SMTP/API configuration will be used in production notifications.',
         from_name: emailConfig.from_name || "SkoolRise Notifications",
       });
       toast.success('Test email sent! Check your inbox.');
@@ -139,7 +135,7 @@ export default function NotificationsSettings() {
     }
   };
 
-  const handleSaveSmsConfig = async () {
+  const handleSaveSmsConfig = async () => {
     if (smsConfig.provider !== 'custom') {
       if (!smsConfig.account_sid || !smsConfig.auth_token || !smsConfig.sender_number) {
         toast.error('Please fill in Account SID, Auth Token, and Sender Number');
@@ -187,7 +183,7 @@ export default function NotificationsSettings() {
     }
   };
 
-  const handleSaveWhatsappConfig = async () {
+  const handleSaveWhatsappConfig = async () => {
     if (!whatsappConfig.account_sid || !whatsappConfig.auth_token || !whatsappConfig.whatsapp_number) {
       toast.error('Please fill in all WhatsApp configuration fields');
       return;
@@ -249,7 +245,6 @@ export default function NotificationsSettings() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Email Configuration */}
         <TabsContent value="email">
           <Card>
             <CardHeader>
@@ -371,7 +366,7 @@ export default function NotificationsSettings() {
                 <div>
                   <Label>From Name</Label>
                   <Input
-                    placeholder='e.g., "SkoolRise Support"'
+                    placeholder="e.g., SkoolRise Support"
                     value={emailConfig.from_name}
                     onChange={(e) => setEmailConfig({ ...emailConfig, from_name: e.target.value })}
                     className="mt-2"
@@ -394,7 +389,7 @@ export default function NotificationsSettings() {
                   <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
                     <p className="font-semibold mb-1">Important: DNS Configuration</p>
-                    <p>Update your DNS records with SPF and DKIM settings to prevent emails from going to spam. Check your email provider's documentation for specific instructions.</p>
+                    <p>Update your DNS records with SPF and DKIM settings to prevent emails from going to spam. Check your email provider documentation for specific instructions.</p>
                   </div>
                 </div>
               </div>
@@ -413,7 +408,7 @@ export default function NotificationsSettings() {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Note: Test email uses Base44's service. Save configuration first, then implement a backend function for production SMTP/API sending.
+                  Note: Test email uses Base44 service. Save configuration first, then implement a backend function for production SMTP/API sending.
                 </p>
               </div>
 
@@ -427,7 +422,6 @@ export default function NotificationsSettings() {
           </Card>
         </TabsContent>
 
-        {/* SMS Configuration */}
         <TabsContent value="sms">
           <Card>
             <CardHeader>
@@ -593,7 +587,6 @@ export default function NotificationsSettings() {
           </Card>
         </TabsContent>
 
-        {/* WhatsApp Configuration */}
         <TabsContent value="whatsapp">
           <Card>
             <CardHeader>
