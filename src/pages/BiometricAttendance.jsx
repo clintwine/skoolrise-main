@@ -26,7 +26,7 @@ export default function BiometricAttendance() {
   const { data: biometricRecords = [], isLoading } = useQuery({
     queryKey: ['biometric-attendance', dateRange],
     queryFn: async () => {
-      if (!dateRange.from || !dateRange.to) return [];
+      if (!dateRange?.from || !dateRange?.to) return [];
 
       const fromDate = format(dateRange.from, 'yyyy-MM-dd');
       const toDate = format(dateRange.to, 'yyyy-MM-dd');
@@ -125,7 +125,7 @@ export default function BiometricAttendance() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `biometric_attendance_${format(dateRange.from, 'yyyy-MM-dd')}_to_${format(dateRange.to, 'yyyy-MM-dd')}.csv`;
+    a.download = `biometric_attendance_${format(dateRange?.from || new Date(), 'yyyy-MM-dd')}_to_${format(dateRange?.to || new Date(), 'yyyy-MM-dd')}.csv`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -236,7 +236,7 @@ export default function BiometricAttendance() {
       <Card className="bg-white shadow-md">
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg">
-            Attendance Records - {dateRange.from && dateRange.to ? `${format(dateRange.from, 'MMM dd, yyyy')} - ${format(dateRange.to, 'MMM dd, yyyy')}` : 'Select a date range'}
+            Attendance Records - {dateRange?.from && dateRange?.to ? `${format(dateRange.from, 'MMM dd, yyyy')} - ${format(dateRange.to, 'MMM dd, yyyy')}` : 'Select a date range'}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
