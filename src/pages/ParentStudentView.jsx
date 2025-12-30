@@ -38,8 +38,11 @@ export default function ParentStudentView() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.parent_of_student_ids) {
-        const ids = currentUser.parent_of_student_ids.split(',').map(id => id.trim());
+      
+      // Get parent entity using linked_parent_id
+      if (currentUser.linked_parent_id) {
+        const allStudents = await base44.entities.Student.filter({ parent_id: currentUser.linked_parent_id });
+        const ids = allStudents.map(s => s.id);
         setStudentIds(ids);
         if (ids.length > 0) setSelectedStudentId(ids[0]);
       }
@@ -48,13 +51,12 @@ export default function ParentStudentView() {
   }, []);
 
   const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', studentIds],
+    queryKey: ['parent-students', user?.linked_parent_id],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => studentIds.includes(s.id));
+      if (!user?.linked_parent_id) return [];
+      return await base44.entities.Student.filter({ parent_id: user.linked_parent_id });
     },
-    enabled: studentIds.length > 0,
+    enabled: !!user?.linked_parent_id,
   });
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
@@ -277,7 +279,7 @@ export default function ParentStudentView() {
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold">{selectedStudent.first_name} {selectedStudent.last_name}</h2>
-              <p className="text-blue-100">Student ID: {selectedStudent.student_id} | Grade: {selectedStudent.grade_level}</p>
+              <p className="text-blue-100">Student ID: {selectedStudent.student_id_number} | Grade: {selectedStudent.grade_level}</p>
             </div>
             <Badge className={selectedStudent.status === 'Active' ? 'bg-green-500' : 'bg-gray-500'}>
               {selectedStudent.status}
