@@ -101,6 +101,7 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import ImprovedStudentRecords from './pages/ImprovedStudentRecords';
 import __Layout from './Layout.jsx';
 
 
@@ -208,6 +209,7 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "ImprovedStudentRecords": ImprovedStudentRecords,
 }
 
 export const pagesConfig = {
