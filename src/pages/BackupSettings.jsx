@@ -68,6 +68,21 @@ export default function BackupSettings() {
     }
   };
 
+  const handleDisconnect = async () => {
+    try {
+      const result = await base44.functions.invoke('disconnectGoogleDrive', {});
+      if (result.data.success) {
+        setIsConnected(false);
+        toast.success('Successfully disconnected from Google Drive.');
+      } else {
+        toast.error(result.data.error || 'Failed to disconnect.');
+      }
+    } catch (error) {
+      console.error('Disconnect error:', error);
+      toast.error('Failed to disconnect from Google Drive. Please try again.');
+    }
+  };
+
   const handleBackup = async (backupType) => {
     setLoading(true);
     setBackupStatus(null);
@@ -139,11 +154,19 @@ export default function BackupSettings() {
                 </Badge>
               )}
             </div>
-            {!isConnected && (
-              <Button onClick={handleConnect} className="bg-blue-600 hover:bg-blue-700">
-                Connect to Google Drive
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {!isConnected && (
+                <Button onClick={handleConnect} className="bg-blue-600 hover:bg-blue-700">
+                  Connect to Google Drive
+                </Button>
+              )}
+              {isConnected && (
+                <Button onClick={handleDisconnect} variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Disconnect
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
