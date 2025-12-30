@@ -68,8 +68,8 @@ export default function Layout({ children, currentPageName }) {
 
         setUser(currentUser);
 
-        // Redirect root Dashboard page to user-specific dashboard
-        if (currentPageName === 'Dashboard') {
+        // Redirect root pages to user-specific dashboard
+        if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
           const userTypes = currentUser.user_types || [];
           const isAdmin = currentUser.role === 'admin' || userTypes.includes('admin');
           const isTeacher = userTypes.includes('teacher');
