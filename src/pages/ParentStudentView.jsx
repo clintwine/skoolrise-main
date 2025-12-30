@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,7 @@ export default function ParentStudentView() {
   const [messageRecipient, setMessageRecipient] = useState(null);
   const [messageText, setMessageText] = useState('');
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -246,7 +249,7 @@ export default function ParentStudentView() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Children Linked</h2>
             <p className="text-gray-600 mb-6">You don't have any children linked to your account yet.</p>
             <Button 
-              onClick={() => window.location.href = createPageUrl('ParentLinkingRequests')}
+              onClick={() => navigate(createPageUrl('ParentLinkingRequests'))}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
