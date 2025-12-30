@@ -24,7 +24,8 @@ Deno.serve(async (req) => {
     // Parse request body
     const { user_type, profile_data } = await req.json();
 
-    if (user_type !== user.user_type) {
+    // Check if user has this type
+    if (!user.user_types || !user.user_types.includes(user_type)) {
       return Response.json({ 
         success: false, 
         message: 'User type mismatch' 
@@ -46,10 +47,10 @@ Deno.serve(async (req) => {
       } else {
         // Create new teacher record if it doesn't exist
         const teacher = await base44.asServiceRole.entities.Teacher.create({
+          user_id: user.id,
           first_name: profile_data.first_name,
           last_name: profile_data.last_name,
-          staff_id: profile_data.staff_id || `STAFF${Date.now()}`,
-          email: user.email,
+          staff_id: `STAFF${Date.now()}`,
           phone: profile_data.phone,
           department: profile_data.department,
           position: profile_data.position,
@@ -74,10 +75,10 @@ Deno.serve(async (req) => {
       } else {
         // Create new student record if it doesn't exist
         const student = await base44.asServiceRole.entities.Student.create({
+          user_id: user.id,
           first_name: profile_data.first_name,
           last_name: profile_data.last_name,
-          student_id: profile_data.student_id || `STU${Date.now()}`,
-          email: user.email,
+          student_id_number: `STU${Date.now()}`,
           phone: profile_data.phone,
           address: profile_data.address,
           grade_level: '1',
@@ -90,10 +91,54 @@ Deno.serve(async (req) => {
         });
       }
     } else if (user_type === 'parent') {
-      // For parents, just update their basic info in the User entity
-      await base44.auth.updateMe({
-        full_name: `${profile_data.first_name} ${profile_data.last_name}`
-      });
+      if (user.linked_parent_id) {
+        // Update existing parent record
+        await base44.asServiceRole.entities.Parent.update(user.linked_parent_id, {
+          first_name: profile_data.first_name,
+          last_name: profile_data.last_name,
+          phone: profile_data.phone,
+          address: profile_data.address,
+        });
+      } else {
+        // Create new parent record
+        const parent = await base44.asServiceRole.entities.Parent.create({
+          user_id: user.id,
+          first_name: profile_data.first_name,
+          last_name: profile_data.last_name,
+          phone: profile_data.phone,
+          address: profile_data.address,
+        });
+        
+        await base44.auth.updateMe({
+          linked_parent_id: parent.id
+        });
+      }
+    } else if (user_type === 'vendor') {
+      if (user.linked_vendor_id) {
+        // Update existing vendor record
+        await base44.asServiceRole.entities.Vendor.update(user.linked_vendor_id, {
+          business_name: profile_data.business_name,
+          contact_person: profile_data.contact_person,
+          phone: profile_data.phone,
+          category: profile_data.category,
+          address: profile_data.address,
+        });
+      } else {
+        // Create new vendor record
+        const vendor = await base44.asServiceRole.entities.Vendor.create({
+          user_id: user.id,
+          business_name: profile_data.business_name,
+          contact_person: profile_data.contact_person,
+          phone: profile_data.phone,
+          category: profile_data.category,
+          address: profile_data.address,
+          status: 'Active',
+        });
+        
+        await base44.auth.updateMe({
+          linked_vendor_id: vendor.id
+        });
+      }
     }
 
     // Mark profile as completed

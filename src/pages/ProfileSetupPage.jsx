@@ -37,36 +37,72 @@ export default function ProfileSetupPage() {
 
         // Initialize form data based on user type
         const userTypes = currentUser.user_types || [];
+        
+        // Default form data
+        const nameParts = (currentUser.full_name || '').split(' ');
+        const initialFormData = {
+          email: currentUser.email || '',
+          first_name: nameParts[0] || '',
+          last_name: nameParts.slice(1).join(' ') || '',
+        };
+
+        setFormData(initialFormData);
 
         if (userTypes.includes('teacher')) {
-          // Try to fetch existing teacher record if linked
           if (currentUser.linked_teacher_id) {
-            const teacher = await base44.entities.Teacher.filter({ id: currentUser.linked_teacher_id });
-            if (teacher.length > 0) {
-              setFormData({
-                first_name: teacher[0].first_name || '',
-                last_name: teacher[0].last_name || '',
-                staff_id: teacher[0].staff_id || '',
-                email: currentUser.email || '',
-                phone: teacher[0].phone || '',
-                department: teacher[0].department || '',
-                position: teacher[0].position || '',
-                hire_date: teacher[0].hire_date || '',
-              });
+            const teachers = await base44.entities.Teacher.filter({ id: currentUser.linked_teacher_id });
+            if (teachers.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                first_name: teachers[0].first_name || prev.first_name,
+                last_name: teachers[0].last_name || prev.last_name,
+                staff_id: teachers[0].staff_id || '',
+                phone: teachers[0].phone || '',
+                department: teachers[0].department || '',
+                position: teachers[0].position || '',
+                hire_date: teachers[0].hire_date || '',
+              }));
             }
-            }
-            } else if (userTypes.includes('student')) {
+          }
+        } else if (userTypes.includes('student')) {
           if (currentUser.linked_student_id) {
-            const student = await base44.entities.Student.filter({ id: currentUser.linked_student_id });
-            if (student.length > 0) {
-              setFormData({
-                first_name: student[0].first_name || '',
-                last_name: student[0].last_name || '',
-                student_id: student[0].student_id || '',
-                email: currentUser.email || '',
-                phone: student[0].phone || '',
-                address: student[0].address || '',
-              });
+            const students = await base44.entities.Student.filter({ id: currentUser.linked_student_id });
+            if (students.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                first_name: students[0].first_name || prev.first_name,
+                last_name: students[0].last_name || prev.last_name,
+                student_id_number: students[0].student_id_number || '',
+                phone: students[0].phone || '',
+                address: students[0].address || '',
+              }));
+            }
+          }
+        } else if (userTypes.includes('parent')) {
+          if (currentUser.linked_parent_id) {
+            const parents = await base44.entities.Parent.filter({ id: currentUser.linked_parent_id });
+            if (parents.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                first_name: parents[0].first_name || prev.first_name,
+                last_name: parents[0].last_name || prev.last_name,
+                phone: parents[0].phone || '',
+                address: parents[0].address || '',
+              }));
+            }
+          }
+        } else if (userTypes.includes('vendor')) {
+          if (currentUser.linked_vendor_id) {
+            const vendors = await base44.entities.Vendor.filter({ id: currentUser.linked_vendor_id });
+            if (vendors.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                business_name: vendors[0].business_name || '',
+                contact_person: vendors[0].contact_person || '',
+                phone: vendors[0].phone || '',
+                category: vendors[0].category || '',
+                address: vendors[0].address || '',
+              }));
             }
           }
         }
@@ -244,10 +280,10 @@ export default function ProfileSetupPage() {
       </div>
 
       <div>
-        <Label htmlFor="student_id" className="text-sm">Student ID</Label>
+        <Label htmlFor="student_id_number" className="text-sm">Student ID</Label>
         <Input
-          id="student_id"
-          value={formData.student_id || ''}
+          id="student_id_number"
+          value={formData.student_id_number || ''}
           disabled
           className="bg-gray-50 py-2 text-sm"
         />
@@ -338,6 +374,71 @@ export default function ProfileSetupPage() {
     </>
   );
 
+  const renderVendorForm = () => (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div>
+          <Label htmlFor="business_name" className="text-sm">Business Name *</Label>
+          <Input
+            id="business_name"
+            value={formData.business_name || ''}
+            onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+            required
+            className="py-2 text-sm"
+          />
+        </div>
+        <div>
+          <Label htmlFor="contact_person" className="text-sm">Contact Person *</Label>
+          <Input
+            id="contact_person"
+            value={formData.contact_person || ''}
+            onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
+            required
+            className="py-2 text-sm"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="phone" className="text-sm">Phone Number</Label>
+        <Input
+          id="phone"
+          type="tel"
+          value={formData.phone || ''}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          className="py-2 text-sm"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="category" className="text-sm">Category *</Label>
+        <Select
+          value={formData.category || ''}
+          onValueChange={(value) => setFormData({ ...formData, category: value })}
+        >
+          <SelectTrigger className="py-2 text-sm">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Publisher">Publisher</SelectItem>
+            <SelectItem value="Marketer">Marketer</SelectItem>
+            <SelectItem value="Distributor">Distributor</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="address" className="text-sm">Address</Label>
+        <Textarea
+          id="address"
+          value={formData.address || ''}
+          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          className="py-2 text-sm"
+        />
+      </div>
+    </>
+  );
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
@@ -368,6 +469,7 @@ export default function ProfileSetupPage() {
             {(user.user_types || []).includes('teacher') && renderTeacherForm()}
             {(user.user_types || []).includes('student') && renderStudentForm()}
             {(user.user_types || []).includes('parent') && renderParentForm()}
+            {(user.user_types || []).includes('vendor') && renderVendorForm()}
 
             {error && (
               <Alert variant="destructive">
