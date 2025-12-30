@@ -89,6 +89,16 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import StudentProfile from './pages/StudentProfile';
+import StudentAttendance from './pages/StudentAttendance';
+import StudentGrades from './pages/StudentGrades';
+import StudentTests from './pages/StudentTests';
+import StudentClasses from './pages/StudentClasses';
+import MyClasses from './pages/MyClasses';
+import AttendanceTaking from './pages/AttendanceTaking';
+import TeacherTests from './pages/TeacherTests';
+import BehaviorTracking from './pages/BehaviorTracking';
+import ParentManagement from './pages/ParentManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -184,6 +194,16 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "StudentProfile": StudentProfile,
+    "StudentAttendance": StudentAttendance,
+    "StudentGrades": StudentGrades,
+    "StudentTests": StudentTests,
+    "StudentClasses": StudentClasses,
+    "MyClasses": MyClasses,
+    "AttendanceTaking": AttendanceTaking,
+    "TeacherTests": TeacherTests,
+    "BehaviorTracking": BehaviorTracking,
+    "ParentManagement": ParentManagement,
 }
 
 export const pagesConfig = {

@@ -1,0 +1,123 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+
+export default function StudentAttendance() {
+  const [user, setUser] = useState(null);
+  const [studentId, setStudentId] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setStudentId(currentUser.linked_student_id);
+    };
+    fetchUser();
+  }, []);
+
+  const { data: attendance = [] } = useQuery({
+    queryKey: ['student-attendance', studentId],
+    queryFn: () => base44.entities.Attendance.filter({ student_id: studentId }),
+    enabled: !!studentId,
+  });
+
+  const stats = {
+    present: attendance.filter(a => a.status === 'Present').length,
+    absent: attendance.filter(a => a.status === 'Absent').length,
+    late: attendance.filter(a => a.status === 'Late').length,
+    total: attendance.length,
+  };
+
+  const attendanceRate = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : 0;
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Present':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'Absent':
+        return <XCircle className="w-5 h-5 text-red-600" />;
+      case 'Late':
+        return <Clock className="w-5 h-5 text-yellow-600" />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-gray-900">My Attendance</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-blue-600">{attendanceRate}%</p>
+              <p className="text-sm text-gray-600 mt-1">Attendance Rate</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-600">{stats.present}</p>
+              <p className="text-sm text-gray-600 mt-1">Present</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-red-600">{stats.absent}</p>
+              <p className="text-sm text-gray-600 mt-1">Absent</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-yellow-600">{stats.late}</p>
+              <p className="text-sm text-gray-600 mt-1">Late</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Attendance History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {attendance.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">No attendance records found</p>
+            ) : (
+              attendance.map((record) => (
+                <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(record.status)}
+                    <div>
+                      <p className="font-medium">{record.class_name || 'Class'}</p>
+                      <p className="text-sm text-gray-600">
+                        {format(new Date(record.date), 'MMMM dd, yyyy')}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    record.status === 'Present' ? 'bg-green-100 text-green-800' :
+                    record.status === 'Absent' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {record.status}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
