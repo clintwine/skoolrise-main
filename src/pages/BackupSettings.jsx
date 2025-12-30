@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { HardDrive, Database, FileText, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function BackupSettings() {
   const [user, setUser] = useState(null);
@@ -23,8 +24,8 @@ export default function BackupSettings() {
 
   const checkConnection = async () => {
     try {
-      const result = await base44.functions.call('checkGoogleDriveConnection', {});
-      setIsConnected(result?.connected || false);
+      const result = await base44.functions.invoke('checkGoogleDriveConnection', {});
+      setIsConnected(result.data?.connected || false);
     } catch (error) {
       setIsConnected(false);
     }
@@ -41,18 +42,29 @@ export default function BackupSettings() {
       window.open(authUrl, '_blank');
       
       // Poll for connection status
-      const interval = setInterval(async () => {
-        await checkConnection();
-        if (isConnected) {
-          clearInterval(interval);
+      const pollInterval = setInterval(async () => {
+        try {
+          const result = await base44.functions.invoke('checkGoogleDriveConnection', {});
+          if (result.data?.connected) {
+            setIsConnected(true);
+            clearInterval(pollInterval);
+            toast.success('Successfully connected to Google Drive!');
+          }
+        } catch (pollError) {
+          // Ignore polling errors
         }
-      }, 2000);
+      }, 3000);
       
       // Clear interval after 2 minutes
-      setTimeout(() => clearInterval(interval), 120000);
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (!isConnected) {
+          toast.error('Connection timed out. Please try again.');
+        }
+      }, 120000);
     } catch (error) {
       console.error('Connection error:', error);
-      alert('Failed to connect to Google Drive. Please try again.');
+      toast.error('Failed to connect to Google Drive. Please try again.');
     }
   };
 
@@ -61,18 +73,18 @@ export default function BackupSettings() {
     setBackupStatus(null);
     
     try {
-      const result = await base44.functions.call('backupToGoogleDrive', { backupType });
+      const result = await base44.functions.invoke('backupToGoogleDrive', { backupType });
       
-      if (result.success) {
+      if (result.data.success) {
         setBackupStatus({
           type: 'success',
-          message: result.message,
-          fileName: result.fileName
+          message: result.data.message,
+          fileName: result.data.fileName
         });
       } else {
         setBackupStatus({
           type: 'error',
-          message: result.error || 'Backup failed'
+          message: result.data.error || 'Backup failed'
         });
       }
     } catch (error) {
