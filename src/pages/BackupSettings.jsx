@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 export default function BackupSettings() {
   const [user, setUser] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loadingBackupType, setLoadingBackupType] = useState(null);
   const [backupStatus, setBackupStatus] = useState(null);
 
   useEffect(() => {
@@ -69,6 +69,7 @@ export default function BackupSettings() {
   };
 
   const handleDisconnect = async () => {
+    console.log('Attempting to disconnect Google Drive...');
     try {
       const result = await base44.functions.invoke('disconnectGoogleDrive', {});
       if (result.data.success) {
@@ -84,7 +85,7 @@ export default function BackupSettings() {
   };
 
   const handleBackup = async (backupType) => {
-    setLoading(true);
+    setLoadingBackupType(backupType);
     setBackupStatus(null);
     
     try {
@@ -109,7 +110,7 @@ export default function BackupSettings() {
         message: error.message || 'Backup failed'
       });
     } finally {
-      setLoading(false);
+      setLoadingBackupType(null);
     }
   };
 
@@ -203,10 +204,10 @@ export default function BackupSettings() {
             </p>
             <Button
               onClick={() => handleBackup('full')}
-              disabled={!isConnected || loading}
+              disabled={!isConnected || loadingBackupType !== null}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
-              {loading ? (
+              {loadingBackupType === 'full' ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Backing up...
@@ -234,10 +235,10 @@ export default function BackupSettings() {
             </p>
             <Button
               onClick={() => handleBackup('reports')}
-              disabled={!isConnected || loading}
+              disabled={!isConnected || loadingBackupType !== null}
               className="w-full bg-green-600 hover:bg-green-700"
             >
-              {loading ? (
+              {loadingBackupType === 'reports' ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Backing up...
@@ -265,10 +266,10 @@ export default function BackupSettings() {
             </p>
             <Button
               onClick={() => handleBackup('results')}
-              disabled={!isConnected || loading}
+              disabled={!isConnected || loadingBackupType !== null}
               className="w-full bg-purple-600 hover:bg-purple-700"
             >
-              {loading ? (
+              {loadingBackupType === 'results' ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Backing up...
