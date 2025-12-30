@@ -219,6 +219,7 @@ export default function CreateAssignmentDialog({ open, onClose }) {
               id="allow_groups"
               checked={formData.allow_group_submissions}
               onCheckedChange={(checked) => setFormData({ ...formData, allow_group_submissions: checked })}
+              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <Label htmlFor="allow_groups" className="text-lg font-semibold cursor-pointer">
               👥 Allow Group Submissions

@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Calendar, CheckCircle, XCircle, Clock, Users, UserCircle } from 'lucide-react';
 
 export default function AttendanceManagement() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -61,15 +59,16 @@ export default function AttendanceManagement() {
     enrollments.some(e => e.student_id === s.id)
   );
 
-  const handleOpenMarking = () => {
-    const initial = {};
-    enrolledStudents.forEach(student => {
-      const existing = attendance.find(a => a.student_id === student.id);
-      initial[student.id] = existing?.status || 'Present';
-    });
-    setStudentAttendance(initial);
-    setIsMarkingOpen(true);
-  };
+  React.useEffect(() => {
+    if (selectedClass && enrolledStudents.length > 0) {
+      const initial = {};
+      enrolledStudents.forEach(student => {
+        const existing = attendance.find(a => a.student_id === student.id);
+        initial[student.id] = existing?.status || 'Present';
+      });
+      setStudentAttendance(initial);
+    }
+  }, [selectedClass, enrolledStudents.length, attendance.length]);
 
   const handleSaveAttendance = () => {
     const attendanceRecords = Object.entries(studentAttendance).map(([studentId, status]) => {
@@ -172,82 +171,69 @@ export default function AttendanceManagement() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button 
-                onClick={handleOpenMarking}
-                disabled={!selectedClass}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Mark Attendance
-              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {attendance.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">No attendance records for this date and class</p>
+          {!selectedClass ? (
+            <p className="text-center text-gray-500 py-8">Please select a class to mark attendance</p>
+          ) : enrolledStudents.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">No students enrolled in this class</p>
           ) : (
-            <div className="space-y-2">
-              {attendance.map((record) => {
-                const student = students.find(s => s.id === record.student_id);
-                return (
-                  <div key={record.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{record.student_name || `${student?.first_name} ${student?.last_name}`}</p>
-                      <p className="text-sm text-gray-600">{record.class_name}</p>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                {enrolledStudents.map((student) => {
+                  const existing = attendance.find(a => a.student_id === student.id);
+                  const currentStatus = studentAttendance[student.id] || existing?.status || 'Present';
+                  
+                  return (
+                    <div key={student.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {student.photo_url ? (
+                          <img src={student.photo_url} alt={student.first_name} className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <UserCircle className="w-6 h-6 text-blue-600" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{student.first_name} {student.last_name}</p>
+                          <p className="text-sm text-gray-600">ID: {student.student_id_number}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={currentStatus === 'Present' ? 'default' : 'outline'}
+                          className={currentStatus === 'Present' ? 'bg-green-600 hover:bg-green-700' : ''}
+                          onClick={() => setStudentAttendance({...studentAttendance, [student.id]: 'Present'})}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Present
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={currentStatus === 'Absent' ? 'default' : 'outline'}
+                          className={currentStatus === 'Absent' ? 'bg-red-600 hover:bg-red-700' : ''}
+                          onClick={() => setStudentAttendance({...studentAttendance, [student.id]: 'Absent'})}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Absent
+                        </Button>
+                      </div>
                     </div>
-                    <Badge className={
-                      record.status === 'Present' ? 'bg-green-100 text-green-800' :
-                      record.status === 'Absent' ? 'bg-red-100 text-red-800' :
-                      record.status === 'Late' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-blue-100 text-blue-800'
-                    }>
-                      {record.status}
-                    </Badge>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              <div className="flex justify-end pt-4 border-t">
+                <Button onClick={handleSaveAttendance} className="bg-blue-600 hover:bg-blue-700">
+                  Update Attendance Records
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={isMarkingOpen} onOpenChange={setIsMarkingOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white">
-          <DialogHeader>
-            <DialogTitle>Mark Attendance - {selectedDate}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            {enrolledStudents.map((student) => (
-              <div key={student.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">{student.first_name} {student.last_name}</p>
-                  <p className="text-sm text-gray-600">ID: {student.student_id}</p>
-                </div>
-                <Select 
-                  value={studentAttendance[student.id] || 'Present'} 
-                  onValueChange={(value) => setStudentAttendance({...studentAttendance, [student.id]: value})}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Present">Present</SelectItem>
-                    <SelectItem value="Absent">Absent</SelectItem>
-                    <SelectItem value="Late">Late</SelectItem>
-                    <SelectItem value="Excused">Excused</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => setIsMarkingOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveAttendance} className="bg-blue-600 hover:bg-blue-700">
-              Save Attendance
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
