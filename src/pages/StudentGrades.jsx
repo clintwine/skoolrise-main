@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Award, TrendingUp } from 'lucide-react';
+import { Award, TrendingUp, FileText } from 'lucide-react';
 
 export default function StudentGrades() {
   const [user, setUser] = useState(null);
