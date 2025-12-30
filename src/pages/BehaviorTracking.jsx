@@ -161,7 +161,11 @@ export default function BehaviorTracking() {
           <CardContent>
             <div className="space-y-3">
               {behaviors.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No behavior records yet</p>
+                <div className="text-center py-12">
+                  <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Behavior Records</h3>
+                  <p className="text-gray-600">Start tracking student behavior by clicking "Record Behavior" above.</p>
+                </div>
               ) : (
                 behaviors.map((behavior) => (
                   <div key={behavior.id} className="flex items-center justify-between p-4 border rounded-lg">

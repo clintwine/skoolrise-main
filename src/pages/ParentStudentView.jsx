@@ -19,6 +19,7 @@ import {
   ClipboardList,
   TrendingUp
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -230,7 +231,74 @@ export default function ParentStudentView() {
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.inventory.retail_price * item.quantity), 0);
 
-  if (!user || !selectedStudent) {
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">My Children</h1>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Children Linked</h2>
+            <p className="text-gray-600 mb-6">You don't have any children linked to your account yet.</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Request Student Linking</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Request to Link Children</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Please provide your children's names and student IDs below. An administrator will review and link them to your account.
+                  </p>
+                  <div>
+                    <Label>Children's Information</Label>
+                    <Textarea
+                      placeholder="Example:&#10;John Doe - STU12345&#10;Jane Doe - STU12346"
+                      rows={5}
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    onClick={async () => {
+                      await base44.integrations.Core.SendEmail({
+                        to: 'admin@skoolrise.com',
+                        subject: 'Student Linking Request',
+                        body: `
+                          <h3>Parent Linking Request</h3>
+                          <p><strong>Parent Name:</strong> ${user.full_name}</p>
+                          <p><strong>Parent Email:</strong> ${user.email}</p>
+                          <p><strong>Children Information:</strong></p>
+                          <pre>${messageText}</pre>
+                        `
+                      });
+                      setMessageText('');
+                      toast.success('Request sent to administrator');
+                    }}
+                    className="w-full"
+                  >
+                    Send Request
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!selectedStudent) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>

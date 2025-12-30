@@ -271,12 +271,22 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Student Progress', icon: TrendingUp, path: 'StudentProgressTracking' },
           { name: 'Resources', icon: BookOpen, path: 'ClassroomResources' },
         ]
-        },
+      },
+      {
+        id: 'cbt-tools',
+        groupName: 'CBT & ASSESSMENT',
+        items: [
+          { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
+          { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
+          { name: 'Grade Submissions', icon: Award, path: 'TeacherAssignments' },
+        ]
+      },
       {
         id: 'student-overview',
-        groupName: 'STUDENT OVERVIEW',
+        groupName: 'STUDENT MANAGEMENT',
         items: [
-          { name: 'Students', icon: Users, path: 'StudentRecords' },
+          { name: 'View Students', icon: Users, path: 'StudentRecords' },
+          { name: 'Add Student', icon: UserCircle, path: 'StudentRecords' },
         ]
       }
     ];

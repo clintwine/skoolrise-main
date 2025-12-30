@@ -46,10 +46,13 @@ export default function MyClasses() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classes.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">You don't have any classes assigned yet</p>
-          </div>
+          <Card className="col-span-full">
+            <CardContent className="p-12 text-center">
+              <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Classes Assigned</h2>
+              <p className="text-gray-600">You don't have any classes assigned yet. Please contact your administrator to get classes assigned to you.</p>
+            </CardContent>
+          </Card>
         ) : (
           classes.map((classItem) => (
             <Link key={classItem.id} to={createPageUrl(`ClassManagement?class_id=${classItem.id}`)}>

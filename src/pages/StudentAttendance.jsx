@@ -92,7 +92,11 @@ export default function StudentAttendance() {
         <CardContent>
           <div className="space-y-3">
             {attendance.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No attendance records found</p>
+              <div className="text-center py-12">
+                <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Attendance Records</h3>
+                <p className="text-gray-600">Your attendance records will appear here once your teachers start tracking attendance.</p>
+              </div>
             ) : (
               attendance.map((record) => (
                 <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">

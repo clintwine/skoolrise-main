@@ -83,7 +83,8 @@ export default function TeacherTests() {
             {exams.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">You haven't created any tests yet</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Tests Created</h3>
+                <p className="text-gray-600 mb-4">Get started by creating your first test using our CBT platform</p>
                 <Link to={createPageUrl('ExamCreator')}>
                   <Button>Create Your First Test</Button>
                 </Link>

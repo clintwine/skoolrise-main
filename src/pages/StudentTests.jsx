@@ -76,7 +76,11 @@ export default function StudentTests() {
         <CardContent>
           <div className="space-y-3">
             {availableExams.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No tests available at the moment</p>
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Tests Available</h3>
+                <p className="text-gray-600">There are no active tests at the moment. Check back later or contact your teacher.</p>
+              </div>
             ) : (
               availableExams.map((exam) => (
                 <div key={exam.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -105,7 +109,11 @@ export default function StudentTests() {
         <CardContent>
           <div className="space-y-3">
             {completedAttempts.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No completed tests yet</p>
+              <div className="text-center py-12">
+                <CheckCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Completed Tests</h3>
+                <p className="text-gray-600">You haven't completed any tests yet. Your results will appear here once you finish a test.</p>
+              </div>
             ) : (
               completedAttempts.map((attempt) => (
                 <div key={attempt.id} className="flex items-center justify-between p-4 border rounded-lg">

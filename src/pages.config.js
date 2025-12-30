@@ -8,9 +8,11 @@ import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
 import AssignmentManagement from './pages/AssignmentManagement';
 import AttendanceManagement from './pages/AttendanceManagement';
+import AttendanceTaking from './pages/AttendanceTaking';
 import BackupSettings from './pages/BackupSettings';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import BehaviorManagement from './pages/BehaviorManagement';
+import BehaviorTracking from './pages/BehaviorTracking';
 import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
@@ -45,6 +47,7 @@ import GradingScales from './pages/GradingScales';
 import InstalmentPlans from './pages/InstalmentPlans';
 import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
+import MyClasses from './pages/MyClasses';
 import NotificationsSettings from './pages/NotificationsSettings';
 import ParentAssignmentView from './pages/ParentAssignmentView';
 import ParentAttendance from './pages/ParentAttendance';
@@ -52,6 +55,7 @@ import ParentBehavior from './pages/ParentBehavior';
 import ParentCalendar from './pages/ParentCalendar';
 import ParentFees from './pages/ParentFees';
 import ParentHomework from './pages/ParentHomework';
+import ParentManagement from './pages/ParentManagement';
 import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
 import ParentStudentView from './pages/ParentStudentView';
@@ -73,32 +77,28 @@ import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
 import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
 import StudentAssignments from './pages/StudentAssignments';
+import StudentAttendance from './pages/StudentAttendance';
+import StudentClasses from './pages/StudentClasses';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentExitMonitoring from './pages/StudentExitMonitoring';
+import StudentGrades from './pages/StudentGrades';
 import StudentManagement from './pages/StudentManagement';
+import StudentProfile from './pages/StudentProfile';
 import StudentProgressTracking from './pages/StudentProgressTracking';
 import StudentRecords from './pages/StudentRecords';
+import StudentTests from './pages/StudentTests';
 import TakeExam from './pages/TakeExam';
 import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
 import TeacherAssignments from './pages/TeacherAssignments';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
+import TeacherTests from './pages/TeacherTests';
 import TermsOfService from './pages/TermsOfService';
 import TimetableManagement from './pages/TimetableManagement';
 import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import StudentProfile from './pages/StudentProfile';
-import StudentAttendance from './pages/StudentAttendance';
-import StudentGrades from './pages/StudentGrades';
-import StudentTests from './pages/StudentTests';
-import StudentClasses from './pages/StudentClasses';
-import MyClasses from './pages/MyClasses';
-import AttendanceTaking from './pages/AttendanceTaking';
-import TeacherTests from './pages/TeacherTests';
-import BehaviorTracking from './pages/BehaviorTracking';
-import ParentManagement from './pages/ParentManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -113,9 +113,11 @@ export const PAGES = {
     "AdmissionsManagement": AdmissionsManagement,
     "AssignmentManagement": AssignmentManagement,
     "AttendanceManagement": AttendanceManagement,
+    "AttendanceTaking": AttendanceTaking,
     "BackupSettings": BackupSettings,
     "BehaviorAnalytics": BehaviorAnalytics,
     "BehaviorManagement": BehaviorManagement,
+    "BehaviorTracking": BehaviorTracking,
     "BiometricAttendance": BiometricAttendance,
     "BookshopManager": BookshopManager,
     "BookshopReports": BookshopReports,
@@ -150,6 +152,7 @@ export const PAGES = {
     "InstalmentPlans": InstalmentPlans,
     "LandingPage": LandingPage,
     "MessagingCenter": MessagingCenter,
+    "MyClasses": MyClasses,
     "NotificationsSettings": NotificationsSettings,
     "ParentAssignmentView": ParentAssignmentView,
     "ParentAttendance": ParentAttendance,
@@ -157,6 +160,7 @@ export const PAGES = {
     "ParentCalendar": ParentCalendar,
     "ParentFees": ParentFees,
     "ParentHomework": ParentHomework,
+    "ParentManagement": ParentManagement,
     "ParentPortal": ParentPortal,
     "ParentReports": ParentReports,
     "ParentStudentView": ParentStudentView,
@@ -178,32 +182,28 @@ export const PAGES = {
     "Settings": Settings,
     "StudentAssignmentDashboard": StudentAssignmentDashboard,
     "StudentAssignments": StudentAssignments,
+    "StudentAttendance": StudentAttendance,
+    "StudentClasses": StudentClasses,
     "StudentDashboard": StudentDashboard,
     "StudentExitMonitoring": StudentExitMonitoring,
+    "StudentGrades": StudentGrades,
     "StudentManagement": StudentManagement,
+    "StudentProfile": StudentProfile,
     "StudentProgressTracking": StudentProgressTracking,
     "StudentRecords": StudentRecords,
+    "StudentTests": StudentTests,
     "TakeExam": TakeExam,
     "TeacherAssignmentManager": TeacherAssignmentManager,
     "TeacherAssignments": TeacherAssignments,
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
+    "TeacherTests": TeacherTests,
     "TermsOfService": TermsOfService,
     "TimetableManagement": TimetableManagement,
     "UserManagement": UserManagement,
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "StudentProfile": StudentProfile,
-    "StudentAttendance": StudentAttendance,
-    "StudentGrades": StudentGrades,
-    "StudentTests": StudentTests,
-    "StudentClasses": StudentClasses,
-    "MyClasses": MyClasses,
-    "AttendanceTaking": AttendanceTaking,
-    "TeacherTests": TeacherTests,
-    "BehaviorTracking": BehaviorTracking,
-    "ParentManagement": ParentManagement,
 }
 
 export const pagesConfig = {

@@ -69,7 +69,11 @@ export default function StudentGrades() {
         <CardContent>
           <div className="space-y-3">
             {examResults.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No exam results available</p>
+              <div className="text-center py-12">
+                <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Exam Results Yet</h3>
+                <p className="text-gray-600">Your exam results will appear here once your teacher grades your assessments.</p>
+              </div>
             ) : (
               examResults.map((result) => (
                 <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -95,7 +99,11 @@ export default function StudentGrades() {
         <CardContent>
           <div className="space-y-3">
             {reportCards.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No report cards available</p>
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Report Cards</h3>
+                <p className="text-gray-600">Report cards will be available here at the end of each term.</p>
+              </div>
             ) : (
               reportCards.map((report) => (
                 <div key={report.id} className="p-4 border rounded-lg">
