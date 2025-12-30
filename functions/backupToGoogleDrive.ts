@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@latest';
 
 Deno.serve(async (req) => {
     try {
@@ -22,13 +22,75 @@ Deno.serve(async (req) => {
             }, { status: 400 });
         }
 
+        // Helper function to get or create a folder
+        async function getOrCreateFolder(folderName, parentId = 'root') {
+            // Search for the folder
+            const searchQuery = `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+            const searchResponse = await fetch(
+                `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(searchQuery)}&fields=files(id)`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+            
+            if (!searchResponse.ok) {
+                throw new Error('Failed to search for folder');
+            }
+
+            const searchResult = await searchResponse.json();
+
+            if (searchResult.files && searchResult.files.length > 0) {
+                return searchResult.files[0].id; // Folder exists
+            } else {
+                // Create the folder
+                const createResponse = await fetch(
+                    'https://www.googleapis.com/drive/v3/files',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: folderName,
+                            mimeType: 'application/vnd.google-apps.folder',
+                            parents: [parentId]
+                        })
+                    }
+                );
+
+                if (!createResponse.ok) {
+                    throw new Error('Failed to create folder');
+                }
+
+                const createResult = await createResponse.json();
+                return createResult.id;
+            }
+        }
+
+        // Define folder structure
+        const ROOT_FOLDER_NAME = 'SchoolMIS Backups';
+        const SUBFOLDER_NAMES = {
+            'full': 'Full Backups',
+            'reports': 'Reports',
+            'results': 'Exam Results'
+        };
+
+        // Create/get the root backup folder
+        const rootFolderId = await getOrCreateFolder(ROOT_FOLDER_NAME);
+
+        // Create/get the subfolder for this backup type
+        const subfolderId = await getOrCreateFolder(SUBFOLDER_NAMES[backupType], rootFolderId);
+
         // Collect data based on backup type
         let backupData = {};
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         let fileName = '';
 
         if (backupType === 'full') {
-            fileName = `SchoolMIS_FullBackup_${timestamp}.json`;
+            fileName = `FullBackup_${timestamp}.json`;
             
             // Fetch all entities
             const [students, teachers, classes, assignments, submissions, exams, 
@@ -66,7 +128,7 @@ Deno.serve(async (req) => {
                 }
             };
         } else if (backupType === 'reports') {
-            fileName = `SchoolMIS_ReportsBackup_${timestamp}.json`;
+            fileName = `ReportsBackup_${timestamp}.json`;
             
             const reportCards = await base44.asServiceRole.entities.ReportCard.list();
             
@@ -78,7 +140,7 @@ Deno.serve(async (req) => {
                 }
             };
         } else if (backupType === 'results') {
-            fileName = `SchoolMIS_ResultsBackup_${timestamp}.json`;
+            fileName = `ResultsBackup_${timestamp}.json`;
             
             const [examResults, examAttempts, exams] = await Promise.all([
                 base44.asServiceRole.entities.ExamResult.list(),
@@ -106,10 +168,11 @@ Deno.serve(async (req) => {
         const jsonData = JSON.stringify(backupData, null, 2);
         const blob = new Blob([jsonData], { type: 'application/json' });
 
-        // Upload to Google Drive
+        // Upload to Google Drive in the specific subfolder
         const metadata = {
             name: fileName,
-            mimeType: 'application/json'
+            mimeType: 'application/json',
+            parents: [subfolderId]
         };
 
         const form = new FormData();
@@ -139,9 +202,10 @@ Deno.serve(async (req) => {
 
         return Response.json({
             success: true,
-            message: `Backup completed successfully`,
+            message: `Backup completed successfully to ${SUBFOLDER_NAMES[backupType]} folder`,
             fileName: fileName,
             fileId: uploadResult.id,
+            folderPath: `${ROOT_FOLDER_NAME}/${SUBFOLDER_NAMES[backupType]}`,
             recordCount: backupType === 'full' 
                 ? Object.values(backupData.data).flat().length 
                 : backupData.data[Object.keys(backupData.data)[0]].length
