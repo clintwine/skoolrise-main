@@ -57,7 +57,7 @@ export default function StudentDetails({ student, onEdit, onClose }) {
               <h2 className="text-2xl font-bold text-gray-900">
                 {student.first_name} {student.last_name}
               </h2>
-              <p className="text-gray-600">Student ID: {student.student_id}</p>
+              <p className="text-gray-600">Student ID: {student.student_id_number || student.student_id}</p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge className={statusColors[student.status]}>
                   {student.status}

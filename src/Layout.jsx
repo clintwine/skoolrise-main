@@ -66,11 +66,21 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
+        // Check if user has a role assigned
+        const userTypes = currentUser.user_types || [];
+        const hasRole = currentUser.role === 'admin' || userTypes.length > 0;
+        
+        if (!hasRole) {
+          // User has no role - show message
+          setUser({ ...currentUser, noRole: true });
+          setLoading(false);
+          return;
+        }
+
         setUser(currentUser);
 
         // Redirect root pages to user-specific dashboard
         if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
-          const userTypes = currentUser.user_types || [];
           const isAdmin = currentUser.role === 'admin' || userTypes.includes('admin');
           const isTeacher = userTypes.includes('teacher');
           const isStudent = userTypes.includes('student');
@@ -354,6 +364,47 @@ export default function Layout({ children, currentPageName }) {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user has no role, show message
+  if (user?.noRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <header className="bg-white shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+            <div className="flex items-center">
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/90d2daf9a_oie_b7JlP4U16so5.png" 
+                alt="SkoolRise Logo" 
+                className="h-15 w-40"
+              />
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Logout"
+            >
+              <LogOutIcon className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </header>
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
+            <UserCircle className="w-20 h-20 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Role Assigned</h2>
+            <p className="text-gray-600 mb-4">
+              Your account has been created but no role has been assigned yet. 
+              Please contact your administrator to assign you a role (Teacher, Student, Parent, etc.) 
+              so you can access the system.
+            </p>
+            <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
+              <p><strong>Email:</strong> {user.email}</p>
+              <p className="mt-2">Contact your school administrator to complete your account setup.</p>
+            </div>
+          </div>
         </div>
       </div>
     );

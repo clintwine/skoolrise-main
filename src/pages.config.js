@@ -4,6 +4,7 @@ import AcademicSessions from './pages/AcademicSessions';
 import ActivationPage from './pages/ActivationPage';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminLinkingRequests from './pages/AdminLinkingRequests';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
 import AssignmentManagement from './pages/AssignmentManagement';
@@ -55,6 +56,7 @@ import ParentBehavior from './pages/ParentBehavior';
 import ParentCalendar from './pages/ParentCalendar';
 import ParentFees from './pages/ParentFees';
 import ParentHomework from './pages/ParentHomework';
+import ParentLinkingRequests from './pages/ParentLinkingRequests';
 import ParentManagement from './pages/ParentManagement';
 import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
@@ -99,8 +101,6 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ParentLinkingRequests from './pages/ParentLinkingRequests';
-import AdminLinkingRequests from './pages/AdminLinkingRequests';
 import __Layout from './Layout.jsx';
 
 
@@ -111,6 +111,7 @@ export const PAGES = {
     "ActivationPage": ActivationPage,
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
+    "AdminLinkingRequests": AdminLinkingRequests,
     "AdminReportsDashboard": AdminReportsDashboard,
     "AdmissionsManagement": AdmissionsManagement,
     "AssignmentManagement": AssignmentManagement,
@@ -162,6 +163,7 @@ export const PAGES = {
     "ParentCalendar": ParentCalendar,
     "ParentFees": ParentFees,
     "ParentHomework": ParentHomework,
+    "ParentLinkingRequests": ParentLinkingRequests,
     "ParentManagement": ParentManagement,
     "ParentPortal": ParentPortal,
     "ParentReports": ParentReports,
@@ -206,8 +208,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ParentLinkingRequests": ParentLinkingRequests,
-    "AdminLinkingRequests": AdminLinkingRequests,
 }
 
 export const pagesConfig = {
