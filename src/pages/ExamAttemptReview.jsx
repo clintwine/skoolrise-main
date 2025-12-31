@@ -17,29 +17,26 @@ export default function ExamAttemptReview() {
   const urlParams = new URLSearchParams(window.location.search);
   const attemptId = urlParams.get('attemptId');
 
-  const { data: attempt, refetch } = useQuery({
-    queryKey: ['exam-attempt', attemptId],
-    queryFn: async () => {
-      const attempts = await base44.entities.ExamAttempt.list();
-      return attempts.find(a => a.id === attemptId);
-    },
-    enabled: !!attemptId,
+  const { data: attempts = [] } = useQuery({
+    queryKey: ['exam-attempts'],
+    queryFn: () => base44.entities.ExamAttempt.list(),
   });
 
-  const { data: exam } = useQuery({
-    queryKey: ['exam', attempt?.exam_id],
-    queryFn: async () => {
-      const exams = await base44.entities.Exam.list();
-      return exams.find(e => e.id === attempt.exam_id);
-    },
-    enabled: !!attempt?.exam_id,
+  const attempt = attempts.find(a => a.id === attemptId);
+
+  const { data: exams = [] } = useQuery({
+    queryKey: ['exams'],
+    queryFn: () => base44.entities.Exam.list(),
   });
+
+  const exam = exams.find(e => e.id === attempt?.exam_id);
 
   const { data: questions = [] } = useQuery({
     queryKey: ['exam-questions', attempt?.exam_id],
     queryFn: async () => {
+      if (!attempt?.exam_id) return [];
       const allQuestions = await base44.entities.ExamQuestion.list();
-      return allQuestions.filter(q => q.exam_id === attempt.exam_id);
+      return allQuestions.filter(q => q.exam_id === attempt.exam_id).sort((a, b) => a.order - b.order);
     },
     enabled: !!attempt?.exam_id,
   });
@@ -85,8 +82,8 @@ export default function ExamAttemptReview() {
       status: 'Graded'
     });
 
-    refetch();
     alert('Grades saved successfully!');
+    window.location.reload();
   };
 
   if (!attempt || !exam) {

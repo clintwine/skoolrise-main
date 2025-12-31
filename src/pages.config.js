@@ -1,4 +1,3 @@
-import AIGradingAssistant from './pages/AIGradingAssistant';
 import AILessonPlanner from './pages/AILessonPlanner';
 import AcademicSessions from './pages/AcademicSessions';
 import ActivationPage from './pages/ActivationPage';
@@ -9,11 +8,9 @@ import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
 import AssignmentManagement from './pages/AssignmentManagement';
 import AttendanceManagement from './pages/AttendanceManagement';
-import AttendanceTaking from './pages/AttendanceTaking';
 import BackupSettings from './pages/BackupSettings';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import BehaviorManagement from './pages/BehaviorManagement';
-import BehaviorTracking from './pages/BehaviorTracking';
 import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
@@ -34,8 +31,7 @@ import EnrollmentManagement from './pages/EnrollmentManagement';
 import EventCalendar from './pages/EventCalendar';
 import ExamAnalytics from './pages/ExamAnalytics';
 import ExamAttemptReview from './pages/ExamAttemptReview';
-import ExamCreator from './pages/ExamCreator';
-import ExamManagement from './pages/ExamManagement';
+import Gradebook from './pages/Gradebook';
 import ExamResults from './pages/ExamResults';
 import ExpenseTracking from './pages/ExpenseTracking';
 import FeePolicies from './pages/FeePolicies';
@@ -43,7 +39,6 @@ import FeeReminderSystem from './pages/FeeReminderSystem';
 import FeesManagement from './pages/FeesManagement';
 import GeneralSettings from './pages/GeneralSettings';
 import GradeExam from './pages/GradeExam';
-import Gradebook from './pages/Gradebook';
 import GradingScales from './pages/GradingScales';
 import ImprovedStudentRecords from './pages/ImprovedStudentRecords';
 import InstalmentPlans from './pages/InstalmentPlans';
@@ -87,26 +82,30 @@ import StudentExitMonitoring from './pages/StudentExitMonitoring';
 import StudentGrades from './pages/StudentGrades';
 import StudentManagement from './pages/StudentManagement';
 import StudentProfile from './pages/StudentProfile';
-import StudentProgressTracking from './pages/StudentProgressTracking';
-import StudentRecords from './pages/StudentRecords';
+import TeacherDashboard from './pages/TeacherDashboard';
 import StudentTests from './pages/StudentTests';
 import TakeExam from './pages/TakeExam';
 import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
 import TeacherAssignments from './pages/TeacherAssignments';
-import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
-import TeacherTests from './pages/TeacherTests';
 import TermsOfService from './pages/TermsOfService';
 import TimetableManagement from './pages/TimetableManagement';
 import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import TeacherTests from './pages/TeacherTests';
+import ExamManagement from './pages/ExamManagement';
+import AIGradingAssistant from './pages/AIGradingAssistant';
+import AttendanceTaking from './pages/AttendanceTaking';
+import StudentProgressTracking from './pages/StudentProgressTracking';
+import StudentRecords from './pages/StudentRecords';
+import ExamCreator from './pages/ExamCreator';
+import BehaviorTracking from './pages/BehaviorTracking';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AIGradingAssistant": AIGradingAssistant,
     "AILessonPlanner": AILessonPlanner,
     "AcademicSessions": AcademicSessions,
     "ActivationPage": ActivationPage,
@@ -117,11 +116,9 @@ export const PAGES = {
     "AdmissionsManagement": AdmissionsManagement,
     "AssignmentManagement": AssignmentManagement,
     "AttendanceManagement": AttendanceManagement,
-    "AttendanceTaking": AttendanceTaking,
     "BackupSettings": BackupSettings,
     "BehaviorAnalytics": BehaviorAnalytics,
     "BehaviorManagement": BehaviorManagement,
-    "BehaviorTracking": BehaviorTracking,
     "BiometricAttendance": BiometricAttendance,
     "BookshopManager": BookshopManager,
     "BookshopReports": BookshopReports,
@@ -142,8 +139,7 @@ export const PAGES = {
     "EventCalendar": EventCalendar,
     "ExamAnalytics": ExamAnalytics,
     "ExamAttemptReview": ExamAttemptReview,
-    "ExamCreator": ExamCreator,
-    "ExamManagement": ExamManagement,
+    "Gradebook": Gradebook,
     "ExamResults": ExamResults,
     "ExpenseTracking": ExpenseTracking,
     "FeePolicies": FeePolicies,
@@ -151,7 +147,6 @@ export const PAGES = {
     "FeesManagement": FeesManagement,
     "GeneralSettings": GeneralSettings,
     "GradeExam": GradeExam,
-    "Gradebook": Gradebook,
     "GradingScales": GradingScales,
     "ImprovedStudentRecords": ImprovedStudentRecords,
     "InstalmentPlans": InstalmentPlans,
@@ -195,21 +190,26 @@ export const PAGES = {
     "StudentGrades": StudentGrades,
     "StudentManagement": StudentManagement,
     "StudentProfile": StudentProfile,
-    "StudentProgressTracking": StudentProgressTracking,
-    "StudentRecords": StudentRecords,
+    "TeacherDashboard": TeacherDashboard,
     "StudentTests": StudentTests,
     "TakeExam": TakeExam,
     "TeacherAssignmentManager": TeacherAssignmentManager,
     "TeacherAssignments": TeacherAssignments,
-    "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
-    "TeacherTests": TeacherTests,
     "TermsOfService": TermsOfService,
     "TimetableManagement": TimetableManagement,
     "UserManagement": UserManagement,
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "TeacherTests": TeacherTests,
+    "ExamManagement": ExamManagement,
+    "AIGradingAssistant": AIGradingAssistant,
+    "AttendanceTaking": AttendanceTaking,
+    "StudentProgressTracking": StudentProgressTracking,
+    "StudentRecords": StudentRecords,
+    "ExamCreator": ExamCreator,
+    "BehaviorTracking": BehaviorTracking,
 }
 
 export const pagesConfig = {
