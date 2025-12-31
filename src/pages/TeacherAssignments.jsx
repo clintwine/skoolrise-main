@@ -38,14 +38,38 @@ export default function TeacherAssignments() {
     milestones: '',
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments'],
-    queryFn: () => base44.entities.Assignment.list('-created_date'),
+    queryKey: ['teacher-assignments', teacherProfile?.id],
+    queryFn: async () => {
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date');
+    },
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+    queryKey: ['teacher-classes', teacherProfile?.id],
+    queryFn: async () => {
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
+    },
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: templates = [] } = useQuery({
@@ -55,8 +79,7 @@ export default function TeacherAssignments() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const user = await base44.auth.me();
-      return base44.entities.Assignment.create({ ...data, teacher_id: user.id });
+      return base44.entities.Assignment.create({ ...data, teacher_id: teacherProfile.id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
