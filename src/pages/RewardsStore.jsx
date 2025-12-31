@@ -25,31 +25,40 @@ export default function RewardsStore() {
     queryFn: () => base44.entities.Reward.list(),
   });
 
-  const { data: behaviors = [] } = useQuery({
-    queryKey: ['my-behaviors', user?.id],
+  const { data: students = [] } = useQuery({
+    queryKey: ['students', user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      const allBehaviors = await base44.entities.Behavior.list();
-      return allBehaviors.filter(b => b.student_id === user.id);
+      if (!user?.id) return [];
+      return await base44.entities.Student.filter({ user_id: user.id });
     },
-    enabled: !!user,
+    enabled: !!user?.id,
+  });
+
+  const studentProfile = students[0];
+
+  const { data: behaviors = [] } = useQuery({
+    queryKey: ['my-behaviors', studentProfile?.id],
+    queryFn: async () => {
+      if (!studentProfile?.id) return [];
+      return await base44.entities.Behavior.filter({ student_id: studentProfile.id });
+    },
+    enabled: !!studentProfile?.id,
   });
 
   const { data: redemptions = [] } = useQuery({
-    queryKey: ['my-redemptions', user?.id],
+    queryKey: ['my-redemptions', studentProfile?.id],
     queryFn: async () => {
-      if (!user) return [];
-      const allRedemptions = await base44.entities.RewardRedemption.list();
-      return allRedemptions.filter(r => r.student_id === user.id);
+      if (!studentProfile?.id) return [];
+      return await base44.entities.RewardRedemption.filter({ student_id: studentProfile.id });
     },
-    enabled: !!user,
+    enabled: !!studentProfile?.id,
   });
 
   const redeemMutation = useMutation({
     mutationFn: async (reward) => {
       return base44.entities.RewardRedemption.create({
-        student_id: user.id,
-        student_name: user.full_name || user.email,
+        student_id: studentProfile.id,
+        student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
         reward_id: reward.id,
         reward_name: reward.name,
         points_spent: reward.points_required,

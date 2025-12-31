@@ -44,10 +44,21 @@ export default function TakeExam() {
     enabled: !!examId,
   });
 
+  const [studentProfile, setStudentProfile] = useState(null);
+
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+        
+        const students = await base44.entities.Student.filter({ user_id: user.id });
+        if (students.length > 0) {
+          setStudentProfile(students[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
     };
     fetchUser();
   }, []);
@@ -57,8 +68,8 @@ export default function TakeExam() {
     mutationFn: async () => {
       const attempt = await base44.entities.ExamAttempt.create({
         exam_id: examId,
-        student_id: currentUser.id,
-        student_name: currentUser.full_name,
+        student_id: studentProfile.id,
+        student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
         start_time: new Date().toISOString(),
         status: 'In Progress',
         tab_switches: 0,
@@ -129,8 +140,8 @@ export default function TakeExam() {
       await base44.entities.ExamResult.create({
         exam_id: examId,
         attempt_id: attemptId,
-        student_id: currentUser.id,
-        student_name: currentUser.full_name,
+        student_id: studentProfile.id,
+        student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
         subject: exam.subject,
         exam_type: exam.exam_type,
         score: score,
