@@ -79,6 +79,9 @@ export default function TeacherAssignments() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      if (!teacherProfile?.id) {
+        throw new Error('Teacher profile not loaded');
+      }
       return base44.entities.Assignment.create({ ...data, teacher_id: teacherProfile.id });
     },
     onSuccess: () => {
@@ -207,6 +210,12 @@ export default function TeacherAssignments() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (!teacherProfile?.id) {
+      alert('Please wait for your profile to load');
+      return;
+    }
+    
     const selectedClass = classes.find(c => c.id === formData.class_id);
     const submitData = { ...formData, class_name: selectedClass?.class_name };
     
@@ -243,7 +252,11 @@ export default function TeacherAssignments() {
             <Brain className="w-4 h-4 mr-2" />
             AI Generate
           </Button>
-          <Button onClick={() => { resetForm(); setIsFormOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            onClick={() => { resetForm(); setIsFormOpen(true); }} 
+            className="bg-blue-600 hover:bg-blue-700"
+            disabled={!teacherProfile}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create
           </Button>
