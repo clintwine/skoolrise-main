@@ -20,24 +20,56 @@ export default function StudentAssignments() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
     };
     fetchUser();
   }, []);
 
+  const { data: students = [] } = useQuery({
+    queryKey: ['students', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Student.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const studentProfile = students[0];
+
+  const { data: enrollments = [] } = useQuery({
+    queryKey: ['student-enrollments', studentProfile?.id],
+    queryFn: async () => {
+      if (!studentProfile?.id) return [];
+      const allEnrollments = await base44.entities.Enrollment.list();
+      return allEnrollments.filter(e => e.student_id === studentProfile.id);
+    },
+    enabled: !!studentProfile?.id,
+  });
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['student-assignments'],
-    queryFn: () => base44.entities.Assignment.list('-due_date'),
+    queryKey: ['student-assignments', studentProfile?.id],
+    queryFn: async () => {
+      if (!studentProfile?.id) return [];
+      const classIds = enrollments.map(e => e.class_id);
+      if (classIds.length === 0) return [];
+      const allAssignments = await base44.entities.Assignment.list('-due_date');
+      return allAssignments.filter(a => classIds.includes(a.class_id));
+    },
+    enabled: !!studentProfile?.id && enrollments.length > 0,
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['my-submissions', user?.id],
+    queryKey: ['my-submissions', studentProfile?.id],
     queryFn: async () => {
-      const allSubmissions = await base44.entities.Submission.list();
-      return user ? allSubmissions.filter(s => s.student_id === user.id) : [];
+      if (!studentProfile?.id) return [];
+      return await base44.entities.Submission.filter({ student_id: studentProfile.id });
     },
-    enabled: !!user,
+    enabled: !!studentProfile?.id,
   });
 
   const submitMutation = useMutation({
