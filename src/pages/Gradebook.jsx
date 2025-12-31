@@ -15,14 +15,40 @@ export default function Gradebook() {
   const [feedback, setFeedback] = useState('');
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['assignments'],
-    queryFn: () => base44.entities.Assignment.list('-created_date'),
+    queryKey: ['teacher-assignments', teacherProfile?.id],
+    queryFn: async () => {
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date');
+    },
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['submissions'],
-    queryFn: () => base44.entities.Submission.list('-submitted_date'),
+    queryKey: ['assignment-submissions', assignments],
+    queryFn: async () => {
+      if (assignments.length === 0) return [];
+      const assignmentIds = assignments.map(a => a.id);
+      const allSubmissions = await base44.entities.Submission.list('-submitted_date');
+      return allSubmissions.filter(s => assignmentIds.includes(s.assignment_id));
+    },
+    enabled: assignments.length > 0,
   });
 
   const { data: students = [] } = useQuery({
