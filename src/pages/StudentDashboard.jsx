@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,14 +8,51 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 
 export default function StudentDashboard() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['students', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Student.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const studentProfile = students[0];
+
   const { data: enrollments = [] } = useQuery({
-    queryKey: ['student-enrollments'],
-    queryFn: () => base44.entities.Enrollment.list(),
+    queryKey: ['student-enrollments', studentProfile?.id],
+    queryFn: async () => {
+      if (!studentProfile?.id) return [];
+      const allEnrollments = await base44.entities.Enrollment.list();
+      return allEnrollments.filter(e => e.student_id === studentProfile.id);
+    },
+    enabled: !!studentProfile?.id,
   });
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['student-assignments'],
-    queryFn: () => base44.entities.Assignment.list('-due_date', 10),
+    queryKey: ['student-assignments', studentProfile?.id],
+    queryFn: async () => {
+      if (!studentProfile?.id) return [];
+      const classIds = enrollments.map(e => e.class_id);
+      if (classIds.length === 0) return [];
+      const allAssignments = await base44.entities.Assignment.list('-due_date', 10);
+      return allAssignments.filter(a => classIds.includes(a.class_id));
+    },
+    enabled: !!studentProfile?.id && enrollments.length > 0,
   });
 
   const stats = [
