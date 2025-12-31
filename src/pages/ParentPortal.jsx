@@ -15,22 +15,35 @@ export default function ParentPortal() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.parent_of_student_ids) {
-        setStudentIds(currentUser.parent_of_student_ids.split(',').map(id => id.trim()));
-      }
     };
     fetchUser();
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', studentIds],
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents', user?.id],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => studentIds.includes(s.id));
+      if (!user?.id) return [];
+      return await base44.entities.Parent.filter({ user_id: user.id });
     },
-    enabled: studentIds.length > 0,
+    enabled: !!user?.id,
   });
+
+  const parentProfile = parents[0];
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-students', parentProfile?.id],
+    queryFn: async () => {
+      if (!parentProfile?.id) return [];
+      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
+    },
+    enabled: !!parentProfile?.id,
+  });
+
+  useEffect(() => {
+    if (students.length > 0) {
+      setStudentIds(students.map(s => s.id));
+    }
+  }, [students]);
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['parent-invoices', studentIds],
