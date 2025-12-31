@@ -12,16 +12,39 @@ export default function MyClasses() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      setTeacherId(currentUser.linked_teacher_id);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
     };
     fetchUser();
   }, []);
 
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+
+  useEffect(() => {
+    if (teacherProfile?.id) {
+      setTeacherId(teacherProfile.id);
+    }
+  }, [teacherProfile]);
+
   const { data: classes = [] } = useQuery({
     queryKey: ['teacher-classes', teacherId],
-    queryFn: () => base44.entities.Class.filter({ teacher_id: teacherId }),
+    queryFn: async () => {
+      if (!teacherId) return [];
+      return await base44.entities.Class.filter({ teacher_id: teacherId });
+    },
     enabled: !!teacherId,
   });
 
