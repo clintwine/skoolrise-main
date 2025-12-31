@@ -12,33 +12,54 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
     };
     fetchUser();
   }, []);
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', user?.id],
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
     queryFn: async () => {
-      const allClasses = await base44.entities.Class.list();
-      return user ? allClasses.filter(c => c.teacher_id === user.id) : [];
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
     },
-    enabled: !!user,
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+
+  const { data: classes = [] } = useQuery({
+    queryKey: ['teacher-classes', teacherProfile?.id],
+    queryFn: async () => {
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
+    },
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments', user?.id],
+    queryKey: ['teacher-assignments', teacherProfile?.id],
     queryFn: async () => {
-      const allAssignments = await base44.entities.Assignment.list('-created_date');
-      return user ? allAssignments.filter(a => a.teacher_id === user.id).slice(0, 10) : [];
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date', 10);
     },
-    enabled: !!user,
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['submissions'],
-    queryFn: () => base44.entities.Submission.list(),
+    queryKey: ['assignment-submissions', assignments],
+    queryFn: async () => {
+      if (assignments.length === 0) return [];
+      const assignmentIds = assignments.map(a => a.id);
+      const allSubmissions = await base44.entities.Submission.list();
+      return allSubmissions.filter(s => assignmentIds.includes(s.assignment_id));
+    },
+    enabled: assignments.length > 0,
   });
 
   const pendingGrading = submissions.filter(s => s.status === 'Submitted').length;
