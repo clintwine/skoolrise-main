@@ -10,16 +10,39 @@ export default function StudentClasses() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      setStudentId(currentUser.linked_student_id);
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
     };
     fetchUser();
   }, []);
 
+  const { data: students = [] } = useQuery({
+    queryKey: ['students', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Student.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const studentProfile = students[0];
+
+  useEffect(() => {
+    if (studentProfile?.id) {
+      setStudentId(studentProfile.id);
+    }
+  }, [studentProfile]);
+
   const { data: enrollments = [] } = useQuery({
     queryKey: ['student-enrollments', studentId],
-    queryFn: () => base44.entities.Enrollment.filter({ student_id: studentId }),
+    queryFn: async () => {
+      if (!studentId) return [];
+      return await base44.entities.Enrollment.filter({ student_id: studentId });
+    },
     enabled: !!studentId,
   });
 

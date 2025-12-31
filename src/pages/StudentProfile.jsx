@@ -24,15 +24,13 @@ export default function StudentProfile() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      if (currentUser.linked_student_id) {
-        const students = await base44.entities.Student.filter({ id: currentUser.linked_student_id });
-        if (students.length > 0) {
-          setStudent(students[0]);
-          setFormData({
-            phone: students[0].phone || '',
-            address: students[0].address || '',
-          });
-        }
+      const students = await base44.entities.Student.filter({ user_id: currentUser.id });
+      if (students.length > 0) {
+        setStudent(students[0]);
+        setFormData({
+          phone: students[0].phone || '',
+          address: students[0].address || '',
+        });
       }
     } catch (error) {
       console.error('Error fetching data:', error);
