@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,29 +8,22 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 
 export default function TeacherTests() {
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
+  const [user, setUser] = useState(null);
+  const [teacherId, setTeacherId] = useState(null);
 
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
-    },
-    enabled: !!user?.id,
-  });
-
-  const teacherProfile = teachers[0];
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setTeacherId(currentUser.linked_teacher_id);
+    };
+    fetchUser();
+  }, []);
 
   const { data: exams = [] } = useQuery({
-    queryKey: ['teacher-exams', teacherProfile?.id],
-    queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.Exam.filter({ teacher_id: teacherProfile.id });
-    },
-    enabled: !!teacherProfile?.id,
+    queryKey: ['teacher-exams', teacherId],
+    queryFn: () => base44.entities.Exam.filter({ teacher_id: teacherId }),
+    enabled: !!teacherId,
   });
 
   const { data: attempts = [] } = useQuery({

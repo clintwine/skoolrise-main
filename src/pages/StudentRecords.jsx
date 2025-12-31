@@ -46,7 +46,7 @@ export default function StudentRecords() {
       if (!teacherProfile?.id) return [];
       return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
     },
-    enabled: !!teacherProfile?.id && !!user && !isAdmin,
+    enabled: !!teacherProfile?.id && !isAdmin,
   });
 
   const { data: enrollments = [] } = useQuery({
@@ -57,7 +57,7 @@ export default function StudentRecords() {
       const allEnrollments = await base44.entities.Enrollment.list();
       return allEnrollments.filter(e => classIds.includes(e.class_id));
     },
-    enabled: teacherClasses.length > 0 && !!user && !isAdmin,
+    enabled: teacherClasses.length > 0 && !isAdmin,
   });
 
   const { data: students = [], isLoading } = useQuery({
@@ -67,14 +67,13 @@ export default function StudentRecords() {
       if (isAdmin) {
         return allStudents;
       }
-      // For teachers, only show students from their classes
-      if (teacherProfile?.id && enrollments.length > 0) {
+      if (enrollments.length > 0) {
         const studentIds = enrollments.map(e => e.student_id);
         return allStudents.filter(s => studentIds.includes(s.id));
       }
       return [];
     },
-    enabled: !!user && (isAdmin || (!!teacherProfile && enrollments !== undefined)),
+    enabled: !!user,
   });
 
   const createMutation = useMutation({
