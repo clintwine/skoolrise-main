@@ -37,8 +37,7 @@ export default function StudentDashboard() {
     queryKey: ['student-enrollments', studentProfile?.id],
     queryFn: async () => {
       if (!studentProfile?.id) return [];
-      const allEnrollments = await base44.entities.Enrollment.list();
-      return allEnrollments.filter(e => e.student_id === studentProfile.id);
+      return await base44.entities.Enrollment.filter({ student_id: studentProfile.id });
     },
     enabled: !!studentProfile?.id,
   });
