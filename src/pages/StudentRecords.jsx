@@ -23,9 +23,57 @@ export default function StudentRecords() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+  const isAdmin = user?.role === 'admin' || user?.user_types?.includes('admin');
+
+  const { data: teacherClasses = [] } = useQuery({
+    queryKey: ['teacher-classes', teacherProfile?.id],
+    queryFn: async () => {
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
+    },
+    enabled: !!teacherProfile?.id && !isAdmin,
+  });
+
+  const { data: enrollments = [] } = useQuery({
+    queryKey: ['class-enrollments', teacherClasses],
+    queryFn: async () => {
+      if (teacherClasses.length === 0) return [];
+      const classIds = teacherClasses.map(c => c.id);
+      const allEnrollments = await base44.entities.Enrollment.list();
+      return allEnrollments.filter(e => classIds.includes(e.class_id));
+    },
+    enabled: teacherClasses.length > 0 && !isAdmin,
+  });
+
   const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list('-created_date'),
+    queryKey: ['students', isAdmin, enrollments],
+    queryFn: async () => {
+      const allStudents = await base44.entities.Student.list('-created_date');
+      if (isAdmin) {
+        return allStudents;
+      }
+      if (enrollments.length > 0) {
+        const studentIds = enrollments.map(e => e.student_id);
+        return allStudents.filter(s => studentIds.includes(s.id));
+      }
+      return [];
+    },
+    enabled: !!user,
   });
 
   const createMutation = useMutation({
