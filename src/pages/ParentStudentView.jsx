@@ -51,14 +51,31 @@ export default function ParentStudentView() {
     fetchUser();
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', user?.linked_parent_id],
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents', user?.id],
     queryFn: async () => {
-      if (!user?.linked_parent_id) return [];
-      return await base44.entities.Student.filter({ parent_id: user.linked_parent_id });
+      if (!user?.id) return [];
+      return await base44.entities.Parent.filter({ user_id: user.id });
     },
-    enabled: !!user?.linked_parent_id,
+    enabled: !!user?.id,
   });
+
+  const parentProfile = parents[0];
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-students', parentProfile?.id],
+    queryFn: async () => {
+      if (!parentProfile?.id) return [];
+      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
+    },
+    enabled: !!parentProfile?.id,
+  });
+
+  useEffect(() => {
+    if (students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id);
+    }
+  }, [students, selectedStudentId]);
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
 

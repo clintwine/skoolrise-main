@@ -45,6 +45,7 @@ import GeneralSettings from './pages/GeneralSettings';
 import GradeExam from './pages/GradeExam';
 import Gradebook from './pages/Gradebook';
 import GradingScales from './pages/GradingScales';
+import ImprovedStudentRecords from './pages/ImprovedStudentRecords';
 import InstalmentPlans from './pages/InstalmentPlans';
 import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
@@ -101,7 +102,6 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ImprovedStudentRecords from './pages/ImprovedStudentRecords';
 import __Layout from './Layout.jsx';
 
 
@@ -153,6 +153,7 @@ export const PAGES = {
     "GradeExam": GradeExam,
     "Gradebook": Gradebook,
     "GradingScales": GradingScales,
+    "ImprovedStudentRecords": ImprovedStudentRecords,
     "InstalmentPlans": InstalmentPlans,
     "LandingPage": LandingPage,
     "MessagingCenter": MessagingCenter,
@@ -209,7 +210,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ImprovedStudentRecords": ImprovedStudentRecords,
 }
 
 export const pagesConfig = {
