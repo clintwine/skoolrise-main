@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 export default function BehaviorTracking() {
   const [user, setUser] = useState(null);
+  const [teacherId, setTeacherId] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,34 +26,17 @@ export default function BehaviorTracking() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setTeacherId(currentUser.linked_teacher_id);
     };
     fetchUser();
   }, []);
 
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
-    },
-    enabled: !!user?.id,
-  });
-
-  const teacherProfile = teachers[0];
-
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherProfile?.id],
-    queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
-    },
-    enabled: !!teacherProfile?.id,
+    queryKey: ['teacher-classes', teacherId],
+    queryFn: () => base44.entities.Class.filter({ teacher_id: teacherId }),
+    enabled: !!teacherId,
   });
 
   const { data: enrollments = [] } = useQuery({

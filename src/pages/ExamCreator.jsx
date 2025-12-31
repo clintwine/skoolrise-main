@@ -44,29 +44,9 @@ export default function ExamCreator() {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
-    },
-    enabled: !!user?.id,
-  });
-
-  const teacherProfile = teachers[0];
-
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherProfile?.id],
-    queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
-    },
-    enabled: !!teacherProfile?.id,
+    queryKey: ['classes'],
+    queryFn: () => base44.entities.Class.list(),
   });
 
   const { data: sessions = [] } = useQuery({

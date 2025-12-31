@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 
 export default function AttendanceTaking() {
   const [user, setUser] = useState(null);
+  const [teacherId, setTeacherId] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [attendanceData, setAttendanceData] = useState({});
@@ -17,34 +18,17 @@ export default function AttendanceTaking() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setTeacherId(currentUser.linked_teacher_id);
     };
     fetchUser();
   }, []);
 
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
-    },
-    enabled: !!user?.id,
-  });
-
-  const teacherProfile = teachers[0];
-
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherProfile?.id],
-    queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
-    },
-    enabled: !!teacherProfile?.id,
+    queryKey: ['teacher-classes', teacherId],
+    queryFn: () => base44.entities.Class.filter({ teacher_id: teacherId }),
+    enabled: !!teacherId,
   });
 
   const { data: enrollments = [] } = useQuery({
