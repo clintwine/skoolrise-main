@@ -83,8 +83,8 @@ export default function ParentStudentView() {
   const { data: enrollments = [] } = useQuery({
     queryKey: ['student-enrollments', selectedStudentId],
     queryFn: async () => {
-      const allEnrollments = await base44.entities.Enrollment.list();
-      return allEnrollments.filter(e => e.student_id === selectedStudentId);
+      if (!selectedStudentId) return [];
+      return await base44.entities.Enrollment.filter({ student_id: selectedStudentId });
     },
     enabled: !!selectedStudentId,
   });
@@ -105,8 +105,8 @@ export default function ParentStudentView() {
   const { data: attendance = [] } = useQuery({
     queryKey: ['student-attendance', selectedStudentId],
     queryFn: async () => {
-      const allAttendance = await base44.entities.Attendance.list();
-      return allAttendance.filter(a => a.student_id === selectedStudentId);
+      if (!selectedStudentId) return [];
+      return await base44.entities.Attendance.filter({ student_id: selectedStudentId });
     },
     enabled: !!selectedStudentId,
   });
@@ -115,8 +115,8 @@ export default function ParentStudentView() {
   const { data: reportCards = [] } = useQuery({
     queryKey: ['student-reports', selectedStudentId],
     queryFn: async () => {
-      const allReports = await base44.entities.ReportCard.list();
-      return allReports.filter(r => r.student_id === selectedStudentId);
+      if (!selectedStudentId) return [];
+      return await base44.entities.ReportCard.filter({ student_id: selectedStudentId });
     },
     enabled: !!selectedStudentId,
   });
@@ -137,8 +137,8 @@ export default function ParentStudentView() {
   const { data: submissions = [] } = useQuery({
     queryKey: ['student-submissions', selectedStudentId],
     queryFn: async () => {
-      const allSubmissions = await base44.entities.Submission.list();
-      return allSubmissions.filter(s => s.student_id === selectedStudentId);
+      if (!selectedStudentId) return [];
+      return await base44.entities.Submission.filter({ student_id: selectedStudentId });
     },
     enabled: !!selectedStudentId,
   });
