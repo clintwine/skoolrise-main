@@ -108,12 +108,12 @@ export default function StudentAssignments() {
   });
 
   const handleSubmit = () => {
-    if (!selectedAssignment) return;
+    if (!selectedAssignment || !studentProfile) return;
 
     const submissionData = {
       assignment_id: selectedAssignment.id,
-      student_id: user.id,
-      student_name: user.full_name || user.email,
+      student_id: studentProfile.id,
+      student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
       submitted_date: new Date().toISOString(),
       content: submissionContent,
       status: 'Submitted',
