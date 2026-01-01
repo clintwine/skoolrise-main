@@ -102,6 +102,7 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import ExamCommandCenter from './pages/ExamCommandCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -210,6 +211,7 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "ExamCommandCenter": ExamCommandCenter,
 }
 
 export const pagesConfig = {

@@ -212,12 +212,8 @@ export default function Layout({ children, currentPageName }) {
         id: 'cbt',
         groupName: 'CBT / EXAMINATIONS',
         items: [
+          { name: 'Exam Command Center', icon: FileText, path: 'ExamCommandCenter' },
           { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
-          { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
-          { name: 'Manage Exams', icon: FileText, path: 'ExamManagement' },
-          { name: 'Attempt Review', icon: FileText, path: 'ExamAttemptReview' },
-          { name: 'Proctoring Monitor', icon: Award, path: 'ProctoringMonitor' },
-          { name: 'Exam Analytics', icon: BarChart3, path: 'DetailedExamAnalytics' },
         ]
       },
       {
