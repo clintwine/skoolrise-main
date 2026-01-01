@@ -103,6 +103,7 @@ import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
 import ExamCommandCenter from './pages/ExamCommandCenter';
+import SettingsHub from './pages/SettingsHub';
 import __Layout from './Layout.jsx';
 
 
@@ -212,6 +213,7 @@ export const PAGES = {
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
     "ExamCommandCenter": ExamCommandCenter,
+    "SettingsHub": SettingsHub,
 }
 
 export const pagesConfig = {

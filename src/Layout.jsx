@@ -267,7 +267,7 @@ export default function Layout({ children, currentPageName }) {
         id: 'settings',
         groupName: 'SYSTEM',
         items: [
-          { name: 'Settings', icon: Settings, path: 'Settings' },
+          { name: 'Settings Hub', icon: Settings, path: 'SettingsHub' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
         ]

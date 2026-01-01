@@ -3,13 +3,22 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, GraduationCap, DollarSign, FileText, Calendar, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DashboardSkeleton } from '@/components/SkeletonLoader';
+import { 
+  Users, GraduationCap, DollarSign, FileText, 
+  Calendar, Award, ChevronRight, TrendingUp,
+  CheckCircle, Clock, AlertCircle
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 
 export default function ParentPortal() {
   const [user, setUser] = useState(null);
   const [studentIds, setStudentIds] = useState([]);
+  const [expandedCard, setExpandedCard] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -19,7 +28,7 @@ export default function ParentPortal() {
     fetchUser();
   }, []);
 
-  const { data: parents = [] } = useQuery({
+  const { data: parents = [], isLoading: parentsLoading } = useQuery({
     queryKey: ['parents', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -30,7 +39,7 @@ export default function ParentPortal() {
 
   const parentProfile = parents[0];
 
-  const { data: students = [] } = useQuery({
+  const { data: students = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['parent-students', parentProfile?.id],
     queryFn: async () => {
       if (!parentProfile?.id) return [];
@@ -55,6 +64,16 @@ export default function ParentPortal() {
     enabled: studentIds.length > 0,
   });
 
+  const { data: attendance = [] } = useQuery({
+    queryKey: ['parent-attendance', studentIds],
+    queryFn: async () => {
+      if (studentIds.length === 0) return [];
+      const allAttendance = await base44.entities.Attendance.list();
+      return allAttendance.filter(att => studentIds.includes(att.student_id));
+    },
+    enabled: studentIds.length > 0,
+  });
+
   const { data: reportCards = [] } = useQuery({
     queryKey: ['parent-reports', studentIds],
     queryFn: async () => {
@@ -65,244 +84,357 @@ export default function ParentPortal() {
     enabled: studentIds.length > 0,
   });
 
-  const { data: assignments = [] } = useQuery({
-    queryKey: ['parent-assignments', studentIds],
+  const { data: behaviors = [] } = useQuery({
+    queryKey: ['parent-behaviors', studentIds],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
-      const allAssignments = await base44.entities.Assignment.list();
-      const enrollments = await base44.entities.Enrollment.list();
-      const studentClasses = enrollments.filter(e => studentIds.includes(e.student_id)).map(e => e.class_id);
-      return allAssignments.filter(a => studentClasses.includes(a.class_id));
-    },
-    enabled: studentIds.length > 0,
-  });
-
-  const { data: submissions = [] } = useQuery({
-    queryKey: ['parent-submissions', studentIds],
-    queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allSubmissions = await base44.entities.Submission.list();
-      return allSubmissions.filter(sub => studentIds.includes(sub.student_id));
+      const allBehaviors = await base44.entities.Behavior.list();
+      return allBehaviors.filter(beh => studentIds.includes(beh.student_id));
     },
     enabled: studentIds.length > 0,
   });
 
   const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
-  const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue').length;
-  const upcomingAssignments = assignments.filter(a => new Date(a.due_date) >= new Date()).length;
-  const pendingSubmissions = assignments.filter(a => {
-    const submitted = submissions.find(s => s.assignment_id === a.id);
-    return !submitted && new Date(a.due_date) >= new Date();
-  }).length;
+  const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue');
+  const attendanceRate = attendance.length > 0 
+    ? ((attendance.filter(a => a.status === 'Present').length / attendance.length) * 100).toFixed(1)
+    : '0';
+  const recentBehaviors = behaviors.slice(0, 5);
 
-  if (!user) {
-    return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-      </div>
-    );
+  if (parentsLoading || studentsLoading) {
+    return <DashboardSkeleton />;
   }
+
+  const dashboardCards = [
+    {
+      id: 'fees',
+      title: 'Fees & Payments',
+      icon: DollarSign,
+      color: 'text-orange-600',
+      bg: 'bg-orange-100',
+      value: `$${totalOutstanding.toLocaleString()}`,
+      subtitle: `${overdueInvoices.length} overdue`,
+      alert: overdueInvoices.length > 0,
+    },
+    {
+      id: 'attendance',
+      title: 'Attendance',
+      icon: CheckCircle,
+      color: 'text-green-600',
+      bg: 'bg-green-100',
+      value: `${attendanceRate}%`,
+      subtitle: `${attendance.length} records`,
+    },
+    {
+      id: 'reports',
+      title: 'Report Cards',
+      icon: FileText,
+      color: 'text-blue-600',
+      bg: 'bg-blue-100',
+      value: reportCards.length,
+      subtitle: 'Available reports',
+    },
+    {
+      id: 'behavior',
+      title: 'Behavior',
+      icon: Award,
+      color: 'text-purple-600',
+      bg: 'bg-purple-100',
+      value: behaviors.length,
+      subtitle: 'Total records',
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Parent Portal</h1>
-        <p className="text-gray-600 mt-1">Welcome, {user.full_name}</p>
-      </div>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h1 className="text-4xl font-bold text-text">Parent Portal</h1>
+        <p className="text-text-secondary mt-2">Welcome, {user?.full_name}</p>
+      </motion.div>
 
-      {/* My Children */}
+      {/* My Children Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">My Children</h2>
+        <h2 className="text-2xl font-semibold text-text mb-4">My Children</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {students.map((student) => (
-            <Link key={student.id} to={createPageUrl('ParentStudentView')}>
-              <Card className="bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">
-                        {student.first_name} {student.last_name}
-                      </CardTitle>
-                      <p className="text-sm text-gray-600">Grade {student.grade_level}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Student ID:</span>
-                      <span className="font-medium">{student.student_id}</span>
-                    </div>
-                    <Badge className={student.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                      {student.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {students.length === 0 ? (
+            <Card className="col-span-full bg-white rounded-2xl shadow-md">
+              <CardContent className="p-12 text-center">
+                <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-text mb-2">No Children Linked</h3>
+                <p className="text-text-secondary mb-4">Link your children to view their information</p>
+                <Link to={createPageUrl('ParentLinkingRequests')}>
+                  <Button className="bg-accent hover:bg-accent-hover text-white">
+                    Link Student
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            students.map((student, index) => (
+              <motion.div
+                key={student.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Link to={createPageUrl('ParentStudentView')}>
+                  <Card className="bg-white shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                          <GraduationCap className="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">
+                            {student.first_name} {student.last_name}
+                          </CardTitle>
+                          <p className="text-sm text-text-secondary">Grade {student.grade_level}</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-text-secondary">Student ID:</span>
+                          <span className="font-medium text-text">{student.student_id_number}</span>
+                        </div>
+                        <Badge className={
+                          student.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }>
+                          {student.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Outstanding Fees</p>
-                <p className="text-2xl font-bold text-orange-600">${totalOutstanding.toLocaleString()}</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Upcoming Homework</p>
-                <p className="text-2xl font-bold text-blue-600">{upcomingAssignments}</p>
-              </div>
-              <FileText className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pending Submissions</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingSubmissions}</p>
-              </div>
-              <Calendar className="w-8 h-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-md">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Overdue Fees</p>
-                <p className="text-2xl font-bold text-red-600">{overdueInvoices}</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Dashboard Cards with Expandable Details */}
+      <div>
+        <h2 className="text-2xl font-semibold text-text mb-4">Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {dashboardCards.map((card, index) => {
+            const Icon = card.icon;
+            return (
+              <motion.div
+                key={card.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card 
+                  className="bg-white shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                  onClick={() => setExpandedCard(card.id)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6 ${card.color}`} />
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <h3 className="text-sm font-medium text-text-secondary mb-1">{card.title}</h3>
+                    <p className="text-3xl font-bold text-text mb-1">{card.value}</p>
+                    <p className="text-sm text-text-secondary flex items-center gap-1">
+                      {card.alert && <AlertCircle className="w-4 h-4 text-orange-600" />}
+                      {card.subtitle}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="bg-white shadow-md">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              to={createPageUrl('ParentFees')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
-            >
-              <DollarSign className="w-8 h-8 text-blue-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">View Invoices</h3>
-              <p className="text-sm text-gray-600 mt-1">Check fee payments</p>
-            </Link>
-            <Link
-              to={createPageUrl('ParentReports')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:shadow-md transition-all"
-            >
-              <FileText className="w-8 h-8 text-green-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Report Cards</h3>
-              <p className="text-sm text-gray-600 mt-1">View academic reports</p>
-            </Link>
-            <Link
-              to={createPageUrl('ParentAttendance')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-md transition-all"
-            >
-              <Calendar className="w-8 h-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Attendance</h3>
-              <p className="text-sm text-gray-600 mt-1">View attendance records</p>
-            </Link>
-            <Link
-              to={createPageUrl('ParentBehavior')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:shadow-md transition-all"
-            >
-              <Award className="w-8 h-8 text-orange-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Behavior</h3>
-              <p className="text-sm text-gray-600 mt-1">View behavior records</p>
-            </Link>
-            <Link
-              to={createPageUrl('ParentHomework')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
-            >
-              <FileText className="w-8 h-8 text-blue-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Homework</h3>
-              <p className="text-sm text-gray-600 mt-1">View assignments</p>
-            </Link>
-            <Link
-              to={createPageUrl('ParentCalendar')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all"
-            >
-              <Calendar className="w-8 h-8 text-indigo-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Calendar</h3>
-              <p className="text-sm text-gray-600 mt-1">View homework & events</p>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Upcoming Homework */}
-      {assignments.length > 0 && (
-        <Card className="bg-white shadow-md">
-          <CardHeader>
-            <CardTitle>Upcoming Homework</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {assignments
-                .filter(a => new Date(a.due_date) >= new Date())
-                .slice(0, 5)
-                .map((assignment) => (
-                  <div key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium">{assignment.title}</p>
-                      <p className="text-sm text-gray-600">{assignment.class_name}</p>
-                      <p className="text-xs text-gray-500">Due: {new Date(assignment.due_date).toLocaleDateString()}</p>
+      {/* Expanded Card Dialogs */}
+      <AnimatePresence>
+        {/* Fees Dialog */}
+        <Dialog open={expandedCard === 'fees'} onOpenChange={() => setExpandedCard(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <DollarSign className="w-6 h-6 text-orange-600" />
+                Fees & Payments
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              {invoices.length === 0 ? (
+                <p className="text-center text-text-secondary py-8">No invoices found</p>
+              ) : (
+                invoices.map((invoice) => (
+                  <div key={invoice.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-text">{invoice.student_name}</p>
+                        <p className="text-sm text-text-secondary">Invoice #{invoice.invoice_number}</p>
+                      </div>
+                      <Badge className={
+                        invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                        invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }>
+                        {invoice.status}
+                      </Badge>
                     </div>
-                    <Badge className="bg-blue-100 text-blue-800">{assignment.type}</Badge>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-text-secondary">
+                        Due: {new Date(invoice.due_date).toLocaleDateString()}
+                      </span>
+                      <span className="text-lg font-bold text-text">
+                        ${invoice.balance.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                ))}
+                ))
+              )}
+              <Button 
+                onClick={() => window.location.href = createPageUrl('ParentFees')}
+                className="w-full bg-accent hover:bg-accent-hover text-white"
+              >
+                View All Invoices
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </DialogContent>
+        </Dialog>
 
-      {/* Recent Report Cards */}
-      {reportCards.length > 0 && (
-        <Card className="bg-white shadow-md">
-          <CardHeader>
-            <CardTitle>Recent Report Cards</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {reportCards.slice(0, 5).map((report) => (
-                <div key={report.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">{report.student_name}</p>
-                    <p className="text-sm text-gray-600">Average: {report.average_score}%</p>
-                  </div>
-                  <Link to={createPageUrl(`ReportCardView?id=${report.id}`)}>
-                    <Badge className="bg-blue-100 text-blue-800">View Report</Badge>
-                  </Link>
+        {/* Attendance Dialog */}
+        <Dialog open={expandedCard === 'attendance'} onOpenChange={() => setExpandedCard(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                Attendance Records
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-4 bg-green-50 rounded-xl">
+                  <p className="text-3xl font-bold text-green-600">
+                    {attendance.filter(a => a.status === 'Present').length}
+                  </p>
+                  <p className="text-sm text-text-secondary">Present</p>
                 </div>
-              ))}
+                <div className="text-center p-4 bg-red-50 rounded-xl">
+                  <p className="text-3xl font-bold text-red-600">
+                    {attendance.filter(a => a.status === 'Absent').length}
+                  </p>
+                  <p className="text-sm text-text-secondary">Absent</p>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                  <p className="text-3xl font-bold text-yellow-600">
+                    {attendance.filter(a => a.status === 'Late').length}
+                  </p>
+                  <p className="text-sm text-text-secondary">Late</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => window.location.href = createPageUrl('ParentAttendance')}
+                className="w-full bg-accent hover:bg-accent-hover text-white"
+              >
+                View Full Attendance History
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Reports Dialog */}
+        <Dialog open={expandedCard === 'reports'} onOpenChange={() => setExpandedCard(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="w-6 h-6 text-blue-600" />
+                Report Cards
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              {reportCards.length === 0 ? (
+                <p className="text-center text-text-secondary py-8">No report cards available</p>
+              ) : (
+                reportCards.slice(0, 5).map((report) => (
+                  <div key={report.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-text">{report.student_name}</p>
+                        <p className="text-sm text-text-secondary">
+                          Term {report.term_number} • Session {report.session_id}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-text">{report.average_score}%</p>
+                        <Button size="sm" variant="outline" className="mt-2">
+                          View Report
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              <Button 
+                onClick={() => window.location.href = createPageUrl('ParentReports')}
+                className="w-full bg-accent hover:bg-accent-hover text-white"
+              >
+                View All Reports
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Behavior Dialog */}
+        <Dialog open={expandedCard === 'behavior'} onOpenChange={() => setExpandedCard(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Award className="w-6 h-6 text-purple-600" />
+                Behavior Records
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              {recentBehaviors.length === 0 ? (
+                <p className="text-center text-text-secondary py-8">No behavior records</p>
+              ) : (
+                recentBehaviors.map((behavior) => (
+                  <div key={behavior.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-text">{behavior.student_name}</p>
+                          <Badge className={
+                            behavior.type === 'Merit' || behavior.type === 'Reward' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }>
+                            {behavior.type}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-text-secondary mb-2">{behavior.category}</p>
+                        <p className="text-sm text-text">{behavior.description}</p>
+                      </div>
+                      <span className="text-sm text-text-secondary">
+                        {new Date(behavior.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+              <Button 
+                onClick={() => window.location.href = createPageUrl('ParentBehavior')}
+                className="w-full bg-accent hover:bg-accent-hover text-white"
+              >
+                View All Behavior Records
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </AnimatePresence>
     </div>
   );
 }
