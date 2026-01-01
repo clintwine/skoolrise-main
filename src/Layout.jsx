@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
+import { motion, AnimatePresence } from 'framer-motion';
+import CommandPalette from './components/CommandPalette';
 import {
   GraduationCap,
   Users,
@@ -30,7 +32,8 @@ import {
   MessageSquare,
   Bell,
   Camera,
-  DoorOpen
+  DoorOpen,
+  Search
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -38,11 +41,25 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'cbt', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
 
   // Public pages that don't need the layout wrapper
   const publicPages = ['LandingPage', 'PrivacyPolicy', 'TermsOfService', 'PublicApplicationForm', 'ActivationPage', 'ProfileSetupPage'];
   const isPublicPage = publicPages.includes(currentPageName);
+
+  useEffect(() => {
+    // Global keyboard shortcut for command palette
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     // Skip auth check for public pages
@@ -358,12 +375,22 @@ export default function Layout({ children, currentPageName }) {
     return <>{children}</>;
   }
 
+  const getUserRole = () => {
+    if (!user) return null;
+    const userTypes = user.user_types || [];
+    if (user.role === 'admin' || userTypes.includes('admin')) return 'admin';
+    if (userTypes.includes('teacher')) return 'teacher';
+    if (userTypes.includes('student')) return 'student';
+    if (userTypes.includes('parent')) return 'parent';
+    return null;
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Loading...</p>
         </div>
       </div>
     );
@@ -372,8 +399,8 @@ export default function Layout({ children, currentPageName }) {
   // If user has no role, show message
   if (user?.noRole) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-background">
+        <header className="glass-morphism sticky top-0 z-50 shadow-sm">
           <div className="flex items-center justify-between px-4 py-3 lg:px-6">
             <div className="flex items-center">
               <img 
@@ -384,41 +411,52 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200"
               title="Logout"
             >
-              <LogOutIcon className="w-5 h-5 text-gray-600" />
+              <LogOutIcon className="w-5 h-5 text-text-secondary" />
             </button>
           </div>
         </header>
         <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md p-8 bg-white rounded-2xl shadow-lg text-center"
+          >
             <UserCircle className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Role Assigned</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-2xl font-bold text-text mb-2">No Role Assigned</h2>
+            <p className="text-text-secondary mb-4">
               Your account has been created but no role has been assigned yet. 
               Please contact your administrator to assign you a role (Teacher, Student, Parent, etc.) 
               so you can access the system.
             </p>
-            <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
+            <div className="p-4 bg-blue-50 rounded-xl text-sm text-blue-800">
               <p><strong>Email:</strong> {user.email}</p>
               <p className="mt-2">Contact your school administrator to complete your account setup.</p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-background">
+      {/* Command Palette */}
+      <CommandPalette 
+        isOpen={commandPaletteOpen} 
+        onClose={() => setCommandPaletteOpen(false)}
+        userRole={getUserRole()}
+      />
+
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="glass-morphism sticky top-0 z-40 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3 lg:px-6">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -430,17 +468,25 @@ export default function Layout({ children, currentPageName }) {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCommandPaletteOpen(true)}
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 hover:scale-105"
+            >
+              <Search className="w-4 h-4 text-text-secondary" />
+              <span className="text-sm text-text-secondary">Search</span>
+              <kbd className="px-2 py-0.5 text-xs bg-white rounded border text-text-secondary">⌘K</kbd>
+            </button>
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">{user?.full_name || user?.email}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <p className="text-sm font-medium text-text">{user?.full_name || user?.email}</p>
+              <p className="text-xs text-text-secondary capitalize">{user?.role}</p>
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95"
               title="Logout"
             >
-              <LogOutIcon className="w-5 h-5 text-gray-600" />
+              <LogOutIcon className="w-5 h-5 text-text-secondary" />
             </button>
           </div>
         </div>
@@ -451,7 +497,7 @@ export default function Layout({ children, currentPageName }) {
         <aside
           className={`
             fixed lg:sticky top-0 left-0 z-30 h-screen
-            bg-white shadow-lg transition-transform duration-300 ease-in-out
+            glass-morphism shadow-lg transition-transform duration-300 ease-in-out
             w-64 lg:translate-x-0
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
@@ -464,7 +510,7 @@ export default function Layout({ children, currentPageName }) {
                   <div key={group.id} className="space-y-1">
                     <button
                       onClick={() => toggleGroup(group.id)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors uppercase tracking-wider"
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-text-secondary hover:text-text transition-all duration-200 uppercase tracking-wider rounded-xl hover:bg-gray-50"
                     >
                       <span>{group.groupName}</span>
                       {isGroupOpen ? (
@@ -484,11 +530,11 @@ export default function Layout({ children, currentPageName }) {
                               to={createPageUrl(item.path)}
                               onClick={() => setSidebarOpen(false)}
                               className={`
-                                flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
+                                flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 smooth-transition
                                 ${
                                   isActive
-                                    ? 'bg-blue-600 text-white shadow-md'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                    ? 'bg-accent text-white shadow-lg scale-105'
+                                    : 'text-text hover:bg-gray-50 hover:scale-105'
                                 }
                               `}
                             >
@@ -517,21 +563,20 @@ export default function Layout({ children, currentPageName }) {
         {/* Main Content */}
         <main className="flex-1 min-h-screen">
           <div className="p-4 lg:p-8">
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPageName}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
-      </div>
-
-      {/* Custom Styling */}
-      <style>{`
-        :root {
-          --primary: #21325E;
-          --secondary: #3B82F6;
-          --accent: #10B981;
-          --text: #1F2937;
-          --background: #F8FAFC;
-        }
-      `}</style>
-    </div>
-  );
+        </div>
+        </div>
+        );
 }
