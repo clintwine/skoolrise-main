@@ -7,7 +7,6 @@ import AdminLinkingRequests from './pages/AdminLinkingRequests';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
 import AssignmentManagement from './pages/AssignmentManagement';
-import AttendanceManagement from './pages/AttendanceManagement';
 import AttendanceTaking from './pages/AttendanceTaking';
 import BackupSettings from './pages/BackupSettings';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
@@ -117,7 +116,6 @@ export const PAGES = {
     "AdminReportsDashboard": AdminReportsDashboard,
     "AdmissionsManagement": AdmissionsManagement,
     "AssignmentManagement": AssignmentManagement,
-    "AttendanceManagement": AttendanceManagement,
     "AttendanceTaking": AttendanceTaking,
     "BackupSettings": BackupSettings,
     "BehaviorAnalytics": BehaviorAnalytics,
