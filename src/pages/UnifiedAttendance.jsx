@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Fingerprint, CheckCircle, XCircle, Clock, Users, 
-  BookOpen, BarChart3, Camera, AlertCircle 
+  BookOpen, BarChart3, Camera, AlertCircle, LogOut, Mail, User
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import Scanner from '../components/Scanner';
 
 export default function UnifiedAttendance() {
@@ -22,6 +24,9 @@ export default function UnifiedAttendance() {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [studentAttendance, setStudentAttendance] = useState({});
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [exitScannerOpen, setExitScannerOpen] = useState(false);
+  const [confirmExitDialogOpen, setConfirmExitDialogOpen] = useState(false);
+  const [scannedExitStudent, setScannedExitStudent] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: classArms = [] } = useQuery({
@@ -215,20 +220,24 @@ export default function UnifiedAttendance() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white rounded-xl shadow-md p-1">
-          <TabsTrigger value="arrival" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-5 bg-white rounded-xl shadow-md p-1">
+          <TabsTrigger value="arrival" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Fingerprint className="w-4 h-4" />
             School Arrival
           </TabsTrigger>
-          <TabsTrigger value="class" className="flex items-center gap-2">
+          <TabsTrigger value="class" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Class Register
           </TabsTrigger>
-          <TabsTrigger value="subject" className="flex items-center gap-2">
+          <TabsTrigger value="subject" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <BookOpen className="w-4 h-4" />
             Subject Period
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <TabsTrigger value="exit" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <LogOut className="w-4 h-4" />
+            Student Exit
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             Master Analytics
           </TabsTrigger>
@@ -474,6 +483,22 @@ export default function UnifiedAttendance() {
           </Card>
         </TabsContent>
 
+        {/* Student Exit Tab */}
+        <TabsContent value="exit" className="space-y-4">
+          <StudentExitSection
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            exitScannerOpen={exitScannerOpen}
+            setExitScannerOpen={setExitScannerOpen}
+            confirmExitDialogOpen={confirmExitDialogOpen}
+            setConfirmExitDialogOpen={setConfirmExitDialogOpen}
+            scannedExitStudent={scannedExitStudent}
+            setScannedExitStudent={setScannedExitStudent}
+            students={students}
+            queryClient={queryClient}
+          />
+        </TabsContent>
+
         {/* Master Analytics Tab */}
         <TabsContent value="analytics" className="space-y-4">
           <Card className="bg-white rounded-xl shadow-md">
@@ -556,5 +581,293 @@ export default function UnifiedAttendance() {
         description="Scan student ID for attendance"
       />
     </div>
+  );
+}
+
+// Student Exit Section Component
+function StudentExitSection({ 
+  selectedDate, setSelectedDate, exitScannerOpen, setExitScannerOpen,
+  confirmExitDialogOpen, setConfirmExitDialogOpen, scannedExitStudent, 
+  setScannedExitStudent, students, queryClient 
+}) {
+  const { data: exitRecords = [], isLoading } = useQuery({
+    queryKey: ['student-exits', selectedDate],
+    queryFn: async () => {
+      const all = await base44.entities.BiometricAttendance.filter({ 
+        type: 'Check-Out',
+        date: selectedDate 
+      });
+      return all.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    },
+  });
+
+  const { data: scannerSettings = [] } = useQuery({
+    queryKey: ['scanner-settings'],
+    queryFn: () => base44.entities.ScannerSettings.list(),
+  });
+
+  const exitScannerEnabled = scannerSettings.find(
+    s => s.feature_name === 'student_exit' && s.enabled
+  );
+
+  const handleExitScanSuccess = async (data) => {
+    setExitScannerOpen(false);
+    try {
+      const response = await base44.functions.invoke('scanStudentExitNotification', {
+        student_id: data
+      });
+
+      if (response.data.success) {
+        setScannedExitStudent({
+          ...response.data.student,
+          parent: response.data.parent
+        });
+        setConfirmExitDialogOpen(true);
+      } else {
+        toast.error(response.data.error || 'Student not found');
+      }
+    } catch (error) {
+      toast.error('Error processing scan: ' + error.message);
+    }
+  };
+
+  const handleConfirmExit = async () => {
+    if (!scannedExitStudent) return;
+
+    try {
+      const response = await base44.functions.invoke('scanStudentExitNotification', {
+        student_id: scannedExitStudent.id,
+        action: 'confirm'
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        if (response.data.notification_sent) {
+          toast.success('Parent notification sent via email');
+        }
+        queryClient.invalidateQueries({ queryKey: ['student-exits'] });
+        setConfirmExitDialogOpen(false);
+        setScannedExitStudent(null);
+      } else {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      toast.error('Error recording exit: ' + error.message);
+    }
+  };
+
+  if (!exitScannerEnabled) {
+    return (
+      <Card className="bg-white rounded-xl shadow-md">
+        <CardContent className="p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Student Exit Scanner Disabled</h2>
+          <p className="text-gray-600 mb-4">
+            The student exit scanner feature is currently disabled. Please enable it in Scanner Settings.
+          </p>
+          <Button onClick={() => window.location.href = '/scanner-settings'} className="bg-blue-600 hover:bg-blue-700 text-white">
+            Go to Scanner Settings
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Exits Today</p>
+                <p className="text-2xl font-bold text-gray-900">{exitRecords.length}</p>
+              </div>
+              <LogOut className="w-8 h-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Notifications Sent</p>
+                <p className="text-2xl font-bold text-blue-600">{exitRecords.length}</p>
+              </div>
+              <Mail className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Last Exit</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {exitRecords.length > 0 
+                    ? format(new Date(exitRecords[0].timestamp), 'HH:mm')
+                    : 'N/A'}
+                </p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Scanner Control */}
+      <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200 rounded-xl">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg text-orange-900 mb-1">Scan Student Exit</h3>
+              <p className="text-sm text-orange-700">Scan student PVC card to record departure</p>
+            </div>
+            <Button
+              onClick={() => setExitScannerOpen(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <Camera className="w-5 h-5 mr-2" />
+              Start Scanner
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Exit Records */}
+      <Card className="bg-white shadow-md rounded-xl">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Exit Records - {format(new Date(selectedDate), 'MMMM d, yyyy')}</CardTitle>
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-48"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          ) : exitRecords.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">No exit records for this date</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Exit Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recorded By</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {exitRecords.map((record) => (
+                    <tr key={record.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-medium text-gray-900">{record.student_name}</td>
+                      <td className="px-6 py-4 text-gray-600">{record.biometric_id}</td>
+                      <td className="px-6 py-4 text-gray-900">
+                        {format(new Date(record.timestamp), 'HH:mm:ss')}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{record.scanned_by_name}</td>
+                      <td className="px-6 py-4">
+                        <Badge className="bg-orange-100 text-orange-800">Departed</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Exit Scanner Dialog */}
+      <Scanner
+        isOpen={exitScannerOpen}
+        onClose={() => setExitScannerOpen(false)}
+        onScanSuccess={handleExitScanSuccess}
+        title="Scan Student Exit"
+        description="Scan student's PVC card to record departure"
+      />
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmExitDialogOpen} onOpenChange={setConfirmExitDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Confirm Student Exit</DialogTitle>
+          </DialogHeader>
+          {scannedExitStudent && (
+            <div className="space-y-4">
+              <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="w-5 h-5 text-orange-600" />
+                  <span className="font-semibold text-orange-900">Student Details</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Name:</span>
+                    <span className="font-medium">{scannedExitStudent.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Student ID:</span>
+                    <span className="font-medium">{scannedExitStudent.student_id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Grade:</span>
+                    <span className="font-medium">{scannedExitStudent.grade_level}</span>
+                  </div>
+                </div>
+              </div>
+
+              {scannedExitStudent.parent && !scannedExitStudent.parent.warning ? (
+                <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    <span className="font-semibold text-blue-900">Parent Notification</span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Parent:</span>
+                      <span className="font-medium">{scannedExitStudent.parent.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-medium">{scannedExitStudent.parent.email}</span>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-2">
+                      An email notification will be sent to the parent
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-yellow-600" />
+                    <span className="text-sm text-yellow-800">No parent contact information found</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setConfirmExitDialogOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={handleConfirmExit} className="flex-1 bg-orange-600 hover:bg-orange-700 text-white">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Confirm Exit
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
