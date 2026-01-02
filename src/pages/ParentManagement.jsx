@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Users, Plus, UserPlus, Mail, Phone } from 'lucide-react';
+import { Users, Plus, UserPlus, Mail, Phone, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ParentManagement() {
@@ -133,7 +133,7 @@ export default function ParentManagement() {
           if (!open) setSelectedParent(null);
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Parent
             </Button>
@@ -182,7 +182,7 @@ export default function ParentManagement() {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
               </div>
-              <Button onClick={handleCreateParent} className="w-full" disabled={createParentMutation.isPending || updateParentMutation.isPending}>
+              <Button onClick={handleCreateParent} className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={createParentMutation.isPending || updateParentMutation.isPending}>
                 {(createParentMutation.isPending || updateParentMutation.isPending) ? 'Saving...' : (selectedParent ? 'Update Parent' : 'Create Parent')}
               </Button>
             </div>
@@ -261,12 +261,13 @@ export default function ParentManagement() {
                               variant="outline" 
                               size="sm"
                               onClick={(e) => e.stopPropagation()}
+                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
-                              <UserPlus className="w-4 h-4 mr-2" />
+                              <Link2 className="w-4 h-4 mr-2" />
                               Link Student
                             </Button>
                           </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="bg-white">
                           <DialogHeader>
                             <DialogTitle>Link Student to {parent.first_name} {parent.last_name}</DialogTitle>
                           </DialogHeader>
@@ -286,7 +287,7 @@ export default function ParentManagement() {
                                 </SelectContent>
                               </Select>
                             </div>
-                            <Button onClick={handleLinkStudent} className="w-full" disabled={linkStudentMutation.isPending}>
+                            <Button onClick={handleLinkStudent} className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={linkStudentMutation.isPending}>
                               {linkStudentMutation.isPending ? 'Linking...' : 'Link Student'}
                             </Button>
                           </div>
