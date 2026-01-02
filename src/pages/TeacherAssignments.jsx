@@ -10,11 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Brain, Library, Edit, Trash2, Calendar, Video, Award, Bell, Users } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/SkeletonLoader';
 import AssignmentDetailSheet from '../components/AssignmentDetailSheet';
 import { useNavigate } from 'react-router-dom';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function TeacherAssignments() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -24,6 +25,7 @@ export default function TeacherAssignments() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -70,9 +72,28 @@ export default function TeacherAssignments() {
     enabled: !!teacherProfile?.id,
   });
 
-  const { data: submissions = [] } = useQuery({
+  const { data: allSubmissions = [] } = useQuery({
     queryKey: ['all-submissions'],
     queryFn: () => base44.entities.Submission.list('-created_date', 50),
+  });
+
+  // Filter submissions for teacher's assignments
+  const teacherAssignmentIds = assignments.map(a => a.id);
+  const submissions = allSubmissions.filter(s => teacherAssignmentIds.includes(s.assignment_id));
+  const unreadSubmissions = submissions.filter(s => !s.teacher_viewed && s.status === 'Submitted');
+  const recentUnreadSubmissions = unreadSubmissions.slice(0, 5);
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      const updatePromises = unreadSubmissions.map(s => 
+        base44.entities.Submission.update(s.id, { teacher_viewed: true })
+      );
+      return Promise.all(updatePromises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-submissions'] });
+      setNotificationsOpen(false);
+    },
   });
 
   const { data: classes = [] } = useQuery({
@@ -266,7 +287,75 @@ export default function TeacherAssignments() {
           <h1 className="text-4xl font-bold text-text">Assignment Manager</h1>
           <p className="text-text-secondary mt-2">Create, track, and grade student assignments</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          {/* Notification Bell */}
+          <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <PopoverTrigger asChild>
+              <button className="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <Bell className="w-6 h-6 text-text-secondary" />
+                {unreadSubmissions.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {unreadSubmissions.length}
+                  </span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-96 p-0" align="end">
+              <div className="p-4 border-b">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-text">Recent Submissions</h3>
+                  {unreadSubmissions.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => markAllAsReadMutation.mutate()}
+                      disabled={markAllAsReadMutation.isPending}
+                      className="text-xs"
+                    >
+                      Mark all as read
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {recentUnreadSubmissions.length === 0 ? (
+                  <div className="p-8 text-center text-text-secondary">
+                    <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">No new submissions</p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {recentUnreadSubmissions.map((submission) => {
+                      const assignment = assignments.find(a => a.id === submission.assignment_id);
+                      return (
+                        <div 
+                          key={submission.id} 
+                          className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => {
+                            base44.entities.Submission.update(submission.id, { teacher_viewed: true });
+                            queryClient.invalidateQueries({ queryKey: ['all-submissions'] });
+                            setNotificationsOpen(false);
+                          }}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <p className="font-medium text-text text-sm">{submission.student_name}</p>
+                            {submission.is_late && (
+                              <Badge className="bg-red-100 text-red-800 text-xs">Late</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-text-secondary mb-1">{assignment?.title}</p>
+                          <p className="text-xs text-text-secondary">
+                            {formatDistanceToNow(new Date(submission.submitted_date), { addSuffix: true })}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button 
             onClick={() => navigate(createPageUrl('AssignmentBuilder'))}
             className="bg-accent hover:bg-accent-hover text-white px-6"
