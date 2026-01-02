@@ -162,8 +162,7 @@ export default function StudentRecords() {
               key={student.id}
               className="bg-white border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
               onClick={() => {
-                setSelectedStudent(student);
-                setIsDetailsOpen(true);
+                window.location.href = `/userprofile?id=${student.user_id}&role=student`;
               }}
             >
               <CardContent className="p-6">
