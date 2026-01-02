@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { base44 } from '@/api/base44Client';
 
 export default function UserProfile() {
   const queryClient = useQueryClient();
