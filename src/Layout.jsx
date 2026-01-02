@@ -444,7 +444,7 @@ export default function Layout({ children, currentPageName }) {
       />
 
       {/* Header */}
-      <header className="glass-morphism sticky top-0 z-40 shadow-sm">
+      <header className="bg-white sticky top-0 z-40 shadow-sm border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3 lg:px-6">
           <div className="flex items-center gap-3">
             <button
@@ -493,7 +493,7 @@ export default function Layout({ children, currentPageName }) {
         <aside
           className={`
             fixed lg:sticky top-0 left-0 z-30 h-screen
-            glass-morphism shadow-lg transition-transform duration-300 ease-in-out
+            bg-white shadow-lg transition-transform duration-300 ease-in-out border-r border-gray-200
             w-64 lg:translate-x-0
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
@@ -526,11 +526,11 @@ export default function Layout({ children, currentPageName }) {
                               to={createPageUrl(item.path)}
                               onClick={() => setSidebarOpen(false)}
                               className={`
-                                flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 smooth-transition
+                                flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200
                                 ${
                                   isActive
-                                    ? 'bg-accent text-white shadow-lg scale-105'
-                                    : 'text-text hover:bg-gray-50 hover:scale-105'
+                                    ? 'bg-accent text-white shadow-md'
+                                    : 'text-text hover:bg-blue-50 hover:text-blue-700'
                                 }
                               `}
                             >
