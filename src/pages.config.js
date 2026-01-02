@@ -81,7 +81,6 @@ import StudentAssignments from './pages/StudentAssignments';
 import StudentAttendance from './pages/StudentAttendance';
 import StudentClasses from './pages/StudentClasses';
 import StudentDashboard from './pages/StudentDashboard';
-import StudentExitMonitoring from './pages/StudentExitMonitoring';
 import StudentGrades from './pages/StudentGrades';
 import StudentManagement from './pages/StudentManagement';
 import StudentProfile from './pages/StudentProfile';
@@ -190,7 +189,6 @@ export const PAGES = {
     "StudentAttendance": StudentAttendance,
     "StudentClasses": StudentClasses,
     "StudentDashboard": StudentDashboard,
-    "StudentExitMonitoring": StudentExitMonitoring,
     "StudentGrades": StudentGrades,
     "StudentManagement": StudentManagement,
     "StudentProfile": StudentProfile,
