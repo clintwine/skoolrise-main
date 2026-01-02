@@ -26,7 +26,7 @@ export default function TimetableManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('calendar');
   const [selectedTeacher, setSelectedTeacher] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -81,7 +81,7 @@ export default function TimetableManagement() {
       teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : '',
     };
 
-    if (editingSlot) {
+    if (editingSlot?.id) {
       updateMutation.mutate({ id: editingSlot.id, data: submitData });
     } else {
       createMutation.mutate(submitData);
@@ -156,7 +156,7 @@ export default function TimetableManagement() {
               variant="ghost"
               size="sm"
               onClick={() => setViewMode('list')}
-              className={viewMode === 'list' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-200'}
+              className={viewMode === 'list' ? 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white' : 'text-gray-700 hover:bg-gray-200'}
             >
               <List className="w-4 h-4 mr-2" />
               List
@@ -165,7 +165,7 @@ export default function TimetableManagement() {
               variant="ghost"
               size="sm"
               onClick={() => setViewMode('calendar')}
-              className={viewMode === 'calendar' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-200'}
+              className={viewMode === 'calendar' ? 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white' : 'text-gray-700 hover:bg-gray-200'}
             >
               <Grid3x3 className="w-4 h-4 mr-2" />
               Calendar
@@ -175,7 +175,7 @@ export default function TimetableManagement() {
             onClick={() => setIsImportOpen(true)}
             disabled={!selectedClassArm}
             variant="outline"
-            className="border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload className="w-4 h-4 mr-2" />
             Bulk Import

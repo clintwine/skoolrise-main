@@ -529,8 +529,8 @@ export default function Layout({ children, currentPageName }) {
                                 flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200
                                 ${
                                   isActive
-                                    ? 'bg-accent text-white shadow-md'
-                                    : 'text-text hover:bg-blue-50 hover:text-blue-700'
+                                    ? 'bg-blue-600 text-white shadow-md font-medium'
+                                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                                 }
                               `}
                             >
