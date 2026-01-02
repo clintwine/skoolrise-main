@@ -107,6 +107,7 @@ import VendorProfile from './pages/VendorProfile';
 import AssignmentBuilder from './pages/AssignmentBuilder';
 import TeacherSchedule from './pages/TeacherSchedule';
 import UserProfile from './pages/UserProfile';
+import AcademicsHub from './pages/AcademicsHub';
 import __Layout from './Layout.jsx';
 
 
@@ -220,6 +221,7 @@ export const PAGES = {
     "AssignmentBuilder": AssignmentBuilder,
     "TeacherSchedule": TeacherSchedule,
     "UserProfile": UserProfile,
+    "AcademicsHub": AcademicsHub,
 }
 
 export const pagesConfig = {
