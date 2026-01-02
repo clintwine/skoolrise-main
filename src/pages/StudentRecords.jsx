@@ -12,7 +12,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap } from 'lucide-react';
+import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap, Link2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import StudentForm from '../components/students/StudentForm';
 import StudentDetails from '../components/students/StudentDetails';
 
@@ -21,11 +30,29 @@ export default function StudentRecords() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isLinkParentOpen, setIsLinkParentOpen] = useState(false);
+  const [selectedParentId, setSelectedParentId] = useState('');
   const queryClient = useQueryClient();
 
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list('-created_date'),
+  });
+
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents'],
+    queryFn: () => base44.entities.Parent.list(),
+  });
+
+  const linkParentMutation = useMutation({
+    mutationFn: ({ studentId, parentId }) => 
+      base44.entities.Student.update(studentId, { parent_id: parentId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      setIsLinkParentOpen(false);
+      setSelectedParentId('');
+      toast.success('Parent linked successfully');
+    },
   });
 
   const createMutation = useMutation({
@@ -220,17 +247,32 @@ export default function StudentRecords() {
                         </Badge>
                       </td>
                       <td className="px-6 py-3 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStudent(student);
-                            setIsFormOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStudent(student);
+                              setIsLinkParentOpen(true);
+                            }}
+                          >
+                            <Link2 className="w-4 h-4 mr-1" />
+                            Link Parent
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStudent(student);
+                              setIsFormOpen(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -240,6 +282,44 @@ export default function StudentRecords() {
           </CardContent>
         </Card>
       )}
+
+      {/* Link Parent Dialog */}
+      <Dialog open={isLinkParentOpen} onOpenChange={setIsLinkParentOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Link Parent to {selectedStudent?.first_name} {selectedStudent?.last_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Select Parent</Label>
+              <Select value={selectedParentId} onValueChange={setSelectedParentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a parent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parents.map(parent => (
+                    <SelectItem key={parent.id} value={parent.id}>
+                      {parent.first_name} {parent.last_name} ({parent.phone})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedStudent?.parent_id && (
+              <p className="text-sm text-yellow-700 bg-yellow-50 p-2 rounded">
+                This student already has a linked parent. Linking a new parent will replace the existing one.
+              </p>
+            )}
+            <Button 
+              onClick={() => linkParentMutation.mutate({ studentId: selectedStudent?.id, parentId: selectedParentId })}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+              disabled={!selectedParentId || linkParentMutation.isPending}
+            >
+              {linkParentMutation.isPending ? 'Linking...' : 'Link Parent'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Student Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
