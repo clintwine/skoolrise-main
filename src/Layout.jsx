@@ -35,7 +35,6 @@ import {
   DoorOpen,
   Search
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -475,10 +474,13 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-sm text-text-secondary">Search</span>
               <kbd className="px-2 py-0.5 text-xs bg-white rounded border text-text-secondary">⌘K</kbd>
             </button>
-            <div className="text-right hidden sm:block">
+            <Link 
+              to={createPageUrl('UserProfile')} 
+              className="text-right hidden sm:block hover:bg-gray-100 p-2 rounded-xl transition-all"
+            >
               <p className="text-sm font-medium text-text">{user?.full_name || user?.email}</p>
               <p className="text-xs text-text-secondary capitalize">{user?.role}</p>
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95"
