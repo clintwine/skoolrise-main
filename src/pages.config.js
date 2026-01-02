@@ -34,6 +34,7 @@ import EnrollmentManagement from './pages/EnrollmentManagement';
 import EventCalendar from './pages/EventCalendar';
 import ExamAnalytics from './pages/ExamAnalytics';
 import ExamAttemptReview from './pages/ExamAttemptReview';
+import ExamCommandCenter from './pages/ExamCommandCenter';
 import ExamCreator from './pages/ExamCreator';
 import ExamManagement from './pages/ExamManagement';
 import ExamResults from './pages/ExamResults';
@@ -78,6 +79,7 @@ import SchoolSettings from './pages/SchoolSettings';
 import SecureMessaging from './pages/SecureMessaging';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
+import SettingsHub from './pages/SettingsHub';
 import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
 import StudentAssignments from './pages/StudentAssignments';
 import StudentAttendance from './pages/StudentAttendance';
@@ -102,8 +104,6 @@ import UserManagement from './pages/UserManagement';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ExamCommandCenter from './pages/ExamCommandCenter';
-import SettingsHub from './pages/SettingsHub';
 import __Layout from './Layout.jsx';
 
 
@@ -144,6 +144,7 @@ export const PAGES = {
     "EventCalendar": EventCalendar,
     "ExamAnalytics": ExamAnalytics,
     "ExamAttemptReview": ExamAttemptReview,
+    "ExamCommandCenter": ExamCommandCenter,
     "ExamCreator": ExamCreator,
     "ExamManagement": ExamManagement,
     "ExamResults": ExamResults,
@@ -188,6 +189,7 @@ export const PAGES = {
     "SecureMessaging": SecureMessaging,
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
+    "SettingsHub": SettingsHub,
     "StudentAssignmentDashboard": StudentAssignmentDashboard,
     "StudentAssignments": StudentAssignments,
     "StudentAttendance": StudentAttendance,
@@ -212,8 +214,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ExamCommandCenter": ExamCommandCenter,
-    "SettingsHub": SettingsHub,
 }
 
 export const pagesConfig = {

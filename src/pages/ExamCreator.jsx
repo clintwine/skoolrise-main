@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -13,9 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Plus, Settings, Save, Eye } from 'lucide-react';
+import { 
+  FileText, Plus, Save, Eye, Sparkles, Clock, 
+  Target, X, GripVertical, Search, Wand2
+} from 'lucide-react';
+import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { toast } from 'sonner';
 
 export default function ExamCreator() {
   const navigate = useNavigate();
@@ -42,21 +51,16 @@ export default function ExamCreator() {
   });
 
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [questionBankOpen, setQuestionBankOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const queryClient = useQueryClient();
 
   const { data: classes = [] } = useQuery({
     queryKey: ['classes'],
     queryFn: () => base44.entities.Class.list(),
-  });
-
-  const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: () => base44.entities.AcademicSession.list(),
-  });
-
-  const { data: terms = [] } = useQuery({
-    queryKey: ['terms'],
-    queryFn: () => base44.entities.Term.list(),
   });
 
   const { data: questionBank = [] } = useQuery({
@@ -74,7 +78,6 @@ export default function ExamCreator() {
         total_points: selectedQuestions.reduce((sum, q) => sum + q.points, 0),
       });
 
-      // Create exam questions
       for (let i = 0; i < selectedQuestions.length; i++) {
         const q = selectedQuestions[i];
         await base44.entities.ExamQuestion.create({
@@ -93,103 +96,133 @@ export default function ExamCreator() {
 
       return exam;
     },
-    onSuccess: (exam) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exams'] });
-      alert('Exam created successfully!');
-      navigate(createPageUrl(`ExamManagement`));
+      toast.success('Exam created successfully!');
+      navigate(createPageUrl('ExamCommandCenter'));
     },
   });
 
-  const handleAddQuestion = (question) => {
-    if (!selectedQuestions.find(q => q.id === question.id)) {
-      setSelectedQuestions([...selectedQuestions, question]);
+  const handleAIGenerate = async () => {
+    if (!aiPrompt) {
+      toast.error('Please enter a prompt');
+      return;
     }
-  };
 
-  const handleRemoveQuestion = (questionId) => {
-    setSelectedQuestions(selectedQuestions.filter(q => q.id !== questionId));
+    setAiGenerating(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate 5 exam questions based on this prompt: "${aiPrompt}". 
+        
+Return a JSON array of questions with the following structure:
+[{
+  "question_text": "Question text here",
+  "question_type": "Multiple Choice" or "True/False" or "Essay",
+  "options": ["Option A", "Option B", "Option C", "Option D"] (for MCQ),
+  "correct_answer": "correct option",
+  "points": 5,
+  "difficulty": "Easy" or "Medium" or "Hard",
+  "explanation": "Explanation of the correct answer"
+}]`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  question_text: { type: "string" },
+                  question_type: { type: "string" },
+                  options: { type: "array", items: { type: "string" } },
+                  correct_answer: { type: "string" },
+                  points: { type: "number" },
+                  difficulty: { type: "string" },
+                  explanation: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const generatedQuestions = response.questions.map((q, idx) => ({
+        ...q,
+        id: `ai-${Date.now()}-${idx}`,
+        options: JSON.stringify(q.options),
+        subject: examData.subject,
+      }));
+
+      setSelectedQuestions([...selectedQuestions, ...generatedQuestions]);
+      toast.success(`Generated ${generatedQuestions.length} questions!`);
+      setAiPrompt('');
+    } catch (error) {
+      toast.error('AI generation failed: ' + error.message);
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const handleSaveExam = () => {
     if (!examData.title || !examData.class_id || !examData.subject) {
-      alert('Please fill in required fields');
+      toast.error('Please fill in required fields');
       return;
     }
     if (selectedQuestions.length === 0) {
-      alert('Please add at least one question');
+      toast.error('Please add at least one question');
       return;
     }
     createExamMutation.mutate(examData);
   };
 
-  const filteredQuestions = questionBank.filter(q => 
-    examData.subject ? q.subject === examData.subject : true
+  const totalPoints = selectedQuestions.reduce((sum, q) => sum + q.points, 0);
+  const estimatedDuration = Math.ceil(selectedQuestions.length * 2);
+
+  const filteredQuestionBank = questionBank.filter(q => 
+    (examData.subject ? q.subject === examData.subject : true) &&
+    (searchQuery ? q.question_text.toLowerCase().includes(searchQuery.toLowerCase()) : true) &&
+    !selectedQuestions.find(sq => sq.id === q.id)
   );
 
-  const totalPoints = selectedQuestions.reduce((sum, q) => sum + q.points, 0);
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Exam Creator</h1>
-          <p className="text-gray-600 mt-1">Create and configure exams with advanced settings</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => navigate(createPageUrl('ExamManagement'))}>
-            <Eye className="w-4 h-4 mr-2" />
-            View All Exams
-          </Button>
+    <div className="h-[calc(100vh-120px)] flex gap-6">
+      {/* Left Panel - Configuration (30%) */}
+      <div className="w-[30%] space-y-4 overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-text">Exam Builder</h1>
           <Button
             onClick={handleSaveExam}
             disabled={createExamMutation.isPending}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-accent hover:bg-accent-hover text-white"
           >
             <Save className="w-4 h-4 mr-2" />
-            {createExamMutation.isPending ? 'Saving...' : 'Save Exam'}
+            {createExamMutation.isPending ? 'Saving...' : 'Save'}
           </Button>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Exam Settings */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Exam Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Exam Title *</Label>
-                <Input
-                  value={examData.title}
-                  onChange={(e) => setExamData({ ...examData, title: e.target.value })}
-                  placeholder="e.g., Mathematics Mid-Term Exam"
-                />
-              </div>
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-              <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="details" className="space-y-4 mt-4">
+            <Card className="bg-white rounded-xl shadow-md">
+              <CardContent className="p-4 space-y-4">
                 <div>
-                  <Label>Exam Type *</Label>
-                  <Select value={examData.exam_type} onValueChange={(value) => setExamData({ ...examData, exam_type: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Continuous Assessment (CA)">Continuous Assessment (CA)</SelectItem>
-                      <SelectItem value="Mid-Term Exam">Mid-Term Exam</SelectItem>
-                      <SelectItem value="Final Exam">Final Exam</SelectItem>
-                      <SelectItem value="Mock Exam">Mock Exam</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Exam Title *</Label>
+                  <Input
+                    value={examData.title}
+                    onChange={(e) => setExamData({ ...examData, title: e.target.value })}
+                    placeholder="e.g., Mathematics Mid-Term"
+                    className="mt-1"
+                  />
                 </div>
+
                 <div>
                   <Label>Class *</Label>
                   <Select value={examData.class_id} onValueChange={(value) => setExamData({ ...examData, class_id: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select class" />
                     </SelectTrigger>
                     <SelectContent>
@@ -199,222 +232,329 @@ export default function ExamCreator() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Subject *</Label>
                   <Input
                     value={examData.subject}
                     onChange={(e) => setExamData({ ...examData, subject: e.target.value })}
                     placeholder="e.g., Mathematics"
+                    className="mt-1"
                   />
                 </div>
-                <div>
-                  <Label>Duration (minutes) *</Label>
-                  <Input
-                    type="number"
-                    value={examData.duration_minutes}
-                    onChange={(e) => setExamData({ ...examData, duration_minutes: parseInt(e.target.value) })}
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>CA Weight (%)</Label>
-                  <Input
-                    type="number"
-                    value={examData.ca_weight}
-                    onChange={(e) => setExamData({ ...examData, ca_weight: parseInt(e.target.value) })}
-                    min="0"
-                    max="100"
-                  />
+                  <Label>Exam Type</Label>
+                  <Select value={examData.exam_type} onValueChange={(value) => setExamData({ ...examData, exam_type: value })}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Continuous Assessment (CA)">CA</SelectItem>
+                      <SelectItem value="Mid-Term Exam">Mid-Term</SelectItem>
+                      <SelectItem value="Final Exam">Final</SelectItem>
+                      <SelectItem value="Mock Exam">Mock</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <Label>Exam Weight (%)</Label>
-                  <Input
-                    type="number"
-                    value={examData.exam_weight}
-                    onChange={(e) => setExamData({ ...examData, exam_weight: parseInt(e.target.value) })}
-                    min="0"
-                    max="100"
-                  />
-                </div>
-                <div>
-                  <Label>Passing Score (%)</Label>
-                  <Input
-                    type="number"
-                    value={examData.passing_score}
-                    onChange={(e) => setExamData({ ...examData, passing_score: parseInt(e.target.value) })}
-                    min="0"
-                    max="100"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Start Date & Time</Label>
-                  <Input
-                    type="datetime-local"
-                    value={examData.start_date}
-                    onChange={(e) => setExamData({ ...examData, start_date: e.target.value })}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Duration (min)</Label>
+                    <Input
+                      type="number"
+                      value={examData.duration_minutes}
+                      onChange={(e) => setExamData({ ...examData, duration_minutes: parseInt(e.target.value) })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Passing (%)</Label>
+                    <Input
+                      type="number"
+                      value={examData.passing_score}
+                      onChange={(e) => setExamData({ ...examData, passing_score: parseInt(e.target.value) })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Start Date</Label>
+                    <Input
+                      type="datetime-local"
+                      value={examData.start_date}
+                      onChange={(e) => setExamData({ ...examData, start_date: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>End Date</Label>
+                    <Input
+                      type="datetime-local"
+                      value={examData.end_date}
+                      onChange={(e) => setExamData({ ...examData, end_date: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4 mt-4">
+            <Card className="bg-white rounded-xl shadow-md">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Shuffle Questions</Label>
+                  <Switch
+                    checked={examData.shuffle_questions}
+                    onCheckedChange={(checked) => setExamData({ ...examData, shuffle_questions: checked })}
                   />
                 </div>
-                <div>
-                  <Label>End Date & Time</Label>
-                  <Input
-                    type="datetime-local"
-                    value={examData.end_date}
-                    onChange={(e) => setExamData({ ...examData, end_date: e.target.value })}
+                <div className="flex items-center justify-between">
+                  <Label>Shuffle Options</Label>
+                  <Switch
+                    checked={examData.shuffle_options}
+                    onCheckedChange={(checked) => setExamData({ ...examData, shuffle_options: checked })}
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex items-center justify-between">
+                  <Label>Enable Proctoring</Label>
+                  <Switch
+                    checked={examData.enable_proctoring}
+                    onCheckedChange={(checked) => setExamData({ ...examData, enable_proctoring: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Fullscreen Mode</Label>
+                  <Switch
+                    checked={examData.fullscreen_mode}
+                    onCheckedChange={(checked) => setExamData({ ...examData, fullscreen_mode: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Disable Copy/Paste</Label>
+                  <Switch
+                    checked={examData.disable_copy_paste}
+                    onCheckedChange={(checked) => setExamData({ ...examData, disable_copy_paste: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Show Results</Label>
+                  <Switch
+                    checked={examData.show_results}
+                    onCheckedChange={(checked) => setExamData({ ...examData, show_results: checked })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
 
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Exam Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Shuffle Questions</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.shuffle_questions}
-                  onChange={(e) => setExamData({ ...examData, shuffle_questions: e.target.checked })}
-                  className="w-4 h-4"
-                />
+      {/* Right Panel - Paper Builder (70%) */}
+      <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
+        {/* Sticky Stats Header */}
+        <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg sticky top-0 z-10">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div>
+                  <p className="text-xs opacity-90">Total Questions</p>
+                  <p className="text-2xl font-bold">{selectedQuestions.length}</p>
+                </div>
+                <div>
+                  <p className="text-xs opacity-90">Total Marks</p>
+                  <p className="text-2xl font-bold">{totalPoints}</p>
+                </div>
+                <div>
+                  <p className="text-xs opacity-90">Est. Duration</p>
+                  <p className="text-2xl font-bold">{estimatedDuration} min</p>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <Label>Shuffle Answer Options</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.shuffle_options}
-                  onChange={(e) => setExamData({ ...examData, shuffle_options: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Enable Proctoring (Webcam)</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.enable_proctoring}
-                  onChange={(e) => setExamData({ ...examData, enable_proctoring: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Fullscreen Mode</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.fullscreen_mode}
-                  onChange={(e) => setExamData({ ...examData, fullscreen_mode: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Disable Copy/Paste</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.disable_copy_paste}
-                  onChange={(e) => setExamData({ ...examData, disable_copy_paste: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Allow Review Before Submit</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.allow_review}
-                  onChange={(e) => setExamData({ ...examData, allow_review: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Show Results Immediately</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.show_results}
-                  onChange={(e) => setExamData({ ...examData, show_results: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Include in Term Broadsheet</Label>
-                <input
-                  type="checkbox"
-                  checked={examData.include_in_broadsheet}
-                  onChange={(e) => setExamData({ ...examData, include_in_broadsheet: e.target.checked })}
-                  className="w-4 h-4"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Question Selection */}
-        <div className="space-y-6">
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle>Selected Questions ({selectedQuestions.length})</CardTitle>
-              <p className="text-sm text-gray-600">Total Points: {totalPoints}</p>
-            </CardHeader>
-            <CardContent className="max-h-[400px] overflow-y-auto space-y-2">
-              {selectedQuestions.map((q, idx) => (
-                <div key={q.id} className="p-3 border rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{idx + 1}. {q.question_text.substring(0, 60)}...</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge className="text-xs">{q.question_type}</Badge>
-                        <Badge className="text-xs bg-blue-100 text-blue-800">{q.points} pts</Badge>
+              <div className="flex gap-2">
+                <Sheet open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Question
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-[600px] overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle>Question Bank</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-6 space-y-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                        <Input
+                          placeholder="Search questions..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        {filteredQuestionBank.map((q) => (
+                          <Card key={q.id} className="hover:bg-gray-50 cursor-pointer transition-colors">
+                            <CardContent className="p-4">
+                              <p className="text-sm mb-2 line-clamp-2">{q.question_text}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex gap-2">
+                                  <Badge variant="outline">{q.question_type}</Badge>
+                                  <Badge className="bg-blue-100 text-blue-800">{q.points} pts</Badge>
+                                  <Badge variant="outline">{q.difficulty}</Badge>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedQuestions([...selectedQuestions, q]);
+                                    toast.success('Question added');
+                                  }}
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveQuestion(q.id)}
-                      className="text-red-600"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                  </SheetContent>
+                </Sheet>
 
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle>Question Bank</CardTitle>
-            </CardHeader>
-            <CardContent className="max-h-[400px] overflow-y-auto space-y-2">
-              {filteredQuestions.filter(q => !selectedQuestions.find(sq => sq.id === q.id)).map((q) => (
-                <div key={q.id} className="p-3 border rounded-lg hover:bg-gray-50">
-                  <p className="text-sm mb-2">{q.question_text.substring(0, 80)}...</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <Badge className="text-xs">{q.difficulty}</Badge>
-                      <Badge className="text-xs">{q.points} pts</Badge>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddQuestion(q)}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white/20 hover:bg-white/30 text-white"
+                  onClick={() => document.getElementById('ai-prompt').focus()}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AI Generate
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Generation Section */}
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-md border-2 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex gap-2">
+              <Textarea
+                id="ai-prompt"
+                placeholder="Generate questions with AI... e.g., 'Create 5 questions on Pythagoras theorem for grade 10'"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                className="flex-1 bg-white"
+                rows={2}
+              />
+              <Button
+                onClick={handleAIGenerate}
+                disabled={aiGenerating}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              >
+                {aiGenerating ? (
+                  <Wand2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Visual Block Editor */}
+        <div className="flex-1 overflow-y-auto space-y-3">
+          {selectedQuestions.length === 0 ? (
+            <Card className="bg-white rounded-xl shadow-md h-full">
+              <CardContent className="flex flex-col items-center justify-center h-full text-center p-12">
+                <FileText className="w-16 h-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-text mb-2">No questions yet</h3>
+                <p className="text-text-secondary mb-4">Add questions from the Question Bank or generate with AI</p>
+                <Button onClick={() => setQuestionBankOpen(true)} className="bg-accent hover:bg-accent-hover text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Question
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Reorder.Group axis="y" values={selectedQuestions} onReorder={setSelectedQuestions} className="space-y-3">
+              {selectedQuestions.map((q, idx) => (
+                <Reorder.Item key={q.id} value={q}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <Card className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-move">
+                      <CardContent className="p-5">
+                        <div className="flex gap-3">
+                          <div className="flex items-start gap-2">
+                            <GripVertical className="w-5 h-5 text-gray-400 mt-1" />
+                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-bold text-blue-600">{idx + 1}</span>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <p className="text-base font-medium text-text mb-2">{q.question_text}</p>
+                                <div className="flex gap-2 flex-wrap">
+                                  <Badge variant="outline">{q.question_type}</Badge>
+                                  <Badge className="bg-blue-100 text-blue-800">{q.points} points</Badge>
+                                  {q.difficulty && (
+                                    <Badge variant="outline">{q.difficulty}</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedQuestions(selectedQuestions.filter(sq => sq.id !== q.id))}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+
+                            {q.options && (
+                              <div className="space-y-2 mt-3 pl-4">
+                                {JSON.parse(q.options).map((option, optIdx) => (
+                                  <div
+                                    key={optIdx}
+                                    className={`p-2 rounded-lg text-sm ${
+                                      option === q.correct_answer
+                                        ? 'bg-green-50 border border-green-200 text-green-900'
+                                        : 'bg-gray-50 text-gray-700'
+                                    }`}
+                                  >
+                                    <span className="font-medium mr-2">{String.fromCharCode(65 + optIdx)}.</span>
+                                    {option}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {q.explanation && (
+                              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <p className="text-xs font-semibold text-blue-900 mb-1">Explanation:</p>
+                                <p className="text-sm text-blue-800">{q.explanation}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Reorder.Item>
               ))}
-            </CardContent>
-          </Card>
+            </Reorder.Group>
+          )}
         </div>
       </div>
     </div>
