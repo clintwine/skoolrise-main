@@ -84,8 +84,8 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // Check if user has a role assigned
-        const userTypes = currentUser.user_types || [];
-        const hasRole = currentUser.role === 'admin' || userTypes.length > 0;
+        const userType = currentUser.user_type || '';
+                const hasRole = currentUser.role === 'admin' || !!userType;
         
         if (!hasRole) {
           // User has no role - show message
@@ -98,11 +98,11 @@ export default function Layout({ children, currentPageName }) {
 
         // Redirect root pages to user-specific dashboard
         if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
-          const isAdmin = currentUser.role === 'admin' || userTypes.includes('admin');
-          const isTeacher = userTypes.includes('teacher');
-          const isStudent = userTypes.includes('student');
-          const isParent = userTypes.includes('parent');
-          const isVendor = userTypes.includes('vendor');
+          const isAdmin = currentUser.role === 'admin' || userType === 'admin' || userType === 'parent_admin';
+          const isTeacher = userType === 'teacher' || userType === 'parent_teacher';
+          const isStudent = userType === 'student';
+          const isParent = userType === 'parent' || userType === 'parent_teacher' || userType === 'parent_admin';
+          const isVendor = userType === 'vendor';
 
           if (isAdmin) {
             navigate(createPageUrl('AdminDashboard'));
@@ -143,12 +143,12 @@ export default function Layout({ children, currentPageName }) {
   const getNavigationItems = () => {
     if (!user) return [];
 
-    const userTypes = user.user_types || [];
-    const isAdmin = user.role === 'admin' || userTypes.includes('admin');
-    const isTeacher = userTypes.includes('teacher');
-    const isStudent = userTypes.includes('student');
-    const isParent = userTypes.includes('parent');
-    const isVendor = userTypes.includes('vendor');
+    const userType = user.user_type || '';
+    const isAdmin = user.role === 'admin' || userType === 'admin' || userType === 'parent_admin';
+    const isTeacher = userType === 'teacher' || userType === 'parent_teacher';
+    const isStudent = userType === 'student';
+    const isParent = userType === 'parent' || userType === 'parent_teacher' || userType === 'parent_admin';
+    const isVendor = userType === 'vendor';
 
     const vendorGroups = [
       {
@@ -370,11 +370,11 @@ export default function Layout({ children, currentPageName }) {
 
   const getUserRole = () => {
     if (!user) return null;
-    const userTypes = user.user_types || [];
-    if (user.role === 'admin' || userTypes.includes('admin')) return 'admin';
-    if (userTypes.includes('teacher')) return 'teacher';
-    if (userTypes.includes('student')) return 'student';
-    if (userTypes.includes('parent')) return 'parent';
+    const userType = user.user_type || '';
+    if (user.role === 'admin' || userType === 'admin' || userType === 'parent_admin') return 'admin';
+    if (userType === 'teacher' || userType === 'parent_teacher') return 'teacher';
+    if (userType === 'student') return 'student';
+    if (userType === 'parent') return 'parent';
     return null;
   };
 

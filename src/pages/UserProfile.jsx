@@ -51,8 +51,17 @@ export default function UserProfile() {
     enabled: !!currentUser,
   });
 
-  // Determine role profile to fetch
-  const profileRole = targetRole || (userRecord?.user_types && userRecord.user_types[0]) || 'user';
+  // Determine role profile to fetch - user_type is now a single string
+  const getUserProfileRole = () => {
+    if (targetRole) return targetRole;
+    const userType = userRecord?.user_type;
+    if (!userType) return 'user';
+    // Handle combined types
+    if (userType === 'parent_teacher') return 'teacher';
+    if (userType === 'parent_admin') return 'admin';
+    return userType;
+  };
+  const profileRole = getUserProfileRole();
 
   // Fetch Student Profile
   const { data: studentProfile } = useQuery({
@@ -211,13 +220,13 @@ export default function UserProfile() {
                   <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
-                <Button onClick={handleSave} className="bg-accent hover:bg-accent-hover text-white">
+                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Save className="w-4 h-4 mr-2" />
                   Save Changes
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setEditMode(true)} className="bg-accent hover:bg-accent-hover text-white">
+              <Button onClick={() => setEditMode(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
