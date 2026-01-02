@@ -25,6 +25,7 @@ import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
+import CreateQuestionDialog from '../components/CreateQuestionDialog';
 
 export default function ExamCreator() {
   const navigate = useNavigate();
@@ -54,6 +55,7 @@ export default function ExamCreator() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [questionBankOpen, setQuestionBankOpen] = useState(false);
+  const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const queryClient = useQueryClient();
@@ -102,6 +104,17 @@ export default function ExamCreator() {
       navigate(createPageUrl('ExamCommandCenter'));
     },
   });
+
+  const handleCreateNewQuestion = (questionData) => {
+    const newQuestion = {
+      ...questionData,
+      id: `temp_${Date.now()}`,
+      subject: examData.subject,
+    };
+    setSelectedQuestions([...selectedQuestions, newQuestion]);
+    setCreateQuestionOpen(false);
+    toast.success('Question added to exam');
+  };
 
   const handleAIGenerate = async () => {
     if (!aiPrompt) {
@@ -378,8 +391,8 @@ Return a JSON array of questions with the following structure:
                 <Sheet open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
                   <SheetTrigger asChild>
                     <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Question
+                      <Search className="w-4 h-4 mr-2" />
+                      Question Bank
                     </Button>
                   </SheetTrigger>
                   <SheetContent className="w-[600px] overflow-y-auto">
@@ -424,6 +437,15 @@ Return a JSON array of questions with the following structure:
                     </div>
                   </SheetContent>
                 </Sheet>
+
+                <Button
+                  variant="secondary"
+                  className="bg-white/20 hover:bg-white/30 text-white"
+                  onClick={() => setCreateQuestionOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Question
+                </Button>
 
                 <Button 
                   variant="secondary" 
@@ -557,6 +579,14 @@ Return a JSON array of questions with the following structure:
           )}
         </div>
       </div>
+
+      {/* Create Question Dialog */}
+      <CreateQuestionDialog
+        open={createQuestionOpen}
+        onOpenChange={setCreateQuestionOpen}
+        question={null}
+        onSubmit={handleCreateNewQuestion}
+      />
     </div>
   );
 }
