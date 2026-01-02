@@ -65,6 +65,7 @@ import ProctoringMonitor from './pages/ProctoringMonitor';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import PublicApplicationForm from './pages/PublicApplicationForm';
 import QuestionBank from './pages/QuestionBank';
+import ReportCardView from './pages/ReportCardView';
 import ReportCardsManagement from './pages/ReportCardsManagement';
 import Reports from './pages/Reports';
 import RewardsStore from './pages/RewardsStore';
@@ -102,7 +103,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ReportCardView from './pages/ReportCardView';
 import __Layout from './Layout.jsx';
 
 
@@ -174,6 +174,7 @@ export const PAGES = {
     "ProfileSetupPage": ProfileSetupPage,
     "PublicApplicationForm": PublicApplicationForm,
     "QuestionBank": QuestionBank,
+    "ReportCardView": ReportCardView,
     "ReportCardsManagement": ReportCardsManagement,
     "Reports": Reports,
     "RewardsStore": RewardsStore,
@@ -211,7 +212,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ReportCardView": ReportCardView,
 }
 
 export const pagesConfig = {

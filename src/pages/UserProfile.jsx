@@ -1,652 +1,485 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  User, Mail, Phone, Calendar, Award, BookOpen, 
-  Users, Edit, Save, X, GraduationCap, Briefcase,
-  MapPin, FileText, Clock
+  User, Mail, Phone, MapPin, GraduationCap, Calendar,
+  Shield, Users, FileText, Lock
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import ProfileEditDialog from '../components/profile/ProfileEditDialog';
 
 export default function UserProfile() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Parse URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const targetUserId = urlParams.get('id');
   const targetRole = urlParams.get('role');
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
+    const fetchUser = async () => {
       const user = await base44.auth.me();
       setCurrentUser(user);
     };
-    fetchCurrentUser();
+    fetchUser();
   }, []);
 
-  // Fetch target user or current user
-  const { data: userRecord } = useQuery({
-    queryKey: ['user-record', targetUserId],
+  // Single query to get all profile data at once
+  const { data: profileData, isLoading } = useQuery({
+    queryKey: ['profile-data', targetUserId, currentUser?.id],
     queryFn: async () => {
-      if (targetUserId) {
+      const userId = targetUserId || currentUser?.id;
+      if (!userId) return null;
+
+      // Get user record
+      let userRecord = currentUser;
+      if (targetUserId && targetUserId !== currentUser?.id) {
         const users = await base44.entities.User.list();
-        return users.find(u => u.id === targetUserId);
+        userRecord = users.find(u => u.id === targetUserId);
       }
-      return currentUser;
+
+      // Determine role
+      const role = targetRole || userRecord?.user_type || 'user';
+      const baseRole = role === 'parent_teacher' ? 'teacher' : 
+                       role === 'parent_admin' ? 'admin' : role;
+
+      // Fetch profile based on role
+      let profile = null;
+      let linkedParent = null;
+
+      if (baseRole === 'student' || baseRole === 'user') {
+        const students = await base44.entities.Student.filter({ user_id: userId });
+        profile = students[0];
+        if (profile?.parent_id) {
+          const parents = await base44.entities.Parent.filter({ id: profile.parent_id });
+          linkedParent = parents[0];
+        }
+      } else if (baseRole === 'teacher' || baseRole === 'admin') {
+        const teachers = await base44.entities.Teacher.filter({ user_id: userId });
+        profile = teachers[0];
+      } else if (baseRole === 'parent') {
+        const parents = await base44.entities.Parent.filter({ user_id: userId });
+        profile = parents[0];
+      }
+
+      return { userRecord, profile, role: baseRole, linkedParent };
     },
     enabled: !!currentUser,
+    staleTime: 30000,
   });
 
-  // Determine role profile to fetch - user_type is now a single string
-  const getUserProfileRole = () => {
-    if (targetRole) return targetRole;
-    const userType = userRecord?.user_type;
-    if (!userType) return 'user';
-    // Handle combined types
-    if (userType === 'parent_teacher') return 'teacher';
-    if (userType === 'parent_admin') return 'admin';
-    return userType;
-  };
-  const profileRole = getUserProfileRole();
-
-  // Fetch Student Profile
-  const { data: studentProfile } = useQuery({
-    queryKey: ['student-profile', userRecord?.id],
-    queryFn: async () => {
-      if (!userRecord?.id) return null;
-      const students = await base44.entities.Student.filter({ user_id: userRecord.id });
-      return students[0] || null;
-    },
-    enabled: !!userRecord && (profileRole === 'student' || profileRole === 'user'),
-  });
-
-  // Fetch Teacher Profile
-  const { data: teacherProfile } = useQuery({
-    queryKey: ['teacher-profile', userRecord?.id],
-    queryFn: async () => {
-      if (!userRecord?.id) return null;
-      const teachers = await base44.entities.Teacher.filter({ user_id: userRecord.id });
-      return teachers[0] || null;
-    },
-    enabled: !!userRecord && (profileRole === 'teacher' || profileRole === 'admin'),
-  });
-
-  // Fetch Parent Profile
-  const { data: parentProfile } = useQuery({
-    queryKey: ['parent-profile', userRecord?.id],
-    queryFn: async () => {
-      if (!userRecord?.id) return null;
-      const parents = await base44.entities.Parent.filter({ user_id: userRecord.id });
-      return parents[0] || null;
-    },
-    enabled: !!userRecord && profileRole === 'parent',
-  });
-
-  // Fetch related data based on role
-  const { data: enrollments = [] } = useQuery({
-    queryKey: ['enrollments', studentProfile?.id],
-    queryFn: async () => {
-      if (!studentProfile?.id) return [];
-      return await base44.entities.Enrollment.filter({ student_id: studentProfile.id });
-    },
-    enabled: !!studentProfile,
+  // Separate queries for student-specific data (only when needed)
+  const isStudent = profileData?.role === 'student';
+  
+  const { data: attendance = [] } = useQuery({
+    queryKey: ['attendance', profileData?.profile?.id],
+    queryFn: () => base44.entities.Attendance.filter({ student_id: profileData.profile.id }),
+    enabled: isStudent && !!profileData?.profile?.id,
   });
 
   const { data: grades = [] } = useQuery({
-    queryKey: ['grades', studentProfile?.id],
+    queryKey: ['grades', profileData?.profile?.id],
     queryFn: async () => {
-      if (!studentProfile?.id) return [];
-      const submissions = await base44.entities.Submission.filter({ student_id: studentProfile.id });
+      const submissions = await base44.entities.Submission.filter({ student_id: profileData.profile.id });
       return submissions.filter(s => s.grade !== null);
     },
-    enabled: !!studentProfile,
+    enabled: isStudent && !!profileData?.profile?.id,
   });
 
-  const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance', studentProfile?.id],
-    queryFn: async () => {
-      if (!studentProfile?.id) return [];
-      return await base44.entities.Attendance.filter({ student_id: studentProfile.id });
-    },
-    enabled: !!studentProfile,
-  });
+  if (!currentUser || isLoading) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 rounded-t-2xl" />
+          <div className="bg-white rounded-b-2xl p-6 -mt-12">
+            <div className="flex items-end gap-4">
+              <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white" />
+              <div className="space-y-2 pb-2">
+                <div className="h-6 w-48 bg-gray-200 rounded" />
+                <div className="h-4 w-32 bg-gray-200 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const { data: teacherClasses = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherProfile?.id],
-    queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.Class.filter({ teacher_id: teacherProfile.id });
-    },
-    enabled: !!teacherProfile,
-  });
-
-  const { data: linkedChildren = [] } = useQuery({
-    queryKey: ['linked-children', parentProfile?.id],
-    queryFn: async () => {
-      if (!parentProfile?.id) return [];
-      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
-    },
-    enabled: !!parentProfile,
-  });
-
-  // Update mutations
-  const updateStudentMutation = useMutation({
-    mutationFn: async (data) => {
-      await base44.entities.Student.update(studentProfile.id, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['student-profile'] });
-      toast.success('Profile updated successfully');
-      setEditMode(false);
-    },
-  });
-
-  const updateTeacherMutation = useMutation({
-    mutationFn: async (data) => {
-      await base44.entities.Teacher.update(teacherProfile.id, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher-profile'] });
-      toast.success('Profile updated successfully');
-      setEditMode(false);
-    },
-  });
-
-  const updateParentMutation = useMutation({
-    mutationFn: async (data) => {
-      await base44.entities.Parent.update(parentProfile.id, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parent-profile'] });
-      toast.success('Profile updated successfully');
-      setEditMode(false);
-    },
-  });
-
-  useEffect(() => {
-    if (studentProfile) setFormData(studentProfile);
-    else if (teacherProfile) setFormData(teacherProfile);
-    else if (parentProfile) setFormData(parentProfile);
-  }, [studentProfile, teacherProfile, parentProfile]);
-
-  const handleSave = () => {
-    if (studentProfile) updateStudentMutation.mutate(formData);
-    else if (teacherProfile) updateTeacherMutation.mutate(formData);
-    else if (parentProfile) updateParentMutation.mutate(formData);
-  };
-
+  const { userRecord, profile, role, linkedParent } = profileData || {};
   const isOwnProfile = !targetUserId || targetUserId === currentUser?.id;
   const canEdit = isOwnProfile || currentUser?.role === 'admin';
 
-  const profile = studentProfile || teacherProfile || parentProfile;
+  const getInitials = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`.toUpperCase();
+    }
+    return userRecord?.full_name?.split(' ').map(n => n.charAt(0)).join('').toUpperCase() || 'U';
+  };
 
-  if (!currentUser || !userRecord) {
-    return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div></div>;
-  }
+  const getRoleBadge = () => {
+    const roleColors = {
+      student: 'bg-green-500 text-white',
+      teacher: 'bg-blue-500 text-white',
+      parent: 'bg-purple-500 text-white',
+      admin: 'bg-red-500 text-white',
+      vendor: 'bg-orange-500 text-white',
+    };
+    return roleColors[role] || 'bg-gray-500 text-white';
+  };
+
+  const getTabs = () => {
+    const baseTabs = ['Overview', 'Family & Medical', 'Security'];
+    if (role === 'student') {
+      return ['Overview', 'Family & Medical', 'Grades', 'Attendance', 'Security'];
+    }
+    return baseTabs;
+  };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-text">
-            {isOwnProfile ? 'My Profile' : `${profile?.first_name} ${profile?.last_name}`}
-          </h1>
-          <p className="text-text-secondary mt-2">
-            {profileRole === 'student' && 'Student Profile'}
-            {profileRole === 'teacher' && 'Teacher Profile'}
-            {profileRole === 'parent' && 'Parent Profile'}
-          </p>
-        </div>
-        
-        {canEdit && (
-          <div className="flex gap-2">
-            {editMode ? (
-              <>
-                <Button variant="outline" onClick={() => setEditMode(false)}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </Button>
-              </>
-            ) : (
-              <Button onClick={() => setEditMode(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Edit className="w-4 h-4 mr-2" />
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Header Card */}
+      <Card className="overflow-hidden rounded-2xl shadow-lg">
+        <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600" />
+        <CardContent className="relative pt-0 pb-6 px-6">
+          <div className="flex items-end justify-between -mt-12">
+            <div className="flex items-end gap-4">
+              <div className="w-24 h-24 rounded-full bg-gray-100 border-4 border-white shadow-lg flex items-center justify-center">
+                {profile?.photo_url ? (
+                  <img src={profile.photo_url} alt="" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <span className="text-3xl font-bold text-gray-600">{getInitials()}</span>
+                )}
+              </div>
+              <div className="pb-2">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {profile?.first_name} {profile?.last_name}
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={getRoleBadge()}>{role?.toUpperCase()}</Badge>
+                  <span className="text-sm text-gray-500 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {profile?.address || 'No location set'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {canEdit && (
+              <Button 
+                onClick={() => setEditDialogOpen(true)}
+                className="bg-gray-900 hover:bg-gray-800 text-white"
+              >
                 Edit Profile
               </Button>
             )}
           </div>
-        )}
-      </div>
-
-      {/* Profile Header Card */}
-      <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-lg">
-        <CardContent className="p-8">
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
-              <User className="w-12 h-12" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold mb-2">
-                {profile?.first_name} {profile?.last_name}
-              </h2>
-              <div className="flex flex-wrap gap-3 text-sm">
-                {userRecord?.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    {userRecord.email}
-                  </div>
-                )}
-                {profile?.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    {profile.phone}
-                  </div>
-                )}
-                {studentProfile?.student_id_number && (
-                  <Badge className="bg-white/20">ID: {studentProfile.student_id_number}</Badge>
-                )}
-                {teacherProfile?.staff_id && (
-                  <Badge className="bg-white/20">Staff ID: {teacherProfile.staff_id}</Badge>
-                )}
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Role-Based Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${profileRole === 'student' ? 4 : profileRole === 'teacher' ? 3 : 2}, 1fr)` }}>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          {profileRole === 'student' && (
-            <>
-              <TabsTrigger value="grades">Grades</TabsTrigger>
-              <TabsTrigger value="attendance">Attendance</TabsTrigger>
-              <TabsTrigger value="family">Family Info</TabsTrigger>
-            </>
-          )}
-          {profileRole === 'teacher' && (
-            <>
-              <TabsTrigger value="classes">My Classes</TabsTrigger>
-              <TabsTrigger value="professional">Professional Info</TabsTrigger>
-            </>
-          )}
-          {profileRole === 'parent' && (
-            <TabsTrigger value="children">My Children</TabsTrigger>
-          )}
-        </TabsList>
+      {/* Main Content */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left Sidebar - Contact Info */}
+        <Card className="bg-white rounded-2xl shadow-md h-fit">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <User className="w-5 h-5 text-gray-500" />
+              <h3 className="font-semibold text-gray-900">Contact Information</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase mb-1">EMAIL</p>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Mail className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">{userRecord?.email || 'Not provided'}</span>
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase mb-1">PHONE</p>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">{profile?.phone || 'Not provided'}</span>
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase mb-1">ADDRESS</p>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">{profile?.address || 'Not provided'}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview">
-          <Card className="bg-white rounded-2xl shadow-md">
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {editMode ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>First Name *</Label>
-                    <Input
-                      value={formData.first_name || ''}
-                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                      className="mt-1"
-                    />
+        {/* Right Content - Tabs */}
+        <div className="md:col-span-2">
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="bg-white rounded-xl p-1 shadow-sm border mb-4">
+              {getTabs().map(tab => (
+                <TabsTrigger 
+                  key={tab} 
+                  value={tab.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}
+                  className="data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900"
+                >
+                  {tab}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-4">
+              <Card className="bg-white rounded-2xl shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <GraduationCap className="w-5 h-5 text-green-600" />
+                    <h3 className="font-semibold text-gray-900">
+                      {role === 'student' ? 'Academic Profile' : 
+                       role === 'teacher' ? 'Professional Profile' : 
+                       role === 'parent' ? 'Parent Profile' : 'Profile'}
+                    </h3>
                   </div>
-                  <div>
-                    <Label>Last Name *</Label>
-                    <Input
-                      value={formData.last_name || ''}
-                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label>Phone</Label>
-                    <Input
-                      value={formData.phone || ''}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="mt-1"
-                    />
-                  </div>
-                  {studentProfile && (
-                    <>
+                  
+                  {role === 'student' && (
+                    <div className="grid grid-cols-2 gap-6">
                       <div>
-                        <Label>Date of Birth</Label>
-                        <Input
-                          type="date"
-                          value={formData.date_of_birth || ''}
-                          onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                          className="mt-1"
-                        />
+                        <p className="text-xs text-gray-500 mb-1">Grade Level</p>
+                        <p className="font-medium text-gray-900">{profile?.grade_level || 'N/A'}</p>
                       </div>
                       <div>
-                        <Label>Gender</Label>
-                        <Input
-                          value={formData.gender || ''}
-                          onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                          className="mt-1"
-                        />
+                        <p className="text-xs text-gray-500 mb-1">Admission No</p>
+                        <p className="font-medium text-gray-900">{profile?.student_id_number || 'N/A'}</p>
                       </div>
                       <div>
-                        <Label>Grade Level</Label>
-                        <Input
-                          value={formData.grade_level || ''}
-                          onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Medical Conditions</Label>
-                        <Textarea
-                          value={formData.medical_conditions || ''}
-                          onChange={(e) => setFormData({ ...formData, medical_conditions: e.target.value })}
-                          rows={3}
-                          className="mt-1"
-                        />
-                      </div>
-                    </>
-                  )}
-                  {teacherProfile && (
-                    <>
-                      <div>
-                        <Label>Department</Label>
-                        <Input
-                          value={formData.department || ''}
-                          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                          className="mt-1"
-                        />
+                        <p className="text-xs text-gray-500 mb-1">DOB</p>
+                        <p className="font-medium text-gray-900">
+                          {profile?.date_of_birth ? format(new Date(profile.date_of_birth), 'MMM d, yyyy') : 'N/A'}
+                        </p>
                       </div>
                       <div>
-                        <Label>Position</Label>
-                        <Input
-                          value={formData.position || ''}
-                          onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                          className="mt-1"
-                        />
+                        <p className="text-xs text-gray-500 mb-1">Gender</p>
+                        <p className="font-medium text-gray-900">{profile?.gender || 'N/A'}</p>
                       </div>
-                      <div className="col-span-2">
-                        <Label>Qualifications</Label>
-                        <Textarea
-                          value={formData.qualifications || ''}
-                          onChange={(e) => setFormData({ ...formData, qualifications: e.target.value })}
-                          rows={3}
-                          className="mt-1"
-                        />
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Admission Date</p>
+                        <p className="font-medium text-gray-900">
+                          {profile?.admission_date ? format(new Date(profile.admission_date), 'MMM d, yyyy') : 'N/A'}
+                        </p>
                       </div>
-                    </>
-                  )}
-                  <div className="col-span-2">
-                    <Label>Address</Label>
-                    <Textarea
-                      value={formData.address || ''}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      rows={2}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-text-secondary mb-1">Full Name</p>
-                    <p className="font-medium text-text">{profile?.first_name} {profile?.last_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-text-secondary mb-1">Email</p>
-                    <p className="font-medium text-text">{userRecord?.email}</p>
-                  </div>
-                  {profile?.phone && (
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Phone</p>
-                      <p className="font-medium text-text">{profile.phone}</p>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Status</p>
+                        <Badge className={profile?.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
+                          {profile?.status || 'N/A'}
+                        </Badge>
+                      </div>
                     </div>
                   )}
-                  {studentProfile?.date_of_birth && (
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Date of Birth</p>
-                      <p className="font-medium text-text">{format(new Date(studentProfile.date_of_birth), 'MMM d, yyyy')}</p>
+
+                  {role === 'teacher' && (
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Staff ID</p>
+                        <p className="font-medium text-gray-900">{profile?.staff_id || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Department</p>
+                        <p className="font-medium text-gray-900">{profile?.department || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Position</p>
+                        <p className="font-medium text-gray-900">{profile?.position || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Hire Date</p>
+                        <p className="font-medium text-gray-900">
+                          {profile?.hire_date ? format(new Date(profile.hire_date), 'MMM d, yyyy') : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Status</p>
+                        <Badge className={profile?.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
+                          {profile?.status || 'N/A'}
+                        </Badge>
+                      </div>
                     </div>
                   )}
-                  {studentProfile?.gender && (
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Gender</p>
-                      <p className="font-medium text-text">{studentProfile.gender}</p>
+
+                  {role === 'parent' && (
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Full Name</p>
+                        <p className="font-medium text-gray-900">{profile?.first_name} {profile?.last_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Phone</p>
+                        <p className="font-medium text-gray-900">{profile?.phone || 'N/A'}</p>
+                      </div>
                     </div>
                   )}
-                  {studentProfile?.grade_level && (
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Grade Level</p>
-                      <p className="font-medium text-text">{studentProfile.grade_level}</p>
-                    </div>
-                  )}
-                  {teacherProfile?.department && (
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Department</p>
-                      <p className="font-medium text-text">{teacherProfile.department}</p>
-                    </div>
-                  )}
-                  {teacherProfile?.position && (
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Position</p>
-                      <p className="font-medium text-text">{teacherProfile.position}</p>
-                    </div>
-                  )}
-                  {profile?.address && (
-                    <div className="col-span-2">
-                      <p className="text-sm text-text-secondary mb-1">Address</p>
-                      <p className="font-medium text-text">{profile.address}</p>
-                    </div>
-                  )}
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* About Section */}
+              <Card className="bg-white rounded-2xl shadow-md">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-gray-900 mb-3">About</h3>
+                  <p className="text-gray-600 text-sm">
+                    {profile?.notes || (role === 'teacher' ? profile?.qualifications : null) || 'No notes available.'}
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Family & Medical Tab */}
+            <TabsContent value="family-medical" className="space-y-4">
+              {role === 'student' && (
+                <>
+                  <Card className="bg-white rounded-2xl shadow-md">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-semibold text-gray-900">Parent/Guardian</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Name</p>
+                          <p className="font-medium text-gray-900">
+                            {linkedParent ? `${linkedParent.first_name} ${linkedParent.last_name}` : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Phone</p>
+                          <p className="font-medium text-gray-900">{linkedParent?.phone || profile?.parent_phone || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Email</p>
+                          <p className="font-medium text-gray-900">{profile?.parent_email || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white rounded-2xl shadow-md">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FileText className="w-5 h-5 text-red-600" />
+                        <h3 className="font-semibold text-gray-900">Medical & Additional</h3>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Medical Conditions</p>
+                          <p className="font-medium text-gray-900">{profile?.medical_conditions || 'None'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">SEND Status</p>
+                          <p className="font-medium text-gray-900">{profile?.send_status || 'None'}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {/* Student Tabs */}
-        {profileRole === 'student' && (
-          <>
-            <TabsContent value="grades">
-              <Card className="bg-white rounded-2xl shadow-md">
-                <CardHeader>
-                  <CardTitle>Academic Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+              {role === 'teacher' && (
+                <Card className="bg-white rounded-2xl shadow-md">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      <h3 className="font-semibold text-gray-900">Emergency Contact</h3>
+                    </div>
+                    <p className="text-gray-600">{profile?.emergency_contact || 'No emergency contact provided'}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Grades Tab (Student only) */}
+            {role === 'student' && (
+              <TabsContent value="grades" className="space-y-4">
+                <Card className="bg-white rounded-2xl shadow-md">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">Recent Grades</h3>
                     {grades.length === 0 ? (
-                      <p className="text-center text-text-secondary py-8">No grades available yet</p>
+                      <p className="text-gray-500 text-center py-8">No grades available yet</p>
                     ) : (
-                      grades.map((submission) => (
-                        <div key={submission.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-medium text-text">{submission.assignment_id}</p>
-                            <p className="text-sm text-text-secondary">{format(new Date(submission.submitted_date), 'MMM d, yyyy')}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-accent">{submission.grade}</p>
-                            <p className="text-xs text-text-secondary">points</p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="attendance">
-              <Card className="bg-white rounded-2xl shadow-md">
-                <CardHeader>
-                  <CardTitle>Attendance Records</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <p className="text-3xl font-bold text-green-600">{attendance.filter(a => a.status === 'Present').length}</p>
-                      <p className="text-sm text-text-secondary">Present</p>
-                    </div>
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                      <p className="text-3xl font-bold text-red-600">{attendance.filter(a => a.status === 'Absent').length}</p>
-                      <p className="text-sm text-text-secondary">Absent</p>
-                    </div>
-                    <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                      <p className="text-3xl font-bold text-yellow-600">{attendance.filter(a => a.status === 'Late').length}</p>
-                      <p className="text-sm text-text-secondary">Late</p>
-                    </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <p className="text-3xl font-bold text-blue-600">
-                        {attendance.length > 0 ? ((attendance.filter(a => a.status === 'Present').length / attendance.length) * 100).toFixed(1) : 0}%
-                      </p>
-                      <p className="text-sm text-text-secondary">Rate</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="family">
-              <Card className="bg-white rounded-2xl shadow-md">
-                <CardHeader>
-                  <CardTitle>Family Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {studentProfile?.medical_conditions && (
-                    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm font-semibold text-yellow-900 mb-1">Medical Conditions:</p>
-                      <p className="text-sm text-yellow-800">{studentProfile.medical_conditions}</p>
-                    </div>
-                  )}
-                  <div className="space-y-3">
-                    <p className="text-text-secondary">Parent/Guardian information will be displayed here</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </>
-        )}
-
-        {/* Teacher Tabs */}
-        {profileRole === 'teacher' && (
-          <>
-            <TabsContent value="classes">
-              <Card className="bg-white rounded-2xl shadow-md">
-                <CardHeader>
-                  <CardTitle>Teaching Schedule</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {teacherClasses.length === 0 ? (
-                      <p className="text-center text-text-secondary py-8">No classes assigned yet</p>
-                    ) : (
-                      teacherClasses.map((cls) => (
-                        <div key={cls.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center justify-between">
+                      <div className="space-y-3">
+                        {grades.slice(0, 10).map((submission) => (
+                          <div key={submission.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                              <p className="font-medium text-text">{cls.class_name}</p>
-                              <p className="text-sm text-text-secondary">{cls.schedule}</p>
+                              <p className="font-medium text-gray-900">{submission.assignment_id}</p>
+                              <p className="text-sm text-gray-500">
+                                {submission.submitted_date && format(new Date(submission.submitted_date), 'MMM d, yyyy')}
+                              </p>
                             </div>
-                            <Badge variant="outline">{cls.room}</Badge>
+                            <Badge className="bg-blue-100 text-blue-800 text-lg px-3">{submission.grade}</Badge>
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
-            <TabsContent value="professional">
+            {/* Attendance Tab (Student only) */}
+            {role === 'student' && (
+              <TabsContent value="attendance" className="space-y-4">
+                <Card className="bg-white rounded-2xl shadow-md">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">Attendance Summary</h3>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="text-center p-4 bg-green-50 rounded-xl">
+                        <p className="text-2xl font-bold text-green-600">{attendance.filter(a => a.status === 'Present').length}</p>
+                        <p className="text-sm text-gray-600">Present</p>
+                      </div>
+                      <div className="text-center p-4 bg-red-50 rounded-xl">
+                        <p className="text-2xl font-bold text-red-600">{attendance.filter(a => a.status === 'Absent').length}</p>
+                        <p className="text-sm text-gray-600">Absent</p>
+                      </div>
+                      <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                        <p className="text-2xl font-bold text-yellow-600">{attendance.filter(a => a.status === 'Late').length}</p>
+                        <p className="text-sm text-gray-600">Late</p>
+                      </div>
+                      <div className="text-center p-4 bg-blue-50 rounded-xl">
+                        <p className="text-2xl font-bold text-blue-600">
+                          {attendance.length > 0 ? ((attendance.filter(a => a.status === 'Present').length / attendance.length) * 100).toFixed(0) : 0}%
+                        </p>
+                        <p className="text-sm text-gray-600">Rate</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {/* Security Tab */}
+            <TabsContent value="security" className="space-y-4">
               <Card className="bg-white rounded-2xl shadow-md">
-                <CardHeader>
-                  <CardTitle>Professional Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Staff ID</p>
-                      <p className="font-medium text-text">{teacherProfile?.staff_id}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Department</p>
-                      <p className="font-medium text-text">{teacherProfile?.department}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-text-secondary mb-1">Position</p>
-                      <p className="font-medium text-text">{teacherProfile?.position}</p>
-                    </div>
-                    {teacherProfile?.hire_date && (
-                      <div>
-                        <p className="text-sm text-text-secondary mb-1">Hire Date</p>
-                        <p className="font-medium text-text">{format(new Date(teacherProfile.hire_date), 'MMM d, yyyy')}</p>
-                      </div>
-                    )}
-                    {teacherProfile?.qualifications && (
-                      <div>
-                        <p className="text-sm text-text-secondary mb-1">Qualifications</p>
-                        <p className="font-medium text-text">{teacherProfile.qualifications}</p>
-                      </div>
-                    )}
-                  </div>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-gray-900 mb-4">Account Security</h3>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    Change Password
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
-          </>
-        )}
+          </Tabs>
+        </div>
+      </div>
 
-        {/* Parent Tabs */}
-        {profileRole === 'parent' && (
-          <TabsContent value="children">
-            <Card className="bg-white rounded-2xl shadow-md">
-              <CardHeader>
-                <CardTitle>Linked Children</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {linkedChildren.length === 0 ? (
-                    <p className="text-center text-text-secondary py-8 col-span-2">No children linked yet</p>
-                  ) : (
-                    linkedChildren.map((child) => (
-                      <div 
-                        key={child.id} 
-                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/userprofile?id=${child.user_id}&role=student`)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <GraduationCap className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-text">{child.first_name} {child.last_name}</p>
-                            <p className="text-sm text-text-secondary">Grade {child.grade_level}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
+      {/* Edit Dialog */}
+      <ProfileEditDialog 
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        profile={profile}
+        role={role}
+      />
     </div>
   );
 }
