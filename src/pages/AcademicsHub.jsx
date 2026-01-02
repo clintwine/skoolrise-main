@@ -66,42 +66,43 @@ export default function AcademicsHub() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-text">Academics Hub</h1>
-          <p className="text-text-secondary mt-2">Manage classes, subjects, allocations, sessions, and grading</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-text">Academics Hub</h1>
+        <p className="text-text-secondary mt-1">Manage school structure, curriculum, and teacher allocations.</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-white rounded-xl shadow-md p-1">
-          <TabsTrigger value="classes" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+        <TabsList className="inline-flex bg-gray-100 rounded-full p-1 gap-1">
+          <TabsTrigger value="classes" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <GraduationCap className="w-4 h-4" />
             Classes
           </TabsTrigger>
-          <TabsTrigger value="subjects" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="subjects" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <BookOpen className="w-4 h-4" />
             Subjects
           </TabsTrigger>
-          <TabsTrigger value="allocations" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="allocations" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Users className="w-4 h-4" />
             Allocations
           </TabsTrigger>
-          <TabsTrigger value="sessions" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="sessions" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Calendar className="w-4 h-4" />
-            Sessions & Terms
+            Sessions
           </TabsTrigger>
-          <TabsTrigger value="grading" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="grading" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Award className="w-4 h-4" />
             Grading
           </TabsTrigger>
         </TabsList>
 
         {/* Classes Tab */}
-        <TabsContent value="classes" className="space-y-4">
-          <Card className="bg-white rounded-xl shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Class Arms</CardTitle>
+        <TabsContent value="classes" className="space-y-4 mt-6">
+          <Card className="bg-white rounded-xl shadow-sm border">
+            <CardHeader className="flex flex-row items-start justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg font-semibold">Class Structures</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">Define grade levels and arms (e.g., JSS1 A, JSS1 B)</p>
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -124,9 +125,9 @@ export default function AcademicsHub() {
                   <Upload className="w-4 h-4 mr-2" />
                   Bulk Import
                 </Button>
-                <Button onClick={() => setClassDialog({ open: true, editing: null })} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button onClick={() => setClassDialog({ open: true, editing: null })} className="bg-gray-900 hover:bg-gray-800 text-white">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Class
+                  New Class Arm
                 </Button>
               </div>
             </CardHeader>
@@ -183,10 +184,13 @@ export default function AcademicsHub() {
         </TabsContent>
 
         {/* Allocations Tab */}
-        <TabsContent value="allocations" className="space-y-4">
-          <Card className="bg-white rounded-xl shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Subject Allocations</CardTitle>
+        <TabsContent value="allocations" className="space-y-4 mt-6">
+          <Card className="bg-white rounded-xl shadow-sm border">
+            <CardHeader className="flex flex-row items-start justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg font-semibold">Teacher Allocations</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">Assign teachers to subjects for specific classes.</p>
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -209,13 +213,13 @@ export default function AcademicsHub() {
                   <Upload className="w-4 h-4 mr-2" />
                   Bulk Import
                 </Button>
-                <Button onClick={() => setAllocationDialog({ open: true, editing: null })} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button onClick={() => setAllocationDialog({ open: true, editing: null })} className="bg-green-600 hover:bg-green-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Allocation
+                  Assign Teacher
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <AllocationsTable 
                 allocations={allocations}
                 classArms={classArms}
@@ -228,41 +232,77 @@ export default function AcademicsHub() {
         </TabsContent>
 
         {/* Sessions & Terms Tab */}
-        <TabsContent value="sessions" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-white rounded-xl shadow-md">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Academic Sessions</CardTitle>
-                <Button onClick={() => setSessionDialog({ open: true, editing: null })} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Session
+        <TabsContent value="sessions" className="space-y-4 mt-6">
+          <Card className="bg-white rounded-xl shadow-sm border">
+            <CardHeader className="flex flex-row items-start justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg font-semibold">Academic Calendar</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">Manage academic sessions and terms.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setBulkImport({
+                    open: true,
+                    entity: 'AcademicSession',
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        session_name: { type: 'string' },
+                        start_date: { type: 'string' },
+                        end_date: { type: 'string' },
+                        is_current: { type: 'boolean' }
+                      },
+                      required: ['session_name', 'start_date', 'end_date']
+                    },
+                    template: [{ session_name: '2024/2025', start_date: '2024-09-01', end_date: '2025-07-31', is_current: false }]
+                  })}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import Sessions
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <SessionsTable 
-                  sessions={sessions} 
-                  onEdit={(session) => setSessionDialog({ open: true, editing: session })}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Terms</CardTitle>
-                <Button onClick={() => setTermDialog({ open: true, editing: null })} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button
+                  variant="outline"
+                  onClick={() => setBulkImport({
+                    open: true,
+                    entity: 'Term',
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        session_id: { type: 'string' },
+                        term_name: { type: 'string' },
+                        term_number: { type: 'number' },
+                        start_date: { type: 'string' },
+                        end_date: { type: 'string' },
+                        is_current: { type: 'boolean' }
+                      },
+                      required: ['session_id', 'term_name', 'start_date', 'end_date']
+                    },
+                    template: [{ session_id: '', term_name: 'First Term', term_number: 1, start_date: '2024-09-01', end_date: '2024-12-15', is_current: false }]
+                  })}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import Terms
+                </Button>
+                <Button onClick={() => setTermDialog({ open: true, editing: null })} variant="outline">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Term
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <TermsTable 
-                  terms={terms} 
-                  sessions={sessions}
-                  onEdit={(term) => setTermDialog({ open: true, editing: term })}
-                />
-              </CardContent>
-            </Card>
-          </div>
+                <Button onClick={() => setSessionDialog({ open: true, editing: null })} className="bg-gray-900 hover:bg-gray-800 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Session
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SessionsWithTerms 
+                sessions={sessions}
+                terms={terms}
+                onEditSession={(session) => setSessionDialog({ open: true, editing: session })}
+                onEditTerm={(term) => setTermDialog({ open: true, editing: term })}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Grading Tab */}
@@ -358,38 +398,36 @@ function ClassArmsTable({ classArms, onEdit }) {
     return acc;
   }, {});
 
+  const armColors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500'];
+
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
       {Object.entries(groupedByGrade).map(([grade, arms]) => (
-        <div key={grade}>
-          <h3 className="text-lg font-semibold text-text mb-2">Grade {grade}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {arms.map((arm) => (
-              <Card key={arm.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-semibold text-text text-lg">{grade}{arm.arm_name}</h4>
-                      <p className="text-sm text-text-secondary">Room: {arm.room || 'N/A'}</p>
-                      <p className="text-sm text-text-secondary">Capacity: {arm.max_students || 'N/A'}</p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => onEdit(arm)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(arm.id)}>
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        <Card key={grade} className="border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+            <h3 className="font-semibold text-gray-900">{grade}</h3>
+            <Badge className="bg-blue-100 text-blue-700">{arms.length} Arms</Badge>
           </div>
-        </div>
+          <CardContent className="p-0">
+            {arms.map((arm, idx) => (
+              <div 
+                key={arm.id} 
+                className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                onClick={() => onEdit(arm)}
+              >
+                <div className={`w-8 h-8 rounded-lg ${armColors[idx % armColors.length]} flex items-center justify-center text-white text-sm font-semibold`}>
+                  {arm.arm_name}
+                </div>
+                <span className="text-gray-700 font-medium">{grade} {arm.arm_name}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       ))}
       {classArms.length === 0 && (
-        <p className="text-center text-text-secondary py-8">No class arms yet. Add your first class!</p>
+        <div className="col-span-full text-center text-gray-500 py-12">
+          No class arms yet. Add your first class!
+        </div>
       )}
     </div>
   );
@@ -450,32 +488,48 @@ function AllocationsTable({ allocations, classArms, subjects, teachers, onEdit }
     },
   });
 
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-text">Class</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-text">Subject</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-text">Teacher</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-text">Room</th>
-            <th className="px-4 py-3 text-right text-sm font-semibold text-text">Actions</th>
+        <thead>
+          <tr className="border-b">
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Arm</th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Teacher</th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-gray-100">
           {allocations.map((allocation) => (
-            <tr key={allocation.id} className="border-t hover:bg-gray-50">
-              <td className="px-4 py-3 text-sm">{allocation.class_arm_name}</td>
-              <td className="px-4 py-3 text-sm">{allocation.subject_name}</td>
-              <td className="px-4 py-3 text-sm">{allocation.teacher_name}</td>
-              <td className="px-4 py-3 text-sm">{allocation.room || 'N/A'}</td>
-              <td className="px-4 py-3 text-right">
-                <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => onEdit(allocation)}>
+            <tr key={allocation.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 text-sm font-medium text-gray-900">{allocation.class_arm_name}</td>
+              <td className="px-6 py-4 text-sm text-gray-700">{allocation.subject_name}</td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-semibold">
+                    {getInitials(allocation.teacher_name)}
+                  </div>
+                  <span className="text-sm text-gray-900">{allocation.teacher_name}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-700">{allocation.room || '-'}</td>
+              <td className="px-6 py-4">
+                <Badge className="bg-green-100 text-green-700 font-medium">Active</Badge>
+              </td>
+              <td className="px-6 py-4 text-right">
+                <div className="flex justify-end gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(allocation)} className="text-gray-500 hover:text-gray-700">
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(allocation.id)}>
-                    <Trash2 className="w-4 h-4 text-red-600" />
+                  <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(allocation.id)} className="text-red-400 hover:text-red-600">
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </td>
@@ -484,17 +538,19 @@ function AllocationsTable({ allocations, classArms, subjects, teachers, onEdit }
         </tbody>
       </table>
       {allocations.length === 0 && (
-        <p className="text-center text-text-secondary py-8">No allocations yet. Assign teachers to subjects!</p>
+        <div className="text-center text-gray-500 py-12">
+          No allocations yet. Assign teachers to subjects!
+        </div>
       )}
     </div>
   );
 }
 
-// Component: SessionsTable
-function SessionsTable({ sessions, onEdit }) {
+// Component: SessionsWithTerms
+function SessionsWithTerms({ sessions, terms, onEditSession, onEditTerm }) {
   const queryClient = useQueryClient();
   
-  const deleteMutation = useMutation({
+  const deleteSessionMutation = useMutation({
     mutationFn: (id) => base44.entities.AcademicSession.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
@@ -502,39 +558,7 @@ function SessionsTable({ sessions, onEdit }) {
     },
   });
 
-  return (
-    <div className="space-y-2">
-      {sessions.map((session) => (
-        <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-          <div>
-            <h4 className="font-semibold text-text">{session.session_name}</h4>
-            <p className="text-sm text-text-secondary">
-              {new Date(session.start_date).toLocaleDateString()} - {new Date(session.end_date).toLocaleDateString()}
-            </p>
-            {session.is_current && <Badge className="bg-green-100 text-green-800 mt-1">Current</Badge>}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onEdit(session)}>
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(session.id)}>
-              <Trash2 className="w-4 h-4 text-red-600" />
-            </Button>
-          </div>
-        </div>
-      ))}
-      {sessions.length === 0 && (
-        <p className="text-center text-text-secondary py-8">No sessions yet. Add an academic session!</p>
-      )}
-    </div>
-  );
-}
-
-// Component: TermsTable
-function TermsTable({ terms, sessions, onEdit }) {
-  const queryClient = useQueryClient();
-  
-  const deleteMutation = useMutation({
+  const deleteTermMutation = useMutation({
     mutationFn: (id) => base44.entities.Term.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['terms'] });
@@ -542,32 +566,76 @@ function TermsTable({ terms, sessions, onEdit }) {
     },
   });
 
+  const getSessionTerms = (sessionId) => {
+    return terms.filter(t => t.session_id === sessionId);
+  };
+
   return (
-    <div className="space-y-2">
-      {terms.map((term) => {
-        const session = sessions.find(s => s.id === term.session_id);
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      {sessions.map((session) => {
+        const sessionTerms = getSessionTerms(session.id);
         return (
-          <div key={term.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-            <div>
-              <h4 className="font-semibold text-text">{term.term_name}</h4>
-              <p className="text-sm text-text-secondary">
-                {session?.session_name} • {new Date(term.start_date).toLocaleDateString()} - {new Date(term.end_date).toLocaleDateString()}
-              </p>
-              {term.is_current && <Badge className="bg-green-100 text-green-800 mt-1">Current</Badge>}
+          <Card key={session.id} className="border rounded-xl overflow-hidden">
+            <div className="p-4 border-b">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{session.session_name} Session</h4>
+                    <p className="text-sm text-gray-500">
+                      {session.start_date} — {session.end_date}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {session.is_current && (
+                    <Badge className="bg-green-600 text-white">Current</Badge>
+                  )}
+                  <Badge variant="outline" className="text-gray-600">Active</Badge>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => onEdit(term)}>
-                <Edit className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(term.id)}>
-                <Trash2 className="w-4 h-4 text-red-600" />
-              </Button>
-            </div>
-          </div>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span>Terms ({sessionTerms.length})</span>
+                <Button variant="ghost" size="sm" onClick={() => onEditSession(session)} className="h-6 px-2">
+                  <Edit className="w-3 h-3" />
+                </Button>
+              </div>
+              {sessionTerms.length === 0 ? (
+                <p className="text-sm text-gray-400">No terms configured for this session.</p>
+              ) : (
+                <div className="space-y-2">
+                  {sessionTerms.map((term) => (
+                    <div key={term.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">{term.term_name}</span>
+                        {term.is_current && (
+                          <Badge className="bg-green-100 text-green-700 text-xs">Current</Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => onEditTerm(term)} className="h-6 w-6 p-0">
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteTermMutation.mutate(term.id)} className="h-6 w-6 p-0 text-red-500">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         );
       })}
-      {terms.length === 0 && (
-        <p className="text-center text-text-secondary py-8">No terms yet. Add a term!</p>
+      {sessions.length === 0 && (
+        <div className="col-span-full text-center text-gray-500 py-12">
+          No sessions yet. Add an academic session!
+        </div>
       )}
     </div>
   );
