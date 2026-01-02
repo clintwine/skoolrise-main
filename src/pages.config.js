@@ -105,6 +105,7 @@ import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
 import AssignmentBuilder from './pages/AssignmentBuilder';
+import TeacherSchedule from './pages/TeacherSchedule';
 import __Layout from './Layout.jsx';
 
 
@@ -216,6 +217,7 @@ export const PAGES = {
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
     "AssignmentBuilder": AssignmentBuilder,
+    "TeacherSchedule": TeacherSchedule,
 }
 
 export const pagesConfig = {
