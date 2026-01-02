@@ -9,8 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Brain, Library, Edit, Trash2, Calendar, Video, Award } from 'lucide-react';
+import { Plus, Brain, Library, Edit, Trash2, Calendar, Video, Award, Bell, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import { DashboardSkeleton } from '@/components/SkeletonLoader';
+import AssignmentDetailSheet from '../components/AssignmentDetailSheet';
+import { useNavigate } from 'react-router-dom';
 
 export default function TeacherAssignments() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -18,7 +22,10 @@ export default function TeacherAssignments() {
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -54,13 +61,18 @@ export default function TeacherAssignments() {
 
   const teacherProfile = teachers[0];
 
-  const { data: assignments = [] } = useQuery({
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery({
     queryKey: ['teacher-assignments', teacherProfile?.id],
     queryFn: async () => {
       if (!teacherProfile?.id) return [];
       return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date');
     },
     enabled: !!teacherProfile?.id,
+  });
+
+  const { data: submissions = [] } = useQuery({
+    queryKey: ['all-submissions'],
+    queryFn: () => base44.entities.Submission.list('-created_date', 50),
   });
 
   const { data: classes = [] } = useQuery({
@@ -226,6 +238,9 @@ export default function TeacherAssignments() {
     }
   };
 
+  const recentSubmissions = submissions.slice(0, 5);
+  const unreadCount = recentSubmissions.filter(s => !s.teacher_viewed).length;
+
   const typeColors = {
     Homework: 'bg-blue-100 text-blue-800',
     Quiz: 'bg-purple-100 text-purple-800',
@@ -233,77 +248,159 @@ export default function TeacherAssignments() {
     Essay: 'bg-orange-100 text-orange-800',
     Lab: 'bg-pink-100 text-pink-800',
     Video: 'bg-red-100 text-red-800',
-    'Independent Learning': 'bg-indigo-100 text-indigo-800',
+    Research: 'bg-indigo-100 text-indigo-800',
   };
+
+  if (assignmentsLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-between items-start"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Assignments & Homework</h1>
-          <p className="text-gray-600 mt-1">Create and manage student assignments</p>
+          <h1 className="text-4xl font-bold text-text">Assignment Manager</h1>
+          <p className="text-text-secondary mt-2">Create, track, and grade student assignments</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setIsTemplatesOpen(true)} variant="outline">
-            <Library className="w-4 h-4 mr-2" />
-            Templates
-          </Button>
-          <Button onClick={() => setIsAIOpen(true)} variant="outline" className="bg-purple-50">
-            <Brain className="w-4 h-4 mr-2" />
-            AI Generate
-          </Button>
+        <div className="flex gap-3">
           <Button 
-            onClick={() => { resetForm(); setIsFormOpen(true); }} 
-            className="bg-blue-600 hover:bg-blue-700"
-            disabled={!teacherProfile}
+            onClick={() => navigate(createPageUrl('AssignmentBuilder'))}
+            className="bg-accent hover:bg-accent-hover text-white px-6"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Create
+            <Plus className="w-5 h-5 mr-2" />
+            Create Assignment
           </Button>
         </div>
+      </motion.div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-secondary">Active</p>
+                <p className="text-3xl font-bold text-text">
+                  {assignments.filter(a => a.status === 'Published').length}
+                </p>
+              </div>
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-secondary">Grading</p>
+                <p className="text-3xl font-bold text-text">
+                  {submissions.filter(s => s.status === 'Submitted').length}
+                </p>
+              </div>
+              <Clock className="w-10 h-10 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-secondary">Completed</p>
+                <p className="text-3xl font-bold text-text">
+                  {submissions.filter(s => s.status === 'Graded').length}
+                </p>
+              </div>
+              <Award className="w-10 h-10 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-md rounded-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-secondary">Total</p>
+                <p className="text-3xl font-bold text-text">{assignments.length}</p>
+              </div>
+              <Users className="w-10 h-10 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        {assignments.map((assignment) => (
-          <Card key={assignment.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-bold">{assignment.title}</h3>
-                    <Badge className={typeColors[assignment.type]}>{assignment.type}</Badge>
-                    {assignment.is_self_marking && <Badge className="bg-green-100 text-green-800">Auto-Grade</Badge>}
-                    {assignment.ai_generated && <Badge className="bg-purple-100 text-purple-800"><Brain className="w-3 h-3 mr-1" />AI</Badge>}
-                    {assignment.video_url && <Badge className="bg-red-100 text-red-800"><Video className="w-3 h-3 mr-1" />Video</Badge>}
-                    {assignment.is_independent_project && <Badge className="bg-indigo-100 text-indigo-800">Project</Badge>}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">{assignment.class_name}</p>
-                  <p className="text-sm text-gray-700 line-clamp-2">{assignment.description}</p>
-                  <div className="flex items-center gap-4 mt-3 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span>Due: {format(new Date(assignment.due_date), 'MMM d, yyyy')}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Award className="w-4 h-4 text-gray-500" />
-                      <span>{assignment.max_points} points</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(assignment)}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    if (confirm('Delete this assignment?')) deleteMutation.mutate(assignment.id);
-                  }}>
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
-                </div>
-              </div>
+      <div className="space-y-4">
+        {assignments.length === 0 ? (
+          <Card className="bg-white rounded-2xl shadow-md">
+            <CardContent className="p-16 text-center">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-2xl font-semibold text-text mb-2">No assignments yet</h3>
+              <p className="text-text-secondary mb-6">Create your first assignment to get started</p>
+              <Button 
+                onClick={() => navigate(createPageUrl('AssignmentBuilder'))}
+                className="bg-accent hover:bg-accent-hover text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create First Assignment
+              </Button>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          assignments.map((assignment, index) => (
+            <motion.div
+              key={assignment.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card 
+                className="bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl"
+                onClick={() => {
+                  setSelectedAssignment(assignment);
+                  setDetailSheetOpen(true);
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-bold text-text">{assignment.title}</h3>
+                        <Badge className={typeColors[assignment.type]}>{assignment.type}</Badge>
+                        {assignment.is_self_marking && <Badge className="bg-green-100 text-green-800">Auto-Grade</Badge>}
+                        {assignment.ai_generated && <Badge className="bg-purple-100 text-purple-800"><Brain className="w-3 h-3 mr-1" />AI</Badge>}
+                        {assignment.video_url && <Badge className="bg-red-100 text-red-800"><Video className="w-3 h-3 mr-1" />Video</Badge>}
+                      </div>
+                      <p className="text-sm text-text-secondary mb-2">{assignment.class_name}</p>
+                      <p className="text-sm text-text line-clamp-2">{assignment.description}</p>
+                      <div className="flex items-center gap-4 mt-3 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4 text-text-secondary" />
+                          <span className="text-text-secondary">Due: {format(new Date(assignment.due_date), 'MMM d, yyyy')}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Award className="w-4 h-4 text-text-secondary" />
+                          <span className="text-text-secondary">{assignment.max_points} points</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(assignment)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        if (confirm('Delete this assignment?')) deleteMutation.mutate(assignment.id);
+                      }}>
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))
+        )}
       </div>
 
       {/* AI Generation Dialog */}
@@ -446,6 +543,13 @@ export default function TeacherAssignments() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Assignment Detail Sheet */}
+      <AssignmentDetailSheet
+        assignment={selectedAssignment}
+        open={detailSheetOpen}
+        onOpenChange={setDetailSheetOpen}
+      />
     </div>
   );
 }
