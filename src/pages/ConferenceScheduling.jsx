@@ -212,28 +212,39 @@ export default function ConferenceScheduling() {
               </div>
             ))}
             {daysInMonth.map((day, idx) => {
-              const dayConferences = getConferencesForDay(day);
-              return (
-                <div
-                  key={idx}
-                  className="min-h-24 border rounded-lg p-2 hover:bg-gray-50"
-                >
-                  <div className="text-sm font-semibold text-gray-700 mb-1">
-                    {format(day, 'd')}
-                  </div>
-                  <div className="space-y-1">
-                    {dayConferences.map(conf => (
-                      <div
-                        key={conf.id}
-                        className="text-xs p-1 rounded bg-blue-100 text-blue-800 cursor-pointer"
-                        onClick={() => setSelectedConference(conf)}
-                      >
-                        {format(new Date(conf.scheduled_date), 'h:mm a')}
-                      </div>
-                    ))}
-                  </div>
+            const dayConferences = getConferencesForDay(day);
+            const isToday = isSameDay(day, new Date());
+            return (
+              <div
+                key={idx}
+                className={`min-h-24 border rounded-lg p-2 hover:bg-blue-50 cursor-pointer transition-colors ${isToday ? 'bg-blue-50 border-blue-300' : ''}`}
+                onClick={() => {
+                  setBookingForm({
+                    ...bookingForm,
+                    scheduled_date: format(day, "yyyy-MM-dd'T'09:00"),
+                  });
+                  setShowBookingForm(true);
+                }}
+              >
+                <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
+                  {format(day, 'd')}
                 </div>
-              );
+                <div className="space-y-1">
+                  {dayConferences.map(conf => (
+                    <div
+                      key={conf.id}
+                      className="text-xs p-1 rounded bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedConference(conf);
+                      }}
+                    >
+                      {format(new Date(conf.scheduled_date), 'h:mm a')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
             })}
           </div>
         </CardContent>

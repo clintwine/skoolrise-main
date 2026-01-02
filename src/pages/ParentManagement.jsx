@@ -84,12 +84,19 @@ export default function ParentManagement() {
   });
 
   const linkStudentMutation = useMutation({
-    mutationFn: (data) => base44.entities.Student.update(data.student_id, { parent_id: data.parent_id }),
+    mutationFn: async (data) => {
+      await base44.entities.Student.update(data.student_id, { parent_id: data.parent_id });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['students']);
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['parents'] });
       toast.success('Student linked to parent');
       setLinkDialogOpen(false);
+      setSelectedParent(null);
       setLinkData({ student_id: '' });
+    },
+    onError: (error) => {
+      toast.error('Failed to link student: ' + error.message);
     },
   });
 
