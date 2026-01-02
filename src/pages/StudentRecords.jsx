@@ -45,13 +45,19 @@ export default function StudentRecords() {
   });
 
   const linkParentMutation = useMutation({
-    mutationFn: ({ studentId, parentId }) => 
-      base44.entities.Student.update(studentId, { parent_id: parentId }),
+    mutationFn: async ({ studentId, parentId }) => {
+      await base44.entities.Student.update(studentId, { parent_id: parentId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['parents'] });
       setIsLinkParentOpen(false);
+      setSelectedStudent(null);
       setSelectedParentId('');
       toast.success('Parent linked successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to link parent: ' + error.message);
     },
   });
 
@@ -71,12 +77,16 @@ export default function StudentRecords() {
       delete studentData.created_date;
       delete studentData.updated_date;
       delete studentData.created_by;
-      return base44.entities.Student.update(id, studentData);
+      await base44.entities.Student.update(id, studentData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       setIsFormOpen(false);
       setSelectedStudent(null);
+      toast.success('Student updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update student: ' + error.message);
     },
   });
 

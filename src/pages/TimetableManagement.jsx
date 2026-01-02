@@ -63,7 +63,14 @@ export default function TimetableManagement() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Timetable.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const updateData = { ...data };
+      delete updateData.id;
+      delete updateData.created_date;
+      delete updateData.updated_date;
+      delete updateData.created_by;
+      await base44.entities.Timetable.update(id, updateData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
       setIsFormOpen(false);
