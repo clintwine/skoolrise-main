@@ -35,6 +35,7 @@ import {
   DoorOpen,
   Search
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -286,6 +287,7 @@ export default function Layout({ children, currentPageName }) {
         id: 'my-teaching',
         groupName: 'MY TEACHING',
         items: [
+          { name: 'My Schedule', icon: Calendar, path: 'TeacherSchedule' },
           { name: 'My Classes', icon: GraduationCap, path: 'MyClasses' },
           { name: 'Attendance', icon: CheckSquare, path: 'AttendanceTaking' },
           { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
@@ -333,7 +335,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Grades', icon: Award, path: 'StudentGrades' },
           { name: 'Rewards Store', icon: Gift, path: 'RewardsStore' },
           { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
-          { name: 'Profile', icon: UserCircle, path: 'StudentProfile' },
+          { name: 'Profile', icon: UserCircle, path: 'UserProfile' },
         ]
       }
     ];
