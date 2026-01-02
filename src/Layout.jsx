@@ -185,6 +185,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'STUDENT MANAGEMENT',
         items: [
           { name: 'Students', icon: Users, path: 'StudentRecords' },
+          { name: 'Parents', icon: Users, path: 'ParentManagement' },
           { name: 'Enrollments', icon: BookOpen, path: 'EnrollmentManagement' },
           { name: 'Linking Requests', icon: UserCircle, path: 'AdminLinkingRequests' },
           { name: 'Student Exit', icon: LogOutIcon, path: 'StudentExitMonitoring' },

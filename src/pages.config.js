@@ -1,11 +1,13 @@
 import AIGradingAssistant from './pages/AIGradingAssistant';
 import AILessonPlanner from './pages/AILessonPlanner';
+import AcademicsHub from './pages/AcademicsHub';
 import ActivationPage from './pages/ActivationPage';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLinkingRequests from './pages/AdminLinkingRequests';
 import AdminReportsDashboard from './pages/AdminReportsDashboard';
 import AdmissionsManagement from './pages/AdmissionsManagement';
+import AssignmentBuilder from './pages/AssignmentBuilder';
 import AssignmentManagement from './pages/AssignmentManagement';
 import AttendanceTaking from './pages/AttendanceTaking';
 import BackupSettings from './pages/BackupSettings';
@@ -91,30 +93,30 @@ import TeacherAssignmentManager from './pages/TeacherAssignmentManager';
 import TeacherAssignments from './pages/TeacherAssignments';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherManagement from './pages/TeacherManagement';
+import TeacherSchedule from './pages/TeacherSchedule';
 import TeacherTests from './pages/TeacherTests';
 import TermsOfService from './pages/TermsOfService';
 import TimetableManagement from './pages/TimetableManagement';
+import UnifiedAttendance from './pages/UnifiedAttendance';
 import UserManagement from './pages/UserManagement';
+import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import AssignmentBuilder from './pages/AssignmentBuilder';
-import TeacherSchedule from './pages/TeacherSchedule';
-import UserProfile from './pages/UserProfile';
-import AcademicsHub from './pages/AcademicsHub';
-import UnifiedAttendance from './pages/UnifiedAttendance';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AIGradingAssistant": AIGradingAssistant,
     "AILessonPlanner": AILessonPlanner,
+    "AcademicsHub": AcademicsHub,
     "ActivationPage": ActivationPage,
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
     "AdminLinkingRequests": AdminLinkingRequests,
     "AdminReportsDashboard": AdminReportsDashboard,
     "AdmissionsManagement": AdmissionsManagement,
+    "AssignmentBuilder": AssignmentBuilder,
     "AssignmentManagement": AssignmentManagement,
     "AttendanceTaking": AttendanceTaking,
     "BackupSettings": BackupSettings,
@@ -200,18 +202,16 @@ export const PAGES = {
     "TeacherAssignments": TeacherAssignments,
     "TeacherDashboard": TeacherDashboard,
     "TeacherManagement": TeacherManagement,
+    "TeacherSchedule": TeacherSchedule,
     "TeacherTests": TeacherTests,
     "TermsOfService": TermsOfService,
     "TimetableManagement": TimetableManagement,
+    "UnifiedAttendance": UnifiedAttendance,
     "UserManagement": UserManagement,
+    "UserProfile": UserProfile,
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "AssignmentBuilder": AssignmentBuilder,
-    "TeacherSchedule": TeacherSchedule,
-    "UserProfile": UserProfile,
-    "AcademicsHub": AcademicsHub,
-    "UnifiedAttendance": UnifiedAttendance,
 }
 
 export const pagesConfig = {

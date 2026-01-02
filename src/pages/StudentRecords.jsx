@@ -156,78 +156,89 @@ export default function StudentRecords() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-          {filteredStudents.map((student) => (
-            <Card
-              key={student.id}
-              className="bg-white border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
-              onClick={() => {
-                window.location.href = `/userprofile?id=${student.user_id}&role=student`;
-              }}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    {student.photo_url ? (
-                      <img
-                        src={student.photo_url}
-                        alt={`${student.first_name} ${student.last_name}`}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                        <UserCircle className="w-8 h-8 text-blue-600" />
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {student.first_name} {student.last_name}
-                      </h3>
-                      <p className="text-sm text-gray-600">{student.student_id_number}</p>
-                    </div>
-                  </div>
-                  <Badge className={statusColors[student.status] || statusColors.Active}>
-                    {student.status}
-                  </Badge>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <GraduationCap className="w-4 h-4" />
-                    <span>Grade {student.grade_level}</span>
-                  </div>
-                  {student.email && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span className="truncate">{student.email}</span>
-                    </div>
-                  )}
-                  {student.phone && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Phone className="w-4 h-4" />
-                      <span>{student.phone}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedStudent(student);
-                      setIsFormOpen(true);
-                    }}
-                  >
-                    Edit Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card className="bg-white rounded-xl shadow-md">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Admission No</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Class</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredStudents.map((student) => (
+                    <tr 
+                      key={student.id} 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => window.location.href = `/userprofile?id=${student.user_id}&role=student`}
+                    >
+                      <td className="px-6 py-3">
+                        <div className="flex items-center gap-3">
+                          {student.photo_url ? (
+                            <img
+                              src={student.photo_url}
+                              alt={student.first_name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <UserCircle className="w-6 h-6 text-blue-600" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-text">{student.first_name} {student.last_name}</p>
+                            <p className="text-xs text-text-secondary">DOB: {student.date_of_birth || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 text-sm font-medium text-text">{student.student_id_number}</td>
+                      <td className="px-6 py-3 text-sm text-text">{student.grade_level}</td>
+                      <td className="px-6 py-3">
+                        <div className="text-sm text-text-secondary space-y-1">
+                          {student.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="w-3 h-3" />
+                              <span>{student.phone}</span>
+                            </div>
+                          )}
+                          {student.email && (
+                            <div className="flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              <span className="truncate max-w-[150px]">{student.email}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-3">
+                        <Badge className={statusColors[student.status] || statusColors.Active}>
+                          {student.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-3 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStudent(student);
+                            setIsFormOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Student Details Dialog */}

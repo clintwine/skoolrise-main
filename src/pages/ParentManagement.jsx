@@ -37,18 +37,49 @@ export default function ParentManagement() {
 
   const createParentMutation = useMutation({
     mutationFn: async (data) => {
-      const parent = await base44.entities.Parent.create(data);
-      // Also invite the parent user
-      if (data.email) {
-        await base44.users.inviteUser(data.email, 'user');
+      // Invite user first to get user_id
+      await base44.users.inviteUser(data.email, 'user');
+      
+      // Find the created user (they'll have the email we just invited)
+      const allUsers = await base44.asServiceRole.entities.User.list();
+      const newUser = allUsers.find(u => u.email === data.email);
+      
+      // Create parent record linked to user
+      const parent = await base44.entities.Parent.create({
+        user_id: newUser?.id || '',
+        first_name: data.first_name,
+        last_name: data.last_name,
+        phone: data.phone,
+        address: data.address,
+      });
+
+      // Auto-link students if email/phone matches
+      const matchingStudents = students.filter(s => 
+        s.parent_email === data.email || s.parent_phone === data.phone
+      );
+      
+      for (const student of matchingStudents) {
+        await base44.entities.Student.update(student.id, { parent_id: parent.id });
       }
+      
       return parent;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['parents']);
+      queryClient.invalidateQueries(['students']);
       toast.success('Parent created and invitation sent');
       setDialogOpen(false);
       setFormData({ first_name: '', last_name: '', phone: '', address: '', email: '' });
+    },
+  });
+
+  const updateParentMutation = useMutation({
+    mutationFn: (data) => base44.entities.Parent.update(data.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['parents']);
+      toast.success('Parent updated');
+      setDialogOpen(false);
+      setSelectedParent(null);
     },
   });
 
@@ -63,8 +94,24 @@ export default function ParentManagement() {
   });
 
   const handleCreateParent = () => {
-    createParentMutation.mutate(formData);
+    if (selectedParent) {
+      updateParentMutation.mutate({ ...formData, id: selectedParent.id });
+    } else {
+      createParentMutation.mutate(formData);
+    }
   };
+
+  React.useEffect(() => {
+    if (selectedParent) {
+      setFormData({
+        first_name: selectedParent.first_name,
+        last_name: selectedParent.last_name,
+        phone: selectedParent.phone,
+        address: selectedParent.address,
+        email: selectedParent.email || '',
+      });
+    }
+  }, [selectedParent]);
 
   const handleLinkStudent = () => {
     linkStudentMutation.mutate({
@@ -81,7 +128,10 @@ export default function ParentManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Parent Management</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setSelectedParent(null);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -90,7 +140,7 @@ export default function ParentManagement() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Parent</DialogTitle>
+              <DialogTitle>{selectedParent ? 'Edit' : 'Add New'} Parent</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -132,8 +182,8 @@ export default function ParentManagement() {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
               </div>
-              <Button onClick={handleCreateParent} className="w-full" disabled={createParentMutation.isPending}>
-                {createParentMutation.isPending ? 'Creating...' : 'Create Parent'}
+              <Button onClick={handleCreateParent} className="w-full" disabled={createParentMutation.isPending || updateParentMutation.isPending}>
+                {(createParentMutation.isPending || updateParentMutation.isPending) ? 'Saving...' : (selectedParent ? 'Update Parent' : 'Create Parent')}
               </Button>
             </div>
           </DialogContent>
@@ -155,7 +205,11 @@ export default function ParentManagement() {
               parents.map((parent) => {
                 const linkedStudents = getParentStudents(parent.id);
                 return (
-                  <div key={parent.id} className="border rounded-lg p-4">
+                  <div 
+                    key={parent.id} 
+                    className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => window.location.href = `/userprofile?id=${parent.user_id}&role=parent`}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="font-medium text-lg">{parent.first_name} {parent.last_name}</h3>
@@ -186,16 +240,32 @@ export default function ParentManagement() {
                           </div>
                         </div>
                       </div>
-                      <Dialog open={linkDialogOpen && selectedParent?.id === parent.id} onOpenChange={(open) => {
-                        setLinkDialogOpen(open);
-                        if (open) setSelectedParent(parent);
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Link Student
-                          </Button>
-                        </DialogTrigger>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedParent(parent);
+                            setDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Dialog open={linkDialogOpen && selectedParent?.id === parent.id} onOpenChange={(open) => {
+                          setLinkDialogOpen(open);
+                          if (open) setSelectedParent(parent);
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Link Student
+                            </Button>
+                          </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Link Student to {parent.first_name} {parent.last_name}</DialogTitle>
@@ -221,7 +291,8 @@ export default function ParentManagement() {
                             </Button>
                           </div>
                         </DialogContent>
-                      </Dialog>
+                        </Dialog>
+                      </div>
                     </div>
                   </div>
                 );

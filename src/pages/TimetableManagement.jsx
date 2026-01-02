@@ -332,11 +332,34 @@ export default function TimetableManagement() {
                       </td>
                       {days.map((day) => {
                         const period = getPeriodForSlot(day, time);
+                        const teacherConflict = selectedTeacher !== 'all' && timetable.find(t => 
+                          t.teacher_id === selectedTeacher && 
+                          t.day_of_week === day && 
+                          `${t.start_time}-${t.end_time}` === time &&
+                          t.class_arm_id !== selectedClassArm
+                        );
+                        
                         return (
                           <td 
                             key={`${day}-${time}`} 
                             className="border p-1 h-24 align-top cursor-pointer hover:bg-gray-50 transition-colors"
-                            onClick={() => period && handleSlotClick(period)}
+                            onClick={() => {
+                              if (period) {
+                                handleSlotClick(period);
+                              } else if (!teacherConflict) {
+                                // Open create dialog with pre-filled data
+                                setEditingSlot({
+                                  day_of_week: day,
+                                  start_time: time.split('-')[0],
+                                  end_time: time.split('-')[1],
+                                  period_number: timeSlots.indexOf(time) + 1,
+                                  subject: '',
+                                  teacher_id: '',
+                                  room: '',
+                                });
+                                setIsFormOpen(true);
+                              }
+                            }}
                           >
                             {period ? (
                               <div className={`h-full p-2 rounded border-l-4 ${getColorForSubject(period.subject)}`}>
@@ -344,9 +367,14 @@ export default function TimetableManagement() {
                                 <p className="text-xs mt-1">{period.teacher_name}</p>
                                 <p className="text-xs text-gray-600">Room: {period.room}</p>
                               </div>
+                            ) : teacherConflict ? (
+                              <div className="h-full flex flex-col items-center justify-center bg-red-50 border border-red-200 rounded">
+                                <p className="text-xs text-red-700 font-semibold">Occupied</p>
+                                <p className="text-xs text-red-600">{teacherConflict.class_arm_name}</p>
+                              </div>
                             ) : (
-                              <div className="h-full flex items-center justify-center text-gray-300">
-                                <span className="text-xs">Free</span>
+                              <div className="h-full flex items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors">
+                                <span className="text-xs">+ Add</span>
                               </div>
                             )}
                           </td>
@@ -466,6 +494,10 @@ export default function TimetableManagement() {
 }
 
 function TimetableFormDialog({ open, onOpenChange, slot, teachers, onSubmit }) {
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.list(),
+  });
   const [formData, setFormData] = useState(
     slot || {
       day_of_week: 'Monday',
@@ -553,12 +585,19 @@ function TimetableFormDialog({ open, onOpenChange, slot, teachers, onSubmit }) {
           </div>
           <div>
             <Label>Subject *</Label>
-            <Input
+            <select
               value={formData.subject}
               onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-              placeholder="e.g., Mathematics"
+              className="w-full px-3 py-2 border rounded-lg"
               required
-            />
+            >
+              <option value="">Select subject</option>
+              {subjects.map(subject => (
+                <option key={subject.id} value={subject.subject_name}>
+                  {subject.subject_name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <Label>Teacher</Label>
