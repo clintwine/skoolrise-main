@@ -8,11 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, BookOpen, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import CreateAssignmentDialog from '../components/assignments/CreateAssignmentDialog';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import GradeSubmissionDialog from '../components/assignments/GradeSubmissionDialog';
 
 export default function TeacherAssignmentManager() {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const queryClient = useQueryClient();
@@ -53,7 +54,7 @@ export default function TeacherAssignmentManager() {
           <p className="text-gray-600 mt-1 text-sm sm:text-lg">Create, manage, and grade assignments</p>
         </div>
         <Button
-          onClick={() => setCreateDialogOpen(true)}
+          onClick={() => navigate(createPageUrl('AssignmentBuilder'))}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 sm:px-6 sm:py-6 text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-lg w-full sm:w-auto"
         >
           <Plus className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
@@ -233,11 +234,6 @@ export default function TeacherAssignmentManager() {
           </div>
         </TabsContent>
       </Tabs>
-
-      <CreateAssignmentDialog
-        open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
-      />
 
       {selectedSubmission && (
         <GradeSubmissionDialog

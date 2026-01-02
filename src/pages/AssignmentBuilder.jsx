@@ -5,20 +5,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { 
   Plus, Save, CheckCircle, Sparkles, 
-  GripVertical, X, Clock, Target, Search, BookOpen
+  GripVertical, X, BookOpen, ChevronLeft, Map
 } from 'lucide-react';
 import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
 import CreateQuestionDialog from '../components/CreateQuestionDialog';
+import ReactQuill from 'react-quill';
 
 export default function AssignmentBuilder() {
   const navigate = useNavigate();
@@ -26,7 +25,7 @@ export default function AssignmentBuilder() {
 
   const [assignmentData, setAssignmentData] = useState({
     title: '',
-    description: '',
+    instructions: '',
     class_id: '',
     due_date: '',
     max_points: 100,
@@ -38,9 +37,8 @@ export default function AssignmentBuilder() {
   });
 
   const [selectedQuestions, setSelectedQuestions] = useState([]);
-  const [questionBankOpen, setQuestionBankOpen] = useState(false);
   const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [questionBankOpen, setQuestionBankOpen] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -77,20 +75,33 @@ export default function AssignmentBuilder() {
         teacher_id: teacherProfile?.id,
       });
 
-      // Create assignment questions
       for (let i = 0; i < selectedQuestions.length; i++) {
         const q = selectedQuestions[i];
         
-        // If temp question, save to QuestionBank first
         if (q.id?.startsWith('temp_')) {
-          const savedQ = await base44.entities.QuestionBank.create(q);
-          await base44.entities.AssignmentQuestion?.create({
+          const savedQ = await base44.entities.QuestionBank.create({
+            question_text: q.question_text,
+            question_type: q.question_type,
+            subject: q.subject || '',
+            topic: q.topic || '',
+            class_level: q.class_level || '',
+            difficulty: q.difficulty,
+            options: q.options,
+            correct_answer: q.correct_answer,
+            correct_answers: q.correct_answers,
+            allow_multiple_answers: q.allow_multiple_answers,
+            points: q.points,
+            explanation: q.explanation || '',
+            tags: q.tags || '',
+            media_url: q.image_url || '',
+          });
+          await base44.entities.AssignmentQuestion.create({
             assignment_id: assignment.id,
             question_bank_id: savedQ.id,
             order: i + 1,
           });
         } else {
-          await base44.entities.AssignmentQuestion?.create({
+          await base44.entities.AssignmentQuestion.create({
             assignment_id: assignment.id,
             question_bank_id: q.id,
             order: i + 1,
@@ -102,8 +113,8 @@ export default function AssignmentBuilder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
-      toast.success('Assignment created successfully!');
-      navigate(createPageUrl('TeacherAssignments'));
+      toast.success('Assignment published successfully!');
+      navigate(createPageUrl('TeacherAssignmentManager'));
     },
   });
 
@@ -134,367 +145,257 @@ export default function AssignmentBuilder() {
     };
     setSelectedQuestions([...selectedQuestions, newQuestion]);
     setCreateQuestionOpen(false);
-    toast.success('Question added to assignment');
+    toast.success('Question added');
   };
 
-  const totalPoints = selectedQuestions.reduce((sum, q) => sum + q.points, 0);
-
-  const filteredQuestionBank = questionBank.filter(q =>
-    searchQuery ? q.question_text.toLowerCase().includes(searchQuery.toLowerCase()) : true
-  );
+  const totalPoints = selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
 
   const assignmentTypes = [
-    { value: 'Homework', label: 'Homework', icon: '📝', color: 'bg-blue-100 text-blue-800' },
-    { value: 'Quiz', label: 'Quiz', icon: '❓', color: 'bg-purple-100 text-purple-800' },
-    { value: 'Project', label: 'Project', icon: '🎯', color: 'bg-green-100 text-green-800' },
-    { value: 'Essay', label: 'Essay', icon: '✍️', color: 'bg-orange-100 text-orange-800' },
-    { value: 'Lab', label: 'Lab', icon: '🔬', color: 'bg-pink-100 text-pink-800' },
-    { value: 'Video', label: 'Video', icon: '🎥', color: 'bg-red-100 text-red-800' },
-    { value: 'Research', label: 'Research', icon: '📚', color: 'bg-indigo-100 text-indigo-800' },
+    { value: 'Homework', label: 'Homework', icon: '📝' },
+    { value: 'Quiz', label: 'Quiz', icon: '❓' },
+    { value: 'Project', label: 'Project', icon: '🎯' },
+    { value: 'Essay', label: 'Essay', icon: '✍️' },
+    { value: 'Lab', label: 'Lab', icon: '🔬' },
+    { value: 'Video', label: 'Video', icon: '🎥' },
+    { value: 'Research', label: 'Research', icon: '📚' },
   ];
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col">
-      {/* Sticky Top Bar */}
-      <div className="bg-white border-b shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-20">
-        <div>
-          <h1 className="text-2xl font-bold text-text">Assignment Builder</h1>
-          <p className="text-sm text-text-secondary">
-            {assignmentData.title || 'Untitled Assignment'} • {assignmentData.type}
-          </p>
+    <div className="h-[calc(100vh-100px)] flex flex-col bg-gray-50">
+      {/* Top Bar */}
+      <div className="bg-white border-b px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('TeacherAssignmentManager'))}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Map className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Assignment Builder</h1>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-red-100 text-red-700 text-xs">Draft</Badge>
+                <span className="text-sm text-gray-500">{assignmentData.title || 'Untitled Assignment'}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            onClick={handleSaveDraft}
-            disabled={createAssignmentMutation.isPending}
-          >
+          <Button variant="outline" onClick={handleSaveDraft} disabled={createAssignmentMutation.isPending}>
             <Save className="w-4 h-4 mr-2" />
             Save Draft
           </Button>
-          <Button 
-            onClick={handlePublish}
-            disabled={createAssignmentMutation.isPending}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
+          <Button onClick={handlePublish} disabled={createAssignmentMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
             <CheckCircle className="w-4 h-4 mr-2" />
-            {createAssignmentMutation.isPending ? 'Publishing...' : 'Publish Assignment'}
+            Publish Assignment
           </Button>
         </div>
       </div>
 
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-        {/* Left Panel - Configuration (30%) */}
-        <div className="w-[30%] overflow-y-auto space-y-4">
-          <Tabs defaultValue="details">
-            <TabsList className="grid w-full grid-cols-2">
+        {/* Left Sidebar - Details & Settings */}
+        <div className="w-80 flex flex-col gap-4 overflow-y-auto">
+          <Tabs defaultValue="details" className="bg-white rounded-xl shadow-sm border">
+            <TabsList className="grid w-full grid-cols-2 p-1">
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="space-y-4 mt-4">
-              <Card className="bg-white rounded-xl shadow-md">
-                <CardContent className="p-4 space-y-4">
-                  <div>
-                    <Label>Title *</Label>
-                    <Input
-                      value={assignmentData.title}
-                      onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
-                      placeholder="e.g., Chapter 5 Practice Problems"
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={assignmentData.description}
-                      onChange={(e) => setAssignmentData({ ...assignmentData, description: e.target.value })}
-                      rows={4}
-                      placeholder="Assignment instructions..."
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Class *</Label>
-                    <select
-                      value={assignmentData.class_id}
-                      onChange={(e) => setAssignmentData({ ...assignmentData, class_id: e.target.value })}
-                      className="w-full p-2 border rounded-lg mt-1"
+            <TabsContent value="details" className="p-4 space-y-4">
+              <div>
+                <Label className="text-xs uppercase text-gray-500">TYPE</Label>
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {assignmentTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setAssignmentData({ ...assignmentData, type: type.value })}
+                      className={`p-3 rounded-lg border transition-all ${
+                        assignmentData.type === type.value
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
                     >
-                      <option value="">Select class</option>
-                      {classes.map(c => (
-                        <option key={c.id} value={c.id}>{c.class_name}</option>
-                      ))}
-                    </select>
-                  </div>
+                      <div className="text-2xl mb-1">{type.icon}</div>
+                      <p className="text-xs font-medium">{type.label}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                  <div>
-                    <Label>Assignment Type *</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      {assignmentTypes.map((type) => (
-                        <button
-                          key={type.value}
-                          type="button"
-                          onClick={() => setAssignmentData({ ...assignmentData, type: type.value })}
-                          className={`p-3 rounded-xl border-2 transition-all ${
-                            assignmentData.type === type.value
-                              ? 'border-accent bg-accent/10'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="text-2xl mb-1">{type.icon}</div>
-                          <p className="text-xs font-medium">{type.label}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div>
+                <Label>Assignment Title</Label>
+                <Input
+                  value={assignmentData.title}
+                  onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
+                  placeholder="e.g. Chapter 5 Review Questions"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>Class</Label>
+                <select
+                  value={assignmentData.class_id}
+                  onChange={(e) => setAssignmentData({ ...assignmentData, class_id: e.target.value })}
+                  className="w-full p-2 border rounded-lg mt-1"
+                >
+                  <option value="">Select class...</option>
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>{c.class_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label>Instructions (Optional)</Label>
+                <ReactQuill
+                  value={assignmentData.instructions}
+                  onChange={(value) => setAssignmentData({ ...assignmentData, instructions: value })}
+                  className="mt-1 bg-white"
+                  placeholder="Enter instructions for students..."
+                />
+              </div>
             </TabsContent>
 
-            <TabsContent value="settings" className="space-y-4 mt-4">
-              <Card className="bg-white rounded-xl shadow-md">
-                <CardContent className="p-4 space-y-4">
-                  <div>
-                    <Label>Due Date *</Label>
-                    <Input
-                      type="datetime-local"
-                      value={assignmentData.due_date}
-                      onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
-                      className="mt-1"
-                    />
-                  </div>
+            <TabsContent value="settings" className="p-4 space-y-4">
+              <div>
+                <Label>Due Date</Label>
+                <Input
+                  type="datetime-local"
+                  value={assignmentData.due_date}
+                  onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label>Allow Late Submissions</Label>
-                    <Switch
-                      checked={assignmentData.allow_late_submissions}
-                      onCheckedChange={(checked) => setAssignmentData({ ...assignmentData, allow_late_submissions: checked })}
-                    />
-                  </div>
+              <div className="flex items-center justify-between">
+                <Label>Allow Late Submissions</Label>
+                <Switch
+                  checked={assignmentData.allow_late_submissions}
+                  onCheckedChange={(checked) => setAssignmentData({ ...assignmentData, allow_late_submissions: checked })}
+                />
+              </div>
 
-                  {assignmentData.allow_late_submissions && (
-                    <div>
-                      <Label>Late Penalty (%)</Label>
-                      <Input
-                        type="number"
-                        value={assignmentData.late_penalty_percent}
-                        onChange={(e) => setAssignmentData({ ...assignmentData, late_penalty_percent: parseInt(e.target.value) })}
-                        className="mt-1"
-                      />
-                    </div>
-                  )}
+              {assignmentData.allow_late_submissions && (
+                <div>
+                  <Label>Late Penalty (%)</Label>
+                  <Input
+                    type="number"
+                    value={assignmentData.late_penalty_percent}
+                    onChange={(e) => setAssignmentData({ ...assignmentData, late_penalty_percent: parseInt(e.target.value) })}
+                    className="mt-1"
+                  />
+                </div>
+              )}
 
-                  <div className="flex items-center justify-between">
-                    <Label>Allow Group Submissions</Label>
-                    <Switch
-                      checked={assignmentData.allow_group_submissions}
-                      onCheckedChange={(checked) => setAssignmentData({ ...assignmentData, allow_group_submissions: checked })}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex items-center justify-between">
+                <Label>Allow Group Submissions</Label>
+                <Switch
+                  checked={assignmentData.allow_group_submissions}
+                  onCheckedChange={(checked) => setAssignmentData({ ...assignmentData, allow_group_submissions: checked })}
+                />
+              </div>
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Right Panel - Builder Canvas (70%) */}
-        <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
-          {/* Sticky Stats Header */}
-          <Card className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <div>
-                    <p className="text-xs opacity-90">Questions</p>
-                    <p className="text-2xl font-bold">{selectedQuestions.length}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs opacity-90">Total Points</p>
-                    <p className="text-2xl font-bold">{totalPoints}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Sheet open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white">
-                        <BookOpen className="w-4 h-4 mr-2" />
-                        Question Bank
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent className="w-[600px] overflow-y-auto">
-                      <SheetHeader>
-                        <SheetTitle>Select Questions</SheetTitle>
-                      </SheetHeader>
-                      <div className="mt-6 space-y-4">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                          <Input
-                            placeholder="Search questions..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          {filteredQuestionBank
-                            .filter(q => !selectedQuestions.find(sq => sq.id === q.id))
-                            .map((q) => (
-                            <Card key={q.id} className="hover:bg-gray-50 transition-colors">
-                              <CardContent className="p-4">
-                                <p className="text-sm mb-2 line-clamp-2">{q.question_text}</p>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex gap-2">
-                                    <Badge variant="outline">{q.question_type}</Badge>
-                                    <Badge className="bg-blue-100 text-blue-800">{q.points} pts</Badge>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedQuestions([...selectedQuestions, q]);
-                                      toast.success('Question added');
-                                    }}
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-
-                  <Button 
-                    variant="secondary"
-                    className="bg-white/20 hover:bg-white/30 text-white"
-                    onClick={() => setCreateQuestionOpen(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Question
-                  </Button>
-
-                  <Button 
-                    variant="secondary"
-                    className="bg-white/20 hover:bg-white/30 text-white"
-                    disabled
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    AI Generate
-                  </Button>
-                </div>
+        {/* Main Canvas */}
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+          {/* Stats Bar */}
+          <div className="flex items-center justify-between bg-white rounded-xl shadow-sm border p-4">
+            <div className="flex items-center gap-6">
+              <div>
+                <p className="text-xs text-gray-500"># Questions</p>
+                <p className="text-2xl font-bold text-gray-900">{selectedQuestions.length}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <p className="text-xs text-gray-500">Total Points</p>
+                <p className="text-2xl font-bold text-gray-900">{totalPoints}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setQuestionBankOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add from Bank
+              </Button>
+              <Button onClick={() => setCreateQuestionOpen(true)} className="bg-gray-900 hover:bg-gray-800 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Question
+              </Button>
+            </div>
+          </div>
 
-          {/* Question Cards */}
-          <div className="flex-1 overflow-y-auto space-y-3">
+          {/* Questions List */}
+          <div className="flex-1 overflow-y-auto">
             {selectedQuestions.length === 0 ? (
-              <Card className="bg-white rounded-xl shadow-md h-full">
-                <CardContent className="flex flex-col items-center justify-center h-full text-center p-12">
-                  <Target className="w-16 h-16 text-gray-400 mb-4" />
-                  <h3 className="text-xl font-semibold text-text mb-2">No questions yet</h3>
-                  <p className="text-text-secondary mb-4">Add questions from the bank or create new ones</p>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => setQuestionBankOpen(true)}
-                      variant="outline"
-                    >
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Browse Question Bank
-                    </Button>
-                    <Button 
-                      onClick={() => setCreateQuestionOpen(true)}
-                      className="bg-accent hover:bg-accent-hover text-white"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Question
-                    </Button>
+              <Card className="bg-white rounded-xl shadow-sm h-full flex items-center justify-center">
+                <CardContent className="text-center p-12">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-12 h-12 text-gray-400" />
                   </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No questions added yet</h3>
+                  <p className="text-gray-500 mb-6">Add questions from the bank or create new ones<br />to build your assignment.</p>
+                  <Button onClick={() => setCreateQuestionOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Question
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
               <Reorder.Group axis="y" values={selectedQuestions} onReorder={setSelectedQuestions} className="space-y-3">
                 {selectedQuestions.map((q, idx) => (
                   <Reorder.Item key={q.id} value={q}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <Card className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-move">
-                        <CardContent className="p-5">
-                          <div className="flex gap-3">
-                            <div className="flex items-start gap-2">
-                              <GripVertical className="w-5 h-5 text-gray-400 mt-1" />
-                              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                <span className="text-sm font-bold text-purple-600">{idx + 1}</span>
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-move">
+                      <CardContent className="p-4">
+                        <div className="flex gap-3">
+                          <GripVertical className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">{q.question_text}</p>
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
+                                  <Badge className="bg-blue-100 text-blue-800 text-xs">{q.points} pts</Badge>
+                                  {q.difficulty && <Badge variant="outline" className="text-xs">{q.difficulty}</Badge>}
+                                  {q.id?.startsWith('temp_') && <Badge className="bg-purple-100 text-purple-800 text-xs">New</Badge>}
+                                </div>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedQuestions(selectedQuestions.filter(sq => sq.id !== q.id))}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                  <p className="text-base font-medium text-text mb-2">{q.question_text}</p>
-                                  <div className="flex gap-2 flex-wrap">
-                                    <Badge variant="outline">{q.question_type}</Badge>
-                                    <Badge className="bg-blue-100 text-blue-800">{q.points} points</Badge>
-                                    {q.difficulty && <Badge variant="outline">{q.difficulty}</Badge>}
-                                    {q.id?.startsWith('temp_') && (
-                                      <Badge className="bg-purple-100 text-purple-800">New</Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setSelectedQuestions(selectedQuestions.filter(sq => sq.id !== q.id))}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
+
+                            {q.options && JSON.parse(q.options).length > 0 && (
+                              <div className="space-y-1 mt-3 pl-4">
+                                {JSON.parse(q.options).map((option, optIdx) => {
+                                  const isCorrect = q.allow_multiple_answers 
+                                    ? q.correct_answers?.includes(option)
+                                    : option === q.correct_answer;
+                                  
+                                  return (
+                                    <div
+                                      key={optIdx}
+                                      className={`p-2 rounded-lg text-sm ${
+                                        isCorrect ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+                                      }`}
+                                    >
+                                      <span className="font-medium">{String.fromCharCode(65 + optIdx)}.</span> {option}
+                                      {isCorrect && <span className="ml-2 text-green-600">✓</span>}
+                                    </div>
+                                  );
+                                })}
                               </div>
-
-                              {q.options && (
-                                <div className="space-y-2 mt-3 pl-4">
-                                  {JSON.parse(q.options).map((option, optIdx) => {
-                                    const isCorrect = q.allow_multiple_answers 
-                                      ? q.correct_answers?.includes(option)
-                                      : option === q.correct_answer;
-                                    
-                                    return (
-                                      <div
-                                        key={optIdx}
-                                        className={`p-2 rounded-lg text-sm ${
-                                          isCorrect
-                                            ? 'bg-green-50 border border-green-200 text-green-900'
-                                            : 'bg-gray-50 text-gray-700'
-                                        }`}
-                                      >
-                                        <span className="font-medium mr-2">{String.fromCharCode(65 + optIdx)}.</span>
-                                        {option}
-                                        {isCorrect && <span className="ml-2">✓</span>}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-
-                              {q.image_url && (
-                                <div className="mt-3">
-                                  <img 
-                                    src={q.image_url} 
-                                    alt="Question" 
-                                    className="max-w-full max-h-48 rounded-lg border"
-                                  />
-                                </div>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </Reorder.Item>
                 ))}
               </Reorder.Group>
