@@ -16,31 +16,30 @@ export default function ParentBehavior() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.parent_of_student_ids) {
-        const ids = currentUser.parent_of_student_ids.split(',').map(id => id.trim());
-        setStudentIds(ids);
-        if (ids.length > 0) setSelectedStudent(ids[0]);
-      }
     };
     fetchUser();
   }, []);
 
   const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', studentIds],
+    queryKey: ['parent-students'],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => studentIds.includes(s.id));
+      // RLS will automatically filter to only show students linked to this parent
+      return await base44.entities.Student.list();
     },
-    enabled: studentIds.length > 0,
   });
+
+  useEffect(() => {
+    if (students.length > 0 && !selectedStudent) {
+      setSelectedStudent(students[0].id);
+    }
+  }, [students, selectedStudent]);
 
   const { data: behavior = [] } = useQuery({
     queryKey: ['behavior', selectedStudent],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      const allBehavior = await base44.entities.Behavior.list('-date');
-      return allBehavior.filter(b => b.student_id === selectedStudent);
+      // RLS will automatically filter to only show behavior for linked students
+      return await base44.entities.Behavior.filter({ student_id: selectedStudent }, '-date');
     },
     enabled: !!selectedStudent,
   });

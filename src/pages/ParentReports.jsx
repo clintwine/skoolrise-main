@@ -13,19 +13,13 @@ export default function ParentReports() {
   const [studentIds, setStudentIds] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
 
-  const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-students'],
+    queryFn: async () => {
+      // RLS will automatically filter to only show students linked to this parent
+      return await base44.entities.Student.list();
+    },
   });
-
-  const { data: allStudents = [] } = useQuery({
-    queryKey: ['all-students'],
-    queryFn: () => base44.entities.Student.list(),
-  });
-
-  // Get students linked to this parent
-  const parentProfile = parents.find(p => p.user_id === user?.id);
-  const students = allStudents.filter(s => s.parent_id === parentProfile?.id);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -45,8 +39,8 @@ export default function ParentReports() {
     queryKey: ['report-cards', selectedStudent],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      const allReports = await base44.entities.ReportCard.list('-created_date');
-      return allReports.filter(r => r.student_id === selectedStudent);
+      // RLS will automatically filter to only show reports for linked students
+      return await base44.entities.ReportCard.filter({ student_id: selectedStudent }, '-created_date');
     },
     enabled: !!selectedStudent,
   });
