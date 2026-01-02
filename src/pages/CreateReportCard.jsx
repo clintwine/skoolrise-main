@@ -39,9 +39,9 @@ export default function CreateReportCard() {
     queryFn: () => base44.entities.AcademicSession.list(),
   });
 
-  const { data: courses = [] } = useQuery({
-    queryKey: ['courses'],
-    queryFn: () => base44.entities.Course.list(),
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.list(),
   });
 
   const createMutation = useMutation({
@@ -173,7 +173,7 @@ export default function CreateReportCard() {
               <Label>Term *</Label>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select term" />
+                  <SelectValue placeholder="Select term (e.g., First Term)" />
                 </SelectTrigger>
                 <SelectContent>
                   {terms.map((term) => (
@@ -209,9 +209,9 @@ export default function CreateReportCard() {
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
-                      {courses.map((course) => (
-                        <SelectItem key={course.id} value={course.course_name}>
-                          {course.course_name}
+                      {subjects.map((subject) => (
+                        <SelectItem key={subject.id} value={subject.subject_name}>
+                          {subject.subject_name}
                         </SelectItem>
                       ))}
                     </SelectContent>

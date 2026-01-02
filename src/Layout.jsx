@@ -174,12 +174,8 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'SCHOOL SETUP',
         items: [
           { name: 'User Management', icon: Users, path: 'UserManagement' },
-          { name: 'Academic Sessions', icon: Calendar, path: 'AcademicSessions' },
-          { name: 'Grading Scales', icon: Award, path: 'GradingScales' },
-          { name: 'Class Arms', icon: Users, path: 'ClassArms' },
+          { name: 'Academics', icon: GraduationCap, path: 'AcademicsHub' },
           { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
-          { name: 'Courses', icon: BookMarked, path: 'CourseManagement' },
-          { name: 'Classes', icon: GraduationCap, path: 'ClassManagement' },
           { name: 'Timetables', icon: Calendar, path: 'TimetableManagement' },
           { name: 'Admissions', icon: UserCircle, path: 'AdmissionsManagement' },
         ]

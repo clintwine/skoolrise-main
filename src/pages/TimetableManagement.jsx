@@ -231,13 +231,13 @@ export default function TimetableManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Filter by Course</Label>
+                  <Label>Filter by Subject</Label>
                   <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Courses</SelectItem>
+                      <SelectItem value="all">All Subjects</SelectItem>
                       {uniqueCourses.map((course, idx) => (
                         <SelectItem key={idx} value={course}>
                           {course}

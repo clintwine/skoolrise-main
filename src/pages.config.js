@@ -1,6 +1,5 @@
 import AIGradingAssistant from './pages/AIGradingAssistant';
 import AILessonPlanner from './pages/AILessonPlanner';
-import AcademicSessions from './pages/AcademicSessions';
 import ActivationPage from './pages/ActivationPage';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
@@ -17,14 +16,11 @@ import BehaviorTracking from './pages/BehaviorTracking';
 import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
-import ClassArms from './pages/ClassArms';
 import ClassDiscussions from './pages/ClassDiscussions';
-import ClassManagement from './pages/ClassManagement';
 import ClassroomResources from './pages/ClassroomResources';
 import ConferenceScheduling from './pages/ConferenceScheduling';
 import ContactLists from './pages/ContactLists';
 import Contacts from './pages/Contacts';
-import CourseManagement from './pages/CourseManagement';
 import CreateInvoice from './pages/CreateInvoice';
 import CreateReportCard from './pages/CreateReportCard';
 import CurriculumMapping from './pages/CurriculumMapping';
@@ -45,7 +41,6 @@ import FeesManagement from './pages/FeesManagement';
 import GeneralSettings from './pages/GeneralSettings';
 import GradeExam from './pages/GradeExam';
 import Gradebook from './pages/Gradebook';
-import GradingScales from './pages/GradingScales';
 import ImprovedStudentRecords from './pages/ImprovedStudentRecords';
 import InstalmentPlans from './pages/InstalmentPlans';
 import LandingPage from './pages/LandingPage';
@@ -114,7 +109,6 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "AIGradingAssistant": AIGradingAssistant,
     "AILessonPlanner": AILessonPlanner,
-    "AcademicSessions": AcademicSessions,
     "ActivationPage": ActivationPage,
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
@@ -131,14 +125,11 @@ export const PAGES = {
     "BiometricAttendance": BiometricAttendance,
     "BookshopManager": BookshopManager,
     "BookshopReports": BookshopReports,
-    "ClassArms": ClassArms,
     "ClassDiscussions": ClassDiscussions,
-    "ClassManagement": ClassManagement,
     "ClassroomResources": ClassroomResources,
     "ConferenceScheduling": ConferenceScheduling,
     "ContactLists": ContactLists,
     "Contacts": Contacts,
-    "CourseManagement": CourseManagement,
     "CreateInvoice": CreateInvoice,
     "CreateReportCard": CreateReportCard,
     "CurriculumMapping": CurriculumMapping,
@@ -159,7 +150,6 @@ export const PAGES = {
     "GeneralSettings": GeneralSettings,
     "GradeExam": GradeExam,
     "Gradebook": Gradebook,
-    "GradingScales": GradingScales,
     "ImprovedStudentRecords": ImprovedStudentRecords,
     "InstalmentPlans": InstalmentPlans,
     "LandingPage": LandingPage,
