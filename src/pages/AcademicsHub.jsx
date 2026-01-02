@@ -75,23 +75,23 @@ export default function AcademicsHub() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-white rounded-xl shadow-md p-1">
-          <TabsTrigger value="classes" className="flex items-center gap-2">
+          <TabsTrigger value="classes" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <GraduationCap className="w-4 h-4" />
             Classes
           </TabsTrigger>
-          <TabsTrigger value="subjects" className="flex items-center gap-2">
+          <TabsTrigger value="subjects" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <BookOpen className="w-4 h-4" />
             Subjects
           </TabsTrigger>
-          <TabsTrigger value="allocations" className="flex items-center gap-2">
+          <TabsTrigger value="allocations" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Allocations
           </TabsTrigger>
-          <TabsTrigger value="sessions" className="flex items-center gap-2">
+          <TabsTrigger value="sessions" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Calendar className="w-4 h-4" />
             Sessions & Terms
           </TabsTrigger>
-          <TabsTrigger value="grading" className="flex items-center gap-2">
+          <TabsTrigger value="grading" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             <Award className="w-4 h-4" />
             Grading
           </TabsTrigger>
@@ -124,7 +124,7 @@ export default function AcademicsHub() {
                   <Upload className="w-4 h-4 mr-2" />
                   Bulk Import
                 </Button>
-                <Button onClick={() => setClassDialog({ open: true, editing: null })} className="bg-accent hover:bg-accent-hover">
+                <Button onClick={() => setClassDialog({ open: true, editing: null })} className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Class
                 </Button>
@@ -167,7 +167,7 @@ export default function AcademicsHub() {
                   <Upload className="w-4 h-4 mr-2" />
                   Bulk Import
                 </Button>
-                <Button onClick={() => setSubjectDialog({ open: true, editing: null })} className="bg-accent hover:bg-accent-hover">
+                <Button onClick={() => setSubjectDialog({ open: true, editing: null })} className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Subject
                 </Button>
@@ -209,7 +209,7 @@ export default function AcademicsHub() {
                   <Upload className="w-4 h-4 mr-2" />
                   Bulk Import
                 </Button>
-                <Button onClick={() => setAllocationDialog({ open: true, editing: null })} className="bg-accent hover:bg-accent-hover">
+                <Button onClick={() => setAllocationDialog({ open: true, editing: null })} className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Allocation
                 </Button>
@@ -233,7 +233,7 @@ export default function AcademicsHub() {
             <Card className="bg-white rounded-xl shadow-md">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Academic Sessions</CardTitle>
-                <Button onClick={() => setSessionDialog({ open: true, editing: null })} size="sm" className="bg-accent hover:bg-accent-hover">
+                <Button onClick={() => setSessionDialog({ open: true, editing: null })} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Session
                 </Button>
@@ -249,7 +249,7 @@ export default function AcademicsHub() {
             <Card className="bg-white rounded-xl shadow-md">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Terms</CardTitle>
-                <Button onClick={() => setTermDialog({ open: true, editing: null })} size="sm" className="bg-accent hover:bg-accent-hover">
+                <Button onClick={() => setTermDialog({ open: true, editing: null })} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Term
                 </Button>
@@ -294,7 +294,7 @@ export default function AcademicsHub() {
                   <Upload className="w-4 h-4 mr-2" />
                   Bulk Import
                 </Button>
-                <Button onClick={() => setGradeScaleDialog({ open: true, editing: null })} className="bg-accent hover:bg-accent-hover">
+                <Button onClick={() => setGradeScaleDialog({ open: true, editing: null })} className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Grade Scale
                 </Button>
@@ -697,7 +697,7 @@ function ClassArmDialog({ open, editing, onOpenChange }) {
           </div>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent-hover">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">{editing ? 'Update' : 'Create'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -764,7 +764,7 @@ function SubjectDialog({ open, editing, onOpenChange }) {
           </div>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent-hover">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">{editing ? 'Update' : 'Create'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -868,7 +868,7 @@ function AllocationDialog({ open, editing, classArms, subjects, teachers, onOpen
           </div>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent-hover">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">{editing ? 'Update' : 'Create'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -930,7 +930,7 @@ function SessionDialog({ open, editing, onOpenChange }) {
           </div>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent-hover">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">{editing ? 'Update' : 'Create'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -1015,7 +1015,7 @@ function TermDialog({ open, editing, sessions, onOpenChange }) {
           </div>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent-hover">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">{editing ? 'Update' : 'Create'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -1089,7 +1089,7 @@ function GradeScaleDialog({ open, editing, onOpenChange }) {
           </div>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent-hover">{editing ? 'Update' : 'Create'}</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">{editing ? 'Update' : 'Create'}</Button>
           </div>
         </form>
       </DialogContent>
