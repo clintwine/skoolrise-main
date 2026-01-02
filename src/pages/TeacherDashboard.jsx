@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Users, ClipboardList, Award, Brain, Target, Calendar, TrendingUp } from 'lucide-react';
+import { BookOpen, Users, ClipboardList, Award, Brain, Target, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Badge } from '@/components/ui/badge';
@@ -157,7 +157,7 @@ export default function TeacherDashboard() {
               </Link>
               <Link to={createPageUrl('AILessonPlanner')} className="block p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
                 <h3 className="font-semibold flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
+                  <CalendarIcon className="w-5 h-5" />
                   AI Lesson Planner
                 </h3>
                 <p className="text-sm text-white/80 mt-1">Generate lesson plans from curriculum</p>
@@ -173,6 +173,14 @@ export default function TeacherDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link
+              to={createPageUrl('TeacherSchedule')}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all"
+            >
+              <CalendarIcon className="w-8 h-8 text-indigo-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">My Schedule</h3>
+              <p className="text-sm text-gray-600 mt-1">View your teaching timetable</p>
+            </Link>
             <Link
               to={createPageUrl('AttendanceTaking')}
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
@@ -196,14 +204,6 @@ export default function TeacherDashboard() {
               <Award className="w-8 h-8 text-purple-600 mb-2" />
               <h3 className="font-semibold text-gray-900">View Gradebook</h3>
               <p className="text-sm text-gray-600 mt-1">Grade assignments and tests</p>
-            </Link>
-            <Link
-              to={createPageUrl('ClassroomResources')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:shadow-md transition-all"
-            >
-              <BookOpen className="w-8 h-8 text-orange-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Resources</h3>
-              <p className="text-sm text-gray-600 mt-1">Manage classroom materials</p>
             </Link>
           </div>
         </CardContent>
