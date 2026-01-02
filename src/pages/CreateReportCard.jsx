@@ -7,13 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Plus, Trash2, Save } from 'lucide-react';
+import { FileText, Plus, Trash2, Save, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function CreateReportCard() {
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedTerm, setSelectedTerm] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
+  const [selectedClassArm, setSelectedClassArm] = useState('');
+  const [autoFillOpen, setAutoFillOpen] = useState(false);
   const [grades, setGrades] = useState([]);
   const [formData, setFormData] = useState({
     teacher_comment: '',
@@ -24,10 +27,27 @@ export default function CreateReportCard() {
   });
   const queryClient = useQueryClient();
 
-  const { data: students = [] } = useQuery({
+  const { data: allStudents = [] } = useQuery({
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
   });
+
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  const { data: gradingScales = [] } = useQuery({
+    queryKey: ['grading-scales'],
+    queryFn: () => base44.entities.GradingScale.list(),
+  });
+
+  const students = selectedClassArm 
+    ? allStudents.filter(s => {
+        const classArm = classArms.find(c => c.id === selectedClassArm);
+        return s.grade_level === classArm?.grade_level;
+      })
+    : allStudents;
 
   const { data: terms = [] } = useQuery({
     queryKey: ['terms'],
@@ -57,6 +77,7 @@ export default function CreateReportCard() {
     setSelectedStudent('');
     setSelectedTerm('');
     setSelectedSession('');
+    setSelectedClassArm('');
     setGrades([]);
     setFormData({
       teacher_comment: '',
@@ -67,6 +88,15 @@ export default function CreateReportCard() {
     });
   };
 
+  const calculateGradeFromScore = (score) => {
+    const scale = gradingScales.find(s => score >= s.min_score && score <= s.max_score);
+    return {
+      grade: scale?.grade || '',
+      remarks: scale?.remark || '',
+      grade_point: scale?.grade_point || 0,
+    };
+  };
+
   const addGrade = () => {
     setGrades([...grades, { subject: '', score: '', grade: '', remarks: '' }]);
   };
@@ -74,6 +104,14 @@ export default function CreateReportCard() {
   const updateGrade = (index, field, value) => {
     const newGrades = [...grades];
     newGrades[index][field] = value;
+    
+    // Auto-calculate grade and remarks when score changes
+    if (field === 'score' && value) {
+      const { grade, remarks } = calculateGradeFromScore(parseFloat(value));
+      newGrades[index].grade = grade;
+      newGrades[index].remarks = remarks;
+    }
+    
     setGrades(newGrades);
     calculateTotals(newGrades);
   };
@@ -138,7 +176,23 @@ export default function CreateReportCard() {
           <CardTitle>Student Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label>Class Arm</Label>
+              <Select value={selectedClassArm} onValueChange={setSelectedClassArm}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by class" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  {classArms.map((arm) => (
+                    <SelectItem key={arm.id} value={arm.id}>
+                      {arm.grade_level}{arm.arm_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label>Student *</Label>
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
@@ -192,10 +246,16 @@ export default function CreateReportCard() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Subject Grades</CardTitle>
-            <Button onClick={addGrade} size="sm" className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Subject
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setAutoFillOpen(true)} size="sm" variant="outline" disabled={!selectedStudent}>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Auto-fill from Assessments
+              </Button>
+              <Button onClick={addGrade} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Subject
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -324,6 +384,145 @@ export default function CreateReportCard() {
           Create Report Card
         </Button>
       </div>
+
+      {/* Auto-fill Dialog */}
+      <AutoFillGradesDialog
+        open={autoFillOpen}
+        onOpenChange={setAutoFillOpen}
+        studentId={selectedStudent}
+        onGradesImported={(importedGrades) => {
+          setGrades(importedGrades);
+          calculateTotals(importedGrades);
+          setAutoFillOpen(false);
+          toast.success('Grades imported successfully');
+        }}
+      />
     </div>
+  );
+}
+
+function AutoFillGradesDialog({ open, onOpenChange, studentId, onGradesImported }) {
+  const { data: submissions = [] } = useQuery({
+    queryKey: ['student-submissions', studentId],
+    queryFn: async () => {
+      if (!studentId) return [];
+      return await base44.entities.Submission.filter({ student_id: studentId });
+    },
+    enabled: !!studentId && open,
+  });
+
+  const { data: assignments = [] } = useQuery({
+    queryKey: ['assignments'],
+    queryFn: () => base44.entities.Assignment.list(),
+    enabled: open,
+  });
+
+  const { data: gradingScales = [] } = useQuery({
+    queryKey: ['grading-scales'],
+    queryFn: () => base44.entities.GradingScale.list(),
+    enabled: open,
+  });
+
+  const gradedSubmissions = submissions.filter(s => s.grade !== null && s.grade !== undefined);
+
+  // Group by subject and calculate averages
+  const subjectAverages = {};
+  gradedSubmissions.forEach(sub => {
+    const assignment = assignments.find(a => a.id === sub.assignment_id);
+    if (!assignment) return;
+    
+    // Extract subject from class_name or use a default
+    const subject = assignment.class_name?.split('-')[0]?.trim() || 'General';
+    
+    if (!subjectAverages[subject]) {
+      subjectAverages[subject] = { total: 0, count: 0, maxPoints: 0 };
+    }
+    
+    const percentage = (sub.grade / assignment.max_points) * 100;
+    subjectAverages[subject].total += percentage;
+    subjectAverages[subject].count += 1;
+  });
+
+  const calculateGrade = (score) => {
+    const scale = gradingScales.find(s => score >= s.min_score && score <= s.max_score);
+    return {
+      grade: scale?.grade || '',
+      remarks: scale?.remark || '',
+    };
+  };
+
+  const handleImport = () => {
+    const importedGrades = Object.entries(subjectAverages).map(([subject, data]) => {
+      const avgScore = data.total / data.count;
+      const { grade, remarks } = calculateGrade(avgScore);
+      
+      return {
+        subject,
+        score: avgScore.toFixed(2),
+        grade,
+        remarks,
+      };
+    });
+
+    onGradesImported(importedGrades);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl bg-white">
+        <DialogHeader>
+          <DialogTitle>Auto-fill Grades from Assessments</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <Sparkles className="w-4 h-4 inline mr-2" />
+              Found <strong>{gradedSubmissions.length}</strong> graded submissions. 
+              Averages will be calculated per subject.
+            </p>
+          </div>
+
+          {Object.keys(subjectAverages).length === 0 ? (
+            <p className="text-center text-text-secondary py-8">No graded submissions found for this student</p>
+          ) : (
+            <div className="border rounded-lg divide-y max-h-96 overflow-y-auto">
+              {Object.entries(subjectAverages).map(([subject, data]) => {
+                const avgScore = data.total / data.count;
+                const { grade, remarks } = calculateGrade(avgScore);
+                
+                return (
+                  <div key={subject} className="p-4 flex justify-between items-center">
+                    <div>
+                      <p className="font-medium text-text">{subject}</p>
+                      <p className="text-sm text-text-secondary">
+                        Based on {data.count} assessment{data.count > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-text">{avgScore.toFixed(1)}%</p>
+                      <div className="flex gap-2 mt-1">
+                        <Badge className="bg-blue-100 text-blue-800">{grade}</Badge>
+                        <Badge variant="outline">{remarks}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button 
+              onClick={handleImport} 
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={Object.keys(subjectAverages).length === 0}
+            >
+              Import {Object.keys(subjectAverages).length} Subject{Object.keys(subjectAverages).length !== 1 ? 's' : ''}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

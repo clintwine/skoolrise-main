@@ -194,8 +194,7 @@ export default function Layout({ children, currentPageName }) {
         id: 'academics',
         groupName: 'ACADEMICS & RECORDS',
         items: [
-          { name: 'Attendance', icon: CheckSquare, path: 'AttendanceManagement' },
-          { name: 'Biometric Attendance', icon: CheckSquare, path: 'BiometricAttendance' },
+          { name: 'Unified Attendance', icon: CheckSquare, path: 'UnifiedAttendance' },
           { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
           { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
           { name: 'Behavior Analytics', icon: TrendingUp, path: 'BehaviorAnalytics' },

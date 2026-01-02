@@ -103,6 +103,7 @@ import AssignmentBuilder from './pages/AssignmentBuilder';
 import TeacherSchedule from './pages/TeacherSchedule';
 import UserProfile from './pages/UserProfile';
 import AcademicsHub from './pages/AcademicsHub';
+import UnifiedAttendance from './pages/UnifiedAttendance';
 import __Layout from './Layout.jsx';
 
 
@@ -212,6 +213,7 @@ export const PAGES = {
     "TeacherSchedule": TeacherSchedule,
     "UserProfile": UserProfile,
     "AcademicsHub": AcademicsHub,
+    "UnifiedAttendance": UnifiedAttendance,
 }
 
 export const pagesConfig = {
