@@ -336,6 +336,9 @@ export default function Layout({ children, currentPageName }) {
             items: [
               { name: 'Home', icon: Home, path: 'ParentPortal' },
               { name: 'My Children', icon: Users, path: 'ParentStudentView' },
+              { name: 'School Shop', icon: BookMarked, path: 'ParentSchoolShop' },
+              { name: 'Activities', icon: Award, path: 'ParentActivities' },
+              { name: 'Calendar', icon: Calendar, path: 'ParentCalendar' },
               { name: 'Conferences', icon: Calendar, path: 'ParentConferences' },
               { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
               { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },

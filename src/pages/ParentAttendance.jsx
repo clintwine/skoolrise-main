@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays, TrendingUp } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 export default function ParentAttendance() {
@@ -26,9 +26,13 @@ export default function ParentAttendance() {
   }, []);
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents', user?.id],
+    queryKey: ['parents', user?.id, user?.parent_profile_id],
     queryFn: async () => {
       if (!user?.id) return [];
+      if (user.parent_profile_id) {
+        const parent = await base44.entities.Parent.get(user.parent_profile_id);
+        return parent ? [parent] : [];
+      }
       return await base44.entities.Parent.filter({ user_id: user.id });
     },
     enabled: !!user?.id,
@@ -36,11 +40,20 @@ export default function ParentAttendance() {
 
   const parentProfile = parents[0];
 
-  // Only fetch students linked to this parent
+  // Fetch students linked to this parent via linked_student_ids
   const { data: students = [] } = useQuery({
-    queryKey: ['parent-linked-students', parentProfile?.id],
+    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids],
     queryFn: async () => {
       if (!parentProfile?.id) return [];
+      if (parentProfile.linked_student_ids) {
+        try {
+          const studentIds = JSON.parse(parentProfile.linked_student_ids);
+          if (Array.isArray(studentIds) && studentIds.length > 0) {
+            const allStudents = await base44.entities.Student.list();
+            return allStudents.filter(s => studentIds.includes(s.id));
+          }
+        } catch (e) {}
+      }
       return await base44.entities.Student.filter({ parent_id: parentProfile.id });
     },
     enabled: !!parentProfile?.id,

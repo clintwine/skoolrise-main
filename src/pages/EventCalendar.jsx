@@ -24,6 +24,9 @@ export default function EventCalendar() {
     end_date: '',
     location: '',
     target_audience: 'All',
+    visible_to_parents: true,
+    visible_to_students: true,
+    visible_to_teachers: true,
     reminder_days_before: 1,
   });
   const queryClient = useQueryClient();
@@ -87,6 +90,9 @@ export default function EventCalendar() {
       end_date: '',
       location: '',
       target_audience: 'All',
+      visible_to_parents: true,
+      visible_to_students: true,
+      visible_to_teachers: true,
       reminder_days_before: 1,
     });
     setEditingEvent(null);
@@ -292,6 +298,38 @@ export default function EventCalendar() {
               <div className="col-span-2">
                 <Label>Description</Label>
                 <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} />
+              </div>
+              <div className="col-span-2">
+                <Label className="mb-2 block">Visibility Settings</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.visible_to_parents} 
+                      onChange={(e) => setFormData({...formData, visible_to_parents: e.target.checked})}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Parents</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.visible_to_students} 
+                      onChange={(e) => setFormData({...formData, visible_to_students: e.target.checked})}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Students</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.visible_to_teachers} 
+                      onChange={(e) => setFormData({...formData, visible_to_teachers: e.target.checked})}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Teachers</span>
+                  </label>
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t">
