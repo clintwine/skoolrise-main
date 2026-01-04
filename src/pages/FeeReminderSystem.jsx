@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Send, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function FeeReminderSystem() {
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['invoices'],
@@ -108,10 +110,10 @@ export default function FeeReminderSystem() {
 
   const getReminderMessage = (invoice, student, reminderType) => {
     const messages = {
-      'Upcoming Due': `Dear ${student.parent_name},\n\nThis is a reminder that the fee payment for ${student.first_name} ${student.last_name} is due on ${format(new Date(invoice.due_date), 'PPP')}.\n\nInvoice Number: ${invoice.invoice_number}\nAmount Due: $${invoice.balance}\n\nPlease make the payment before the due date to avoid late fees.\n\nThank you.`,
-      'Due Today': `Dear ${student.parent_name},\n\nThe fee payment for ${student.first_name} ${student.last_name} is due TODAY.\n\nInvoice Number: ${invoice.invoice_number}\nAmount Due: $${invoice.balance}\n\nPlease make the payment today to avoid late fees.\n\nThank you.`,
-      'Overdue': `Dear ${student.parent_name},\n\nYour fee payment for ${student.first_name} ${student.last_name} is now OVERDUE.\n\nInvoice Number: ${invoice.invoice_number}\nDue Date: ${format(new Date(invoice.due_date), 'PPP')}\nAmount Due: $${invoice.balance}\n\nPlease make the payment immediately to avoid additional penalties.\n\nThank you.`,
-      'Final Notice': `Dear ${student.parent_name},\n\nFINAL NOTICE: The fee payment for ${student.first_name} ${student.last_name} is significantly overdue.\n\nInvoice Number: ${invoice.invoice_number}\nDue Date: ${format(new Date(invoice.due_date), 'PPP')}\nAmount Due: $${invoice.balance}\n\nImmediate payment is required. Please contact the finance office.\n\nThank you.`,
+      'Upcoming Due': `Dear ${student.parent_name},\n\nThis is a reminder that the fee payment for ${student.first_name} ${student.last_name} is due on ${format(new Date(invoice.due_date), 'PPP')}.\n\nInvoice Number: ${invoice.invoice_number}\nAmount Due: ${formatAmount(invoice.balance)}\n\nPlease make the payment before the due date to avoid late fees.\n\nThank you.`,
+      'Due Today': `Dear ${student.parent_name},\n\nThe fee payment for ${student.first_name} ${student.last_name} is due TODAY.\n\nInvoice Number: ${invoice.invoice_number}\nAmount Due: ${formatAmount(invoice.balance)}\n\nPlease make the payment today to avoid late fees.\n\nThank you.`,
+      'Overdue': `Dear ${student.parent_name},\n\nYour fee payment for ${student.first_name} ${student.last_name} is now OVERDUE.\n\nInvoice Number: ${invoice.invoice_number}\nDue Date: ${format(new Date(invoice.due_date), 'PPP')}\nAmount Due: ${formatAmount(invoice.balance)}\n\nPlease make the payment immediately to avoid additional penalties.\n\nThank you.`,
+      'Final Notice': `Dear ${student.parent_name},\n\nFINAL NOTICE: The fee payment for ${student.first_name} ${student.last_name} is significantly overdue.\n\nInvoice Number: ${invoice.invoice_number}\nDue Date: ${format(new Date(invoice.due_date), 'PPP')}\nAmount Due: ${formatAmount(invoice.balance)}\n\nImmediate payment is required. Please contact the finance office.\n\nThank you.`,
     };
     return messages[reminderType] || messages['Upcoming Due'];
   };
@@ -235,7 +237,7 @@ export default function FeeReminderSystem() {
                     </div>
                     <p className="text-sm text-gray-600">{student?.first_name} {student?.last_name}</p>
                     <p className="text-sm text-gray-500">
-                      Due: {format(new Date(invoice.due_date), 'PPP')} | Balance: ${invoice.balance}
+                      Due: {format(new Date(invoice.due_date), 'PPP')} | Balance: {formatAmount(invoice.balance)}
                     </p>
                     {invoice.payment_reminder_sent && (
                       <p className="text-xs text-green-600 mt-1">
