@@ -84,34 +84,8 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        // Check if user has a role assigned - validate that user_type matches actual profile
-        let userType = currentUser.user_type || '';
-        
-        // Validate user type against actual profiles to prevent conflicts
-        if (userType && userType !== 'admin') {
-          const baseType = userType.replace('parent_', '');
-          let hasValidProfile = false;
-          
-          if (baseType === 'student') {
-            const students = await base44.entities.Student.filter({ user_id: currentUser.id });
-            hasValidProfile = students.length > 0;
-          } else if (baseType === 'teacher') {
-            const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
-            hasValidProfile = teachers.length > 0;
-          } else if (baseType === 'parent') {
-            const parents = await base44.entities.Parent.filter({ user_id: currentUser.id });
-            hasValidProfile = parents.length > 0;
-          } else if (baseType === 'vendor') {
-            const vendors = await base44.entities.Vendor.filter({ user_id: currentUser.id });
-            hasValidProfile = vendors.length > 0;
-          }
-          
-          // If no valid profile found for the assigned type, clear it
-          if (!hasValidProfile) {
-            userType = '';
-          }
-        }
-        
+        // Strict validation: user_type must match exactly ONE profile
+        const userType = currentUser.user_type || '';
         const hasRole = currentUser.role === 'admin' || !!userType;
         
         if (!hasRole) {
