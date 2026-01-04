@@ -244,6 +244,15 @@ export default function Layout({ children, currentPageName }) {
         ]
       },
       {
+        id: 'activities',
+        groupName: 'ACTIVITIES & SHOP',
+        items: [
+          { name: 'School Shop', icon: BookMarked, path: 'SchoolShopManagement' },
+          { name: 'School Trips', icon: Users, path: 'TripsManagement' },
+          { name: 'Clubs', icon: Award, path: 'ClubsManagement' },
+        ]
+      },
+      {
         id: 'communication',
         groupName: 'COMMUNICATION',
         items: [

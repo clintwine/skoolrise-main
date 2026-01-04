@@ -7,15 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays, TrendingUp } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, startOfDay, endOfDay, startOfYear, endOfYear } from 'date-fns';
 
 export default function ParentAttendance() {
   const [user, setUser] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
-  const [dateRangeMode, setDateRangeMode] = useState('month'); // 'month' | 'custom'
+  const [dateRangeMode, setDateRangeMode] = useState('month'); // 'month' | 'custom' | 'year'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -78,6 +79,8 @@ export default function ParentAttendance() {
   const attendance = React.useMemo(() => {
     if (dateRangeMode === 'month') {
       return allAttendance.filter(a => a.date?.startsWith(selectedMonth));
+    } else if (dateRangeMode === 'year') {
+      return allAttendance.filter(a => a.date?.startsWith(selectedYear));
     } else if (startDate && endDate) {
       const start = startOfDay(parseISO(startDate));
       const end = endOfDay(parseISO(endDate));
@@ -88,7 +91,7 @@ export default function ParentAttendance() {
       });
     }
     return allAttendance;
-  }, [allAttendance, dateRangeMode, selectedMonth, startDate, endDate]);
+  }, [allAttendance, dateRangeMode, selectedMonth, selectedYear, startDate, endDate]);
 
   if (!user) {
     return (
@@ -175,6 +178,7 @@ export default function ParentAttendance() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="month">By Month</SelectItem>
+                  <SelectItem value="year">Academic Year</SelectItem>
                   <SelectItem value="custom">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
@@ -189,6 +193,20 @@ export default function ParentAttendance() {
                   onChange={(e) => setSelectedMonth(e.target.value)}
                   className="px-4 py-2 border rounded-lg mt-1 h-10"
                 />
+              </div>
+            ) : dateRangeMode === 'year' ? (
+              <div>
+                <Label className="text-xs text-gray-500">Academic Year</Label>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-40 mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2024, 2025, 2026].map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             ) : (
               <>
@@ -273,6 +291,38 @@ export default function ParentAttendance() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Year Summary Stats */}
+      {dateRangeMode === 'year' && (
+        <Card className="bg-white shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              {selectedYear} Academic Year Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-xl">
+                <p className="text-3xl font-bold text-blue-600">{attendance.length}</p>
+                <p className="text-sm text-gray-600">Total Days</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-xl">
+                <p className="text-3xl font-bold text-green-600">{present}</p>
+                <p className="text-sm text-gray-600">Present ({attendanceRate}%)</p>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-xl">
+                <p className="text-3xl font-bold text-red-600">{absent}</p>
+                <p className="text-sm text-gray-600">Absent</p>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-xl">
+                <p className="text-3xl font-bold text-orange-600">{late}</p>
+                <p className="text-sm text-gray-600">Late</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {dateRangeMode === 'month' && (
         <Card className="bg-white shadow-md">
