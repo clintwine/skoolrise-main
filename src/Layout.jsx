@@ -84,9 +84,35 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        // Check if user has a role assigned
-        const userType = currentUser.user_type || '';
-                const hasRole = currentUser.role === 'admin' || !!userType;
+        // Check if user has a role assigned - validate that user_type matches actual profile
+        let userType = currentUser.user_type || '';
+        
+        // Validate user type against actual profiles to prevent conflicts
+        if (userType && userType !== 'admin') {
+          const baseType = userType.replace('parent_', '');
+          let hasValidProfile = false;
+          
+          if (baseType === 'student') {
+            const students = await base44.entities.Student.filter({ user_id: currentUser.id });
+            hasValidProfile = students.length > 0;
+          } else if (baseType === 'teacher') {
+            const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
+            hasValidProfile = teachers.length > 0;
+          } else if (baseType === 'parent') {
+            const parents = await base44.entities.Parent.filter({ user_id: currentUser.id });
+            hasValidProfile = parents.length > 0;
+          } else if (baseType === 'vendor') {
+            const vendors = await base44.entities.Vendor.filter({ user_id: currentUser.id });
+            hasValidProfile = vendors.length > 0;
+          }
+          
+          // If no valid profile found for the assigned type, clear it
+          if (!hasValidProfile) {
+            userType = '';
+          }
+        }
+        
+        const hasRole = currentUser.role === 'admin' || !!userType;
         
         if (!hasRole) {
           // User has no role - show message
@@ -341,7 +367,6 @@ export default function Layout({ children, currentPageName }) {
         items: [
           { name: 'Home', icon: Home, path: 'ParentPortal' },
           { name: 'My Children', icon: Users, path: 'ParentStudentView' },
-          { name: 'Link Student', icon: UserCircle, path: 'ParentLinkingRequests' },
           { name: 'Calendar', icon: Calendar, path: 'ParentCalendar' },
           { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
           { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },

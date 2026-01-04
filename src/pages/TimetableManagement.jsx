@@ -115,11 +115,27 @@ export default function TimetableManagement() {
     }
   });
 
-  // Calendar view helpers
-  const timeSlots = [
-    '08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00',
-    '12:00-13:00', '13:00-14:00', '14:00-15:00', '15:00-16:00'
-  ];
+  // Calendar view helpers - generate time slots from 07:00 to 17:00 in 30-minute increments
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 7; hour < 17; hour++) {
+      for (let min = 0; min < 60; min += 30) {
+        const startH = hour.toString().padStart(2, '0');
+        const startM = min.toString().padStart(2, '0');
+        const endMin = min + 30;
+        const endH = endMin >= 60 ? (hour + 1).toString().padStart(2, '0') : startH;
+        const endM = (endMin % 60).toString().padStart(2, '0');
+        slots.push({
+          start: `${startH}:${startM}`,
+          end: `${endH}:${endM}`,
+          label: `${startH}:${startM}`
+        });
+      }
+    }
+    return slots;
+  };
+  
+  const timeSlots = generateTimeSlots();
 
   const filteredTimetable = timetable.filter(slot => {
     const teacherMatch = selectedTeacher === 'all' || slot.teacher_id === selectedTeacher;
@@ -129,11 +145,42 @@ export default function TimetableManagement() {
 
   const uniqueCourses = [...new Set(timetable.map(t => t.subject))];
 
-  const getPeriodForSlot = (day, time) => {
-    return filteredTimetable.find(t => 
-      t.day_of_week === day && 
-      `${t.start_time}-${t.end_time}` === time
-    );
+  // Helper to convert time string to minutes for comparison
+  const timeToMinutes = (time) => {
+    if (!time) return 0;
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  // Check if a period overlaps with a time slot
+  const getPeriodForSlot = (day, slotStart, slotEnd) => {
+    const slotStartMin = timeToMinutes(slotStart);
+    const slotEndMin = timeToMinutes(slotEnd);
+    
+    return filteredTimetable.find(t => {
+      if (t.day_of_week !== day) return false;
+      const periodStart = timeToMinutes(t.start_time);
+      const periodEnd = timeToMinutes(t.end_time);
+      // Check if period overlaps with this slot
+      return periodStart < slotEndMin && periodEnd > slotStartMin;
+    });
+  };
+
+  // Check if this slot is the starting slot for a period
+  const isStartingSlot = (day, slotStart, period) => {
+    if (!period) return false;
+    const periodStart = timeToMinutes(period.start_time);
+    const slotStartMin = timeToMinutes(slotStart);
+    // Allow 15 minutes tolerance for matching
+    return Math.abs(periodStart - slotStartMin) < 15;
+  };
+
+  // Calculate how many 30-min slots a period spans
+  const getPeriodSpan = (period) => {
+    if (!period) return 1;
+    const start = timeToMinutes(period.start_time);
+    const end = timeToMinutes(period.end_time);
+    return Math.max(1, Math.ceil((end - start) / 30));
   };
 
   const handleSlotClick = (period) => {
@@ -336,63 +383,67 @@ export default function TimetableManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {timeSlots.map((time) => (
-                    <tr key={time}>
-                      <td className="border p-2 bg-gray-50 text-xs font-medium text-gray-600 text-center">
-                        {time}
-                      </td>
-                      {days.map((day) => {
-                        const period = getPeriodForSlot(day, time);
-                        const teacherConflict = selectedTeacher !== 'all' && timetable.find(t => 
-                          t.teacher_id === selectedTeacher && 
-                          t.day_of_week === day && 
-                          `${t.start_time}-${t.end_time}` === time &&
-                          t.class_arm_id !== selectedClassArm
-                        );
-                        
-                        return (
-                          <td 
-                            key={`${day}-${time}`} 
-                            className="border p-1 h-24 align-top cursor-pointer hover:bg-gray-50 transition-colors"
-                            onClick={() => {
-                              if (period) {
-                                handleSlotClick(period);
-                              } else if (!teacherConflict) {
-                                // Open create dialog with pre-filled data
-                                setEditingSlot({
-                                  day_of_week: day,
-                                  start_time: time.split('-')[0],
-                                  end_time: time.split('-')[1],
-                                  period_number: timeSlots.indexOf(time) + 1,
-                                  subject: '',
-                                  teacher_id: '',
-                                  room: '',
-                                });
-                                setIsFormOpen(true);
-                              }
-                            }}
-                          >
-                            {period ? (
-                              <div className={`h-full p-2 rounded border-l-4 ${getColorForSubject(period.subject)}`}>
-                                <p className="font-semibold text-sm">{period.subject}</p>
-                                <p className="text-xs mt-1">{period.teacher_name}</p>
-                                <p className="text-xs text-gray-600">Room: {period.room}</p>
-                              </div>
-                            ) : teacherConflict ? (
-                              <div className="h-full flex flex-col items-center justify-center bg-red-50 border border-red-200 rounded">
-                                <p className="text-xs text-red-700 font-semibold">Occupied</p>
-                                <p className="text-xs text-red-600">{teacherConflict.class_arm_name}</p>
-                              </div>
-                            ) : (
-                              <div className="h-full flex items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors">
-                                <span className="text-xs">+ Add</span>
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                  {timeSlots.map((slot, slotIdx) => {
+                    // Track which cells to skip due to rowSpan
+                    const skipCells = {};
+                    
+                    return (
+                      <tr key={slot.start}>
+                        <td className="border p-2 bg-gray-50 text-xs font-medium text-gray-600 text-center">
+                          {slot.label}
+                        </td>
+                        {days.map((day) => {
+                          const period = getPeriodForSlot(day, slot.start, slot.end);
+                          const isStart = isStartingSlot(day, slot.start, period);
+                          
+                          // If there's a period but this isn't the start, skip rendering (covered by rowSpan)
+                          if (period && !isStart) {
+                            return null;
+                          }
+                          
+                          const rowSpan = period && isStart ? getPeriodSpan(period) : 1;
+                          
+                          return (
+                            <td 
+                              key={`${day}-${slot.start}`}
+                              rowSpan={rowSpan}
+                              className="border p-1 align-top cursor-pointer hover:bg-gray-50 transition-colors"
+                              style={{ height: `${rowSpan * 40}px` }}
+                              onClick={() => {
+                                if (period) {
+                                  handleSlotClick(period);
+                                } else {
+                                  setEditingSlot({
+                                    day_of_week: day,
+                                    start_time: slot.start,
+                                    end_time: slot.end,
+                                    period_number: slotIdx + 1,
+                                    subject: '',
+                                    teacher_id: '',
+                                    room: '',
+                                  });
+                                  setIsFormOpen(true);
+                                }
+                              }}
+                            >
+                              {period && isStart ? (
+                                <div className={`h-full p-2 rounded border-l-4 ${getColorForSubject(period.subject)}`}>
+                                  <p className="font-semibold text-sm">{period.subject}</p>
+                                  <p className="text-xs mt-1">{period.teacher_name}</p>
+                                  <p className="text-xs text-gray-600">{period.start_time}-{period.end_time}</p>
+                                  {period.room && <p className="text-xs text-gray-500">Room: {period.room}</p>}
+                                </div>
+                              ) : (
+                                <div className="h-full flex items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors">
+                                  <span className="text-xs">+</span>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

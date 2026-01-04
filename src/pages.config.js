@@ -38,11 +38,11 @@ import ExpenseTracking from './pages/ExpenseTracking';
 import FeePolicies from './pages/FeePolicies';
 import FeeReminderSystem from './pages/FeeReminderSystem';
 import FeesManagement from './pages/FeesManagement';
-import GeneralSettings from './pages/GeneralSettings';
 import GradeExam from './pages/GradeExam';
 import Gradebook from './pages/Gradebook';
 import ImprovedStudentRecords from './pages/ImprovedStudentRecords';
 import InstalmentPlans from './pages/InstalmentPlans';
+import InvoiceDetail from './pages/InvoiceDetail';
 import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
 import MyClasses from './pages/MyClasses';
@@ -101,7 +101,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import InvoiceDetail from './pages/InvoiceDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -146,11 +145,11 @@ export const PAGES = {
     "FeePolicies": FeePolicies,
     "FeeReminderSystem": FeeReminderSystem,
     "FeesManagement": FeesManagement,
-    "GeneralSettings": GeneralSettings,
     "GradeExam": GradeExam,
     "Gradebook": Gradebook,
     "ImprovedStudentRecords": ImprovedStudentRecords,
     "InstalmentPlans": InstalmentPlans,
+    "InvoiceDetail": InvoiceDetail,
     "LandingPage": LandingPage,
     "MessagingCenter": MessagingCenter,
     "MyClasses": MyClasses,
@@ -209,7 +208,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "InvoiceDetail": InvoiceDetail,
 }
 
 export const pagesConfig = {
