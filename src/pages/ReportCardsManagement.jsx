@@ -7,13 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plus, FileText, Download } from 'lucide-react';
+import { Search, Plus, FileText, Download, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import BulkReportCardGenerator from '../components/reports/BulkReportCardGenerator';
 
 export default function ReportCardsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
+  const [bulkGeneratorOpen, setBulkGeneratorOpen] = useState(false);
 
   const { data: sessions = [] } = useQuery({
     queryKey: ['academic-sessions'],
@@ -57,12 +59,22 @@ export default function ReportCardsManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Report Cards</h1>
           <p className="text-gray-600 mt-1">Manage student report cards and transcripts</p>
         </div>
-        <Link to={createPageUrl('CreateReportCard')}>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Report Card
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setBulkGeneratorOpen(true)}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Bulk Generate
           </Button>
-        </Link>
+          <Link to={createPageUrl('CreateReportCard')}>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Report Card
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card className="bg-white shadow-md">
@@ -167,6 +179,11 @@ export default function ReportCardsManagement() {
           </CardContent>
         </Card>
       )}
+
+      <BulkReportCardGenerator 
+        open={bulkGeneratorOpen} 
+        onOpenChange={setBulkGeneratorOpen} 
+      />
     </div>
   );
 }

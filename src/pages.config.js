@@ -10,6 +10,7 @@ import AdmissionsManagement from './pages/AdmissionsManagement';
 import AssignmentBuilder from './pages/AssignmentBuilder';
 import AssignmentManagement from './pages/AssignmentManagement';
 import AttendanceTaking from './pages/AttendanceTaking';
+import AuditLogs from './pages/AuditLogs';
 import BackupSettings from './pages/BackupSettings';
 import BehaviorAnalytics from './pages/BehaviorAnalytics';
 import BehaviorManagement from './pages/BehaviorManagement';
@@ -51,6 +52,7 @@ import ParentAssignmentView from './pages/ParentAssignmentView';
 import ParentAttendance from './pages/ParentAttendance';
 import ParentBehavior from './pages/ParentBehavior';
 import ParentCalendar from './pages/ParentCalendar';
+import ParentConferences from './pages/ParentConferences';
 import ParentFees from './pages/ParentFees';
 import ParentHomework from './pages/ParentHomework';
 import ParentLinkingRequests from './pages/ParentLinkingRequests';
@@ -71,6 +73,7 @@ import RewardsStore from './pages/RewardsStore';
 import RoomAccessManagement from './pages/RoomAccessManagement';
 import SalaryManagement from './pages/SalaryManagement';
 import ScannerSettings from './pages/ScannerSettings';
+import ScheduledReports from './pages/ScheduledReports';
 import SchoolSettings from './pages/SchoolSettings';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
@@ -101,9 +104,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import AuditLogs from './pages/AuditLogs';
-import ScheduledReports from './pages/ScheduledReports';
-import ParentConferences from './pages/ParentConferences';
 import __Layout from './Layout.jsx';
 
 
@@ -120,6 +120,7 @@ export const PAGES = {
     "AssignmentBuilder": AssignmentBuilder,
     "AssignmentManagement": AssignmentManagement,
     "AttendanceTaking": AttendanceTaking,
+    "AuditLogs": AuditLogs,
     "BackupSettings": BackupSettings,
     "BehaviorAnalytics": BehaviorAnalytics,
     "BehaviorManagement": BehaviorManagement,
@@ -161,6 +162,7 @@ export const PAGES = {
     "ParentAttendance": ParentAttendance,
     "ParentBehavior": ParentBehavior,
     "ParentCalendar": ParentCalendar,
+    "ParentConferences": ParentConferences,
     "ParentFees": ParentFees,
     "ParentHomework": ParentHomework,
     "ParentLinkingRequests": ParentLinkingRequests,
@@ -181,6 +183,7 @@ export const PAGES = {
     "RoomAccessManagement": RoomAccessManagement,
     "SalaryManagement": SalaryManagement,
     "ScannerSettings": ScannerSettings,
+    "ScheduledReports": ScheduledReports,
     "SchoolSettings": SchoolSettings,
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
@@ -211,9 +214,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "AuditLogs": AuditLogs,
-    "ScheduledReports": ScheduledReports,
-    "ParentConferences": ParentConferences,
 }
 
 export const pagesConfig = {
