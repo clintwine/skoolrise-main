@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Mail, Phone, MapPin, GraduationCap,
+  User, Mail, Phone, MapPin, GraduationCap,
   Users, FileText, Lock, Camera, Link2, Search
 } from 'lucide-react';
 import { createPageUrl } from '../utils';
