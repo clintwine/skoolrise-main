@@ -146,7 +146,7 @@ export default function UserProfile() {
     },
   });
 
-  if (!currentUser || isLoading) {
+  if (!currentUser || isLoading || !profileData) {
     return (
       <div className="max-w-5xl mx-auto">
         <div className="animate-pulse">
@@ -165,7 +165,7 @@ export default function UserProfile() {
     );
   }
 
-  const { userRecord, profile, role, linkedParent, attendance = [], grades = [] } = profileData || {};
+  const { userRecord = {}, profile = {}, role, linkedParent, attendance = [], grades = [] } = profileData;
   const isOwnProfile = !targetUserId || targetUserId === currentUser?.id;
   const canEdit = isOwnProfile || currentUser?.role === 'admin';
 
