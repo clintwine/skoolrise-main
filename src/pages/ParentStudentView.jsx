@@ -8,45 +8,33 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
-  Users, 
-  BookOpen, 
-  Calendar, 
-  Award, 
-  FileText, 
-  MessageSquare,
-  ShoppingCart,
-  CheckCircle,
-  XCircle,
-  ClipboardList,
-  TrendingUp,
-  Plus
+  Users, BookOpen, Calendar, Award, FileText, MessageSquare,
+  ShoppingCart, CheckCircle, XCircle, ClipboardList, TrendingUp, Plus, Link2
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 
 export default function ParentStudentView() {
   const [user, setUser] = useState(null);
-  const [studentIds, setStudentIds] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [messageRecipient, setMessageRecipient] = useState(null);
   const [messageText, setMessageText] = useState('');
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [linkForm, setLinkForm] = useState({ student_name: '', student_id_number: '', relationship: 'Parent' });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
     };
     fetchUser();
   }, []);
@@ -79,7 +67,6 @@ export default function ParentStudentView() {
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
 
-  // Fetch enrollments
   const { data: enrollments = [] } = useQuery({
     queryKey: ['student-enrollments', selectedStudentId],
     queryFn: async () => {
@@ -89,7 +76,6 @@ export default function ParentStudentView() {
     enabled: !!selectedStudentId,
   });
 
-  // Fetch classes
   const { data: classes = [] } = useQuery({
     queryKey: ['student-classes', enrollments],
     queryFn: async () => {
@@ -101,7 +87,6 @@ export default function ParentStudentView() {
     enabled: enrollments.length > 0,
   });
 
-  // Fetch attendance
   const { data: attendance = [] } = useQuery({
     queryKey: ['student-attendance', selectedStudentId],
     queryFn: async () => {
@@ -111,7 +96,6 @@ export default function ParentStudentView() {
     enabled: !!selectedStudentId,
   });
 
-  // Fetch report cards
   const { data: reportCards = [] } = useQuery({
     queryKey: ['student-reports', selectedStudentId],
     queryFn: async () => {
@@ -121,7 +105,6 @@ export default function ParentStudentView() {
     enabled: !!selectedStudentId,
   });
 
-  // Fetch assignments
   const { data: assignments = [] } = useQuery({
     queryKey: ['student-assignments', classes],
     queryFn: async () => {
@@ -133,7 +116,6 @@ export default function ParentStudentView() {
     enabled: classes.length > 0,
   });
 
-  // Fetch submissions
   const { data: submissions = [] } = useQuery({
     queryKey: ['student-submissions', selectedStudentId],
     queryFn: async () => {
@@ -143,47 +125,61 @@ export default function ParentStudentView() {
     enabled: !!selectedStudentId,
   });
 
-  // Fetch book catalog for textbooks
   const { data: bookCatalog = [] } = useQuery({
     queryKey: ['book-catalog'],
     queryFn: () => base44.entities.BookCatalog.list(),
   });
 
-  // Fetch book inventory
   const { data: bookInventory = [] } = useQuery({
     queryKey: ['book-inventory'],
     queryFn: () => base44.entities.BookInventory.list(),
   });
 
-  // Filter textbooks relevant to student's grade
   const relevantTextbooks = bookCatalog.filter(book => 
     book.grade_level === selectedStudent?.grade_level
   );
 
+  const submitLinkRequestMutation = useMutation({
+    mutationFn: async (data) => {
+      await base44.entities.StudentLinkingRequest.create({
+        parent_user_id: user.id,
+        parent_name: user.full_name,
+        parent_email: user.email,
+        student_name: data.student_name,
+        student_id_number: data.student_id_number,
+        relationship: data.relationship,
+        status: 'Pending',
+      });
+    },
+    onSuccess: () => {
+      toast.success('Link request submitted! An administrator will review your request.');
+      setIsLinkDialogOpen(false);
+      setLinkForm({ student_name: '', student_id_number: '', relationship: 'Parent' });
+    },
+    onError: (error) => {
+      toast.error('Failed to submit request: ' + error.message);
+    },
+  });
+
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ teacherId, message }) => {
+    mutationFn: async ({ message }) => {
       return await base44.integrations.Core.SendEmail({
         to: messageRecipient.email,
         subject: `Message from ${user.full_name} (Parent)`,
-        body: `
-          <h3>Message from Parent: ${user.full_name}</h3>
-          <p><strong>Regarding Student:</strong> ${selectedStudent?.first_name} ${selectedStudent?.last_name}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message}</p>
-        `
+        body: `Message from Parent: ${user.full_name}\nRegarding Student: ${selectedStudent?.first_name} ${selectedStudent?.last_name}\n\nMessage:\n${message}`
       });
     },
     onSuccess: () => {
       setIsMessageOpen(false);
       setMessageText('');
-      alert('Message sent successfully!');
+      toast.success('Message sent successfully!');
     },
   });
 
   const handleAddToCart = (book) => {
     const inventory = bookInventory.find(inv => inv.catalog_id === book.id);
     if (!inventory || inventory.current_stock <= 0) {
-      alert('This book is currently out of stock');
+      toast.error('This book is currently out of stock');
       return;
     }
     
@@ -208,7 +204,6 @@ export default function ParentStudentView() {
     
     const totalAmount = cart.reduce((sum, item) => sum + (item.inventory.retail_price * item.quantity), 0);
     
-    // Create book sales for each item
     for (const item of cart) {
       await base44.entities.BookSale.create({
         transaction_id: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -226,7 +221,6 @@ export default function ParentStudentView() {
         status: 'Completed'
       });
       
-      // Update inventory
       await base44.entities.BookInventory.update(item.inventory.id, {
         current_stock: item.inventory.current_stock - item.quantity
       });
@@ -235,17 +229,13 @@ export default function ParentStudentView() {
     queryClient.invalidateQueries({ queryKey: ['book-inventory'] });
     setCart([]);
     setIsCartOpen(false);
-    alert(`Purchase successful! Total: $${totalAmount.toFixed(2)}`);
+    toast.success(`Purchase successful! Total: $${totalAmount.toFixed(2)}`);
   };
 
-  // Calculate stats
   const totalClasses = classes.length;
   const presentCount = attendance.filter(a => a.status === 'Present').length;
-  const absentCount = attendance.filter(a => a.status === 'Absent').length;
   const attendanceRate = attendance.length > 0 ? ((presentCount / attendance.length) * 100).toFixed(1) : 0;
   const submittedAssignments = submissions.length;
-  const gradedAssignments = submissions.filter(s => s.status === 'Graded').length;
-
   const cartTotal = cart.reduce((sum, item) => sum + (item.inventory.retail_price * item.quantity), 0);
 
   if (!user) {
@@ -266,14 +256,23 @@ export default function ParentStudentView() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Children Linked</h2>
             <p className="text-gray-600 mb-6">You don't have any children linked to your account yet.</p>
             <Button 
-              onClick={() => navigate(createPageUrl('ParentLinkingRequests'))}
+              onClick={() => setIsLinkDialogOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Link2 className="w-4 h-4 mr-2" />
               Link New Student
             </Button>
           </CardContent>
         </Card>
+
+        <LinkStudentDialog 
+          open={isLinkDialogOpen}
+          onOpenChange={setIsLinkDialogOpen}
+          form={linkForm}
+          setForm={setLinkForm}
+          onSubmit={() => submitLinkRequestMutation.mutate(linkForm)}
+          isPending={submitLinkRequestMutation.isPending}
+        />
       </div>
     );
   }
@@ -288,10 +287,9 @@ export default function ParentStudentView() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Child Selection */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Student Information</h1>
+          <h1 className="text-3xl font-bold text-gray-900">My Children</h1>
           <p className="text-gray-600 mt-1">View academic progress and manage textbooks</p>
         </div>
         <div className="flex gap-3">
@@ -307,6 +305,10 @@ export default function ParentStudentView() {
               ))}
             </SelectContent>
           </Select>
+          <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline">
+            <Link2 className="w-4 h-4 mr-2" />
+            Link New Student
+          </Button>
           <Button onClick={() => setIsCartOpen(true)} variant="outline" className="relative">
             <ShoppingCart className="w-5 h-5" />
             {cart.length > 0 && (
@@ -318,7 +320,6 @@ export default function ParentStudentView() {
         </div>
       </div>
 
-      {/* Student Overview Card */}
       <Card className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -336,7 +337,6 @@ export default function ParentStudentView() {
         </CardContent>
       </Card>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -384,7 +384,6 @@ export default function ParentStudentView() {
         </Card>
       </div>
 
-      {/* Tabbed Content */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -591,6 +590,16 @@ export default function ParentStudentView() {
         </TabsContent>
       </Tabs>
 
+      {/* Link Student Dialog */}
+      <LinkStudentDialog 
+        open={isLinkDialogOpen}
+        onOpenChange={setIsLinkDialogOpen}
+        form={linkForm}
+        setForm={setLinkForm}
+        onSubmit={() => submitLinkRequestMutation.mutate(linkForm)}
+        isPending={submitLinkRequestMutation.isPending}
+      />
+
       {/* Shopping Cart Dialog */}
       <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
         <DialogContent className="max-w-2xl bg-white">
@@ -670,5 +679,63 @@ export default function ParentStudentView() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function LinkStudentDialog({ open, onOpenChange, form, setForm, onSubmit, isPending }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-white">
+        <DialogHeader>
+          <DialogTitle>Link New Student</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Submit a request to link a student to your account. An administrator will review and approve your request.
+          </p>
+          <div>
+            <Label>Student Name *</Label>
+            <Input
+              value={form.student_name}
+              onChange={(e) => setForm({ ...form, student_name: e.target.value })}
+              placeholder="Enter student's full name"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label>Student ID Number *</Label>
+            <Input
+              value={form.student_id_number}
+              onChange={(e) => setForm({ ...form, student_id_number: e.target.value })}
+              placeholder="Enter student's ID number"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label>Relationship</Label>
+            <Select value={form.relationship} onValueChange={(value) => setForm({ ...form, relationship: value })}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Parent">Parent</SelectItem>
+                <SelectItem value="Guardian">Guardian</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button 
+              onClick={onSubmit}
+              disabled={!form.student_name || !form.student_id_number || isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isPending ? 'Submitting...' : 'Submit Request'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

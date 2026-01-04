@@ -5,21 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Download, Share2, FileText, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import jsPDF from 'jspdf';
 
 export default function ParentReports() {
   const [user, setUser] = useState(null);
-  const [studentIds, setStudentIds] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
-
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students'],
-    queryFn: async () => {
-      // RLS will automatically filter to only show students linked to this parent
-      return await base44.entities.Student.list();
-    },
-  });
+  const [selectedSession, setSelectedSession] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,18 +24,55 @@ export default function ParentReports() {
     fetchUser();
   }, []);
 
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Parent.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const parentProfile = parents[0];
+
+  // Only fetch students linked to this parent
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-linked-students', parentProfile?.id],
+    queryFn: async () => {
+      if (!parentProfile?.id) return [];
+      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
+    },
+    enabled: !!parentProfile?.id,
+  });
+
+  const { data: sessions = [] } = useQuery({
+    queryKey: ['academic-sessions'],
+    queryFn: () => base44.entities.AcademicSession.list('-created_date'),
+  });
+
   useEffect(() => {
     if (students.length > 0 && !selectedStudent) {
       setSelectedStudent(students[0].id);
     }
   }, [students, selectedStudent]);
 
+  // Auto-select most recent session
+  useEffect(() => {
+    if (sessions.length > 0 && !selectedSession) {
+      const currentSession = sessions.find(s => s.is_current) || sessions[0];
+      setSelectedSession(currentSession?.id || '');
+    }
+  }, [sessions, selectedSession]);
+
   const { data: reportCards = [] } = useQuery({
-    queryKey: ['report-cards', selectedStudent],
+    queryKey: ['report-cards', selectedStudent, selectedSession],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      // RLS will automatically filter to only show reports for linked students
-      return await base44.entities.ReportCard.filter({ student_id: selectedStudent }, '-created_date');
+      const filter = { student_id: selectedStudent };
+      if (selectedSession) {
+        filter.session_id = selectedSession;
+      }
+      return await base44.entities.ReportCard.filter(filter, '-created_date');
     },
     enabled: !!selectedStudent,
   });
@@ -49,8 +81,7 @@ export default function ParentReports() {
     queryKey: ['exam-results', selectedStudent],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      const allResults = await base44.entities.ExamResult.filter({ student_id: selectedStudent, published: true });
-      return allResults;
+      return await base44.entities.ExamResult.filter({ student_id: selectedStudent, published: true });
     },
     enabled: !!selectedStudent,
   });
@@ -87,14 +118,7 @@ export default function ParentReports() {
   };
 
   const shareViaWhatsApp = (report) => {
-    const message = `*Student Report Card*\n\n` +
-                   `Student: ${report.student_name}\n` +
-                   `Session: ${report.session}\n` +
-                   `Term: ${report.term}\n` +
-                   `Average Score: ${report.average_score}%\n` +
-                   `Position: ${report.position}\n` +
-                   `Grade: ${report.grade}\n\n` +
-                   `Teacher's Remark: ${report.teacher_remark || 'N/A'}`;
+    const message = `*Student Report Card*\n\nStudent: ${report.student_name}\nSession: ${report.session}\nTerm: ${report.term}\nAverage Score: ${report.average_score}%\nPosition: ${report.position}\nGrade: ${report.grade}\n\nTeacher's Remark: ${report.teacher_remark || 'N/A'}`;
     
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -109,6 +133,10 @@ export default function ParentReports() {
   }
 
   const student = students.find(s => s.id === selectedStudent);
+  const currentSession = sessions.find(s => s.id === selectedSession);
+
+  // Get most recent report card
+  const mostRecentReport = reportCards[0];
 
   return (
     <div className="space-y-6">
@@ -117,18 +145,40 @@ export default function ParentReports() {
         <p className="text-gray-600 mt-1">View report cards and exam results</p>
       </div>
 
-      <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-        <SelectTrigger className="w-64">
-          <SelectValue placeholder="Select student" />
-        </SelectTrigger>
-        <SelectContent>
-          {students.map(student => (
-            <SelectItem key={student.id} value={student.id}>
-              {student.first_name} {student.last_name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex flex-wrap gap-4">
+        <div>
+          <Label className="text-xs text-gray-500">Select Student</Label>
+          <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+            <SelectTrigger className="w-64 mt-1">
+              <SelectValue placeholder="Select student" />
+            </SelectTrigger>
+            <SelectContent>
+              {students.map(s => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.first_name} {s.last_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs text-gray-500">Academic Session</Label>
+          <Select value={selectedSession} onValueChange={setSelectedSession}>
+            <SelectTrigger className="w-64 mt-1">
+              <SelectValue placeholder="All sessions" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>All Sessions</SelectItem>
+              {sessions.map(session => (
+                <SelectItem key={session.id} value={session.id}>
+                  {session.session_name} {session.is_current && '(Current)'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {student && (
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
@@ -136,7 +186,7 @@ export default function ParentReports() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{student.first_name} {student.last_name}</h3>
-                <p className="text-gray-600">Grade {student.grade_level} • Student ID: {student.student_id}</p>
+                <p className="text-gray-600">Grade {student.grade_level} • Student ID: {student.student_id_number}</p>
               </div>
               <Badge className="bg-green-100 text-green-800">{student.status}</Badge>
             </div>
@@ -146,15 +196,26 @@ export default function ParentReports() {
 
       <Card className="bg-white shadow-md">
         <CardHeader>
-          <CardTitle>Report Cards</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Report Cards</span>
+            {currentSession && <Badge variant="outline">{currentSession.session_name}</Badge>}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {reportCards.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">No report cards available</p>
+            <p className="text-center text-gray-500 py-8">No report cards available for the selected criteria</p>
           ) : (
             <div className="space-y-4">
-              {reportCards.map((report) => (
-                <div key={report.id} className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-all">
+              {reportCards.map((report, index) => (
+                <div 
+                  key={report.id} 
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    index === 0 ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  {index === 0 && (
+                    <Badge className="bg-blue-600 text-white mb-2">Most Recent</Badge>
+                  )}
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -187,6 +248,12 @@ export default function ParentReports() {
                       )}
                     </div>
                     <div className="flex flex-col gap-2 ml-4">
+                      <Link to={createPageUrl(`ReportCardView?id=${report.id}`)}>
+                        <Button variant="outline" size="sm">
+                          <FileText className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
+                      </Link>
                       <Button
                         variant="outline"
                         size="sm"

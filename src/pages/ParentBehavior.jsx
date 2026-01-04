@@ -4,12 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Award, AlertCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ParentBehavior() {
   const [user, setUser] = useState(null);
-  const [studentIds, setStudentIds] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
 
   useEffect(() => {
@@ -20,12 +20,25 @@ export default function ParentBehavior() {
     fetchUser();
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students'],
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents', user?.id],
     queryFn: async () => {
-      // RLS will automatically filter to only show students linked to this parent
-      return await base44.entities.Student.list();
+      if (!user?.id) return [];
+      return await base44.entities.Parent.filter({ user_id: user.id });
     },
+    enabled: !!user?.id,
+  });
+
+  const parentProfile = parents[0];
+
+  // Only fetch students linked to this parent
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-linked-students', parentProfile?.id],
+    queryFn: async () => {
+      if (!parentProfile?.id) return [];
+      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
+    },
+    enabled: !!parentProfile?.id,
   });
 
   useEffect(() => {
@@ -38,7 +51,6 @@ export default function ParentBehavior() {
     queryKey: ['behavior', selectedStudent],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      // RLS will automatically filter to only show behavior for linked students
       return await base44.entities.Behavior.filter({ student_id: selectedStudent }, '-date');
     },
     enabled: !!selectedStudent,
@@ -48,6 +60,20 @@ export default function ParentBehavior() {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Behavior Records</h1>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No students linked to your account</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -82,18 +108,21 @@ export default function ParentBehavior() {
         <p className="text-gray-600 mt-1">View your child's behavior and conduct</p>
       </div>
 
-      <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-        <SelectTrigger className="w-64">
-          <SelectValue placeholder="Select student" />
-        </SelectTrigger>
-        <SelectContent>
-          {students.map(student => (
-            <SelectItem key={student.id} value={student.id}>
-              {student.first_name} {student.last_name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div>
+        <Label className="text-xs text-gray-500">Select Student</Label>
+        <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+          <SelectTrigger className="w-64 mt-1">
+            <SelectValue placeholder="Select student" />
+          </SelectTrigger>
+          <SelectContent>
+            {students.map(s => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.first_name} {s.last_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="bg-white shadow-md">
