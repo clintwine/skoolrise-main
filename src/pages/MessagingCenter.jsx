@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,8 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X } from 'lucide-react';
+import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 export default function MessagingCenter() {
   const [formData, setFormData] = useState({
@@ -27,19 +28,15 @@ export default function MessagingCenter() {
     subject: '',
     message: '',
     scheduled_date: '',
-    status: 'Draft',
   });
 
-  const [classSearchTerm, setClassSearchTerm] = useState('');
-  const [contactListSearchTerm, setContactListSearchTerm] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
-
   const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications'],
-    queryFn: () => base44.entities.Notification.list('-created_date'),
+    queryFn: () => base44.entities.Notification.list('-created_date', 50),
   });
 
   const { data: students = [] } = useQuery({
@@ -62,71 +59,123 @@ export default function MessagingCenter() {
     queryFn: () => base44.entities.ContactList.list(),
   });
 
+  const { data: school } = useQuery({
+    queryKey: ['school-for-email'],
+    queryFn: async () => {
+      const schools = await base44.entities.School.list();
+      return schools[0];
+    },
+  });
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user-messaging'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const getRecipientEmails = (type, classId, contactListId, specificEmails) => {
+    const emails = [];
+    
+    if (type === 'Specific Emails') {
+      return specificEmails.split(',').map(e => e.trim()).filter(Boolean);
+    } else if (type === 'All Parents') {
+      students.forEach(s => {
+        if (s.parent_email) emails.push(s.parent_email);
+      });
+    } else if (type === 'All Teachers') {
+      teachers.forEach(t => {
+        if (t.email) emails.push(t.email);
+      });
+    } else if (type === 'All Students') {
+      students.forEach(s => {
+        if (s.email) emails.push(s.email);
+      });
+    } else if (type === 'Specific Class' && classId) {
+      const arm = classArms.find(a => a.id === classId);
+      if (arm) {
+        students.filter(s => s.grade_level === arm.grade_level).forEach(s => {
+          if (s.parent_email) emails.push(s.parent_email);
+        });
+      }
+    } else if (type === 'Custom List' && contactListId) {
+      const list = contactLists.find(cl => cl.id === contactListId);
+      if (list?.contacts) {
+        try {
+          const contacts = JSON.parse(list.contacts);
+          contacts.forEach(c => {
+            if (c.email) emails.push(c.email);
+          });
+        } catch {}
+      }
+    }
+    
+    return [...new Set(emails)];
+  };
+
   const sendMutation = useMutation({
     mutationFn: async (data) => {
       const isScheduled = data.scheduled_date && new Date(data.scheduled_date) > new Date();
-      
+      const recipientEmails = getRecipientEmails(
+        data.recipient_type, 
+        data.recipient_ids, 
+        data.contact_list_id, 
+        data.specific_emails
+      );
+
+      if (recipientEmails.length === 0) {
+        throw new Error('No recipients found for the selected criteria');
+      }
+
       const notification = await base44.entities.Notification.create({
-        ...data,
+        subject: data.subject,
+        message: data.message,
+        recipient_type: data.recipient_type,
+        recipient_ids: data.recipient_ids,
+        contact_list_id: data.contact_list_id,
+        channel: data.channel,
+        scheduled_date: isScheduled ? data.scheduled_date : null,
         sent_date: isScheduled ? null : new Date().toISOString(),
-        sent_by: (await base44.auth.me()).email,
-        status: isScheduled ? 'Scheduled' : 'Sent',
+        sent_by: currentUser?.email,
+        status: isScheduled ? 'Scheduled' : 'Sending',
+        delivery_count: 0,
+        failure_count: 0,
       });
 
       if (isScheduled) {
-        toast.success('Message scheduled successfully!');
-        return notification;
+        return { notification, scheduled: true, count: recipientEmails.length };
       }
 
-      // Handle different channels
-      if (data.channel === 'Email') {
-        const recipientEmails = getRecipientEmails(data.recipient_type, data.recipient_ids, data.specific_emails);
-        
-        // Build email body with attachments
-        let emailBody = data.message;
-        if (data.attachments) {
-          const attachmentUrls = JSON.parse(data.attachments);
-          if (attachmentUrls.length > 0) {
-            emailBody += '\n\nAttachments:\n' + attachmentUrls.map((url, i) => `${i + 1}. ${url}`).join('\n');
-          }
+      // Send emails
+      let successCount = 0;
+      let failureCount = 0;
+      const deliveryDetails = [];
+
+      for (const email of recipientEmails) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: email,
+            subject: data.subject,
+            body: data.message,
+            from_name: school?.school_name || 'SkoolRise',
+          });
+          successCount++;
+          deliveryDetails.push({ email, status: 'sent', timestamp: new Date().toISOString() });
+        } catch (error) {
+          failureCount++;
+          deliveryDetails.push({ email, status: 'failed', error: error.message, timestamp: new Date().toISOString() });
         }
-        
-        // Send using custom email configuration
-        let successCount = 0;
-        let failureCount = 0;
-        
-        for (const email of recipientEmails) {
-          try {
-            const response = await base44.functions.invoke('sendCustomEmail', {
-              to: email,
-              subject: data.subject,
-              body: emailBody,
-              attachments: data.attachments,
-            });
-            
-            if (response.data.success) {
-              successCount++;
-            } else {
-              failureCount++;
-            }
-          } catch (error) {
-            console.error(`Failed to send to ${email}:`, error);
-            failureCount++;
-          }
-        }
-        
-        if (failureCount > 0) {
-          toast.warning(`Sent to ${successCount} recipients, ${failureCount} failed`);
-        }
-      } else if (data.channel === 'SMS') {
-        toast.info(`Bulk SMS sent to ${data.delivery_count} recipients`);
-      } else if (data.channel === 'WhatsApp') {
-        toast.info(`WhatsApp notifications sent to ${data.delivery_count} recipients`);
       }
 
-      return notification;
+      // Update notification with delivery results
+      await base44.entities.Notification.update(notification.id, {
+        status: failureCount === recipientEmails.length ? 'Failed' : 'Sent',
+        delivery_count: successCount,
+        failure_count: failureCount,
+        delivery_details: JSON.stringify(deliveryDetails),
+      });
+
+      return { notification, successCount, failureCount, total: recipientEmails.length };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       setFormData({
         recipient_type: 'All Parents',
@@ -137,37 +186,31 @@ export default function MessagingCenter() {
         subject: '',
         message: '',
         scheduled_date: '',
-        status: 'Draft',
       });
       setAttachments([]);
-      toast.success('Message sent successfully!');
+      
+      if (result.scheduled) {
+        toast.success(`Message scheduled for ${result.count} recipients`);
+      } else if (result.failureCount > 0) {
+        toast.warning(`Sent to ${result.successCount}/${result.total} recipients. ${result.failureCount} failed.`);
+      } else {
+        toast.success(`Message sent successfully to ${result.successCount} recipients!`);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to send message');
     },
   });
 
-  const getRecipientEmails = (type, ids, specificEmails) => {
-    if (type === 'Specific Emails') {
-      return specificEmails.split(',').map(e => e.trim()).filter(Boolean);
-    } else if (type === 'All Parents') {
-      return students.map(s => s.parent_email).filter(Boolean);
-    } else if (type === 'All Teachers') {
-      return teachers.map(t => t.email).filter(Boolean);
-    } else if (type === 'All Students') {
-      return students.map(s => s.email).filter(Boolean);
-    }
-    return [];
-  };
-
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     
-    // Validate file count
     if (files.length + attachments.length > 5) {
       toast.error('Maximum 5 files allowed');
       return;
     }
     
-    // Validate file sizes
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     const oversizedFiles = files.filter(f => f.size > maxSize);
     if (oversizedFiles.length > 0) {
       toast.error('Each file must be less than 5MB');
@@ -192,36 +235,23 @@ export default function MessagingCenter() {
       return;
     }
 
-    // Upload attachments first
-    setUploading(true);
-    let fileUrls = [];
-    try {
-      for (const file of attachments) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        fileUrls.push(file_url);
-      }
-    } catch (error) {
-      toast.error('Failed to upload attachments: ' + error.message);
-      setUploading(false);
-      return;
-    }
-    setUploading(false);
+    sendMutation.mutate(formData);
+  };
 
-    const recipientCount = formData.recipient_type.startsWith('All') 
-      ? getRecipientEmails(formData.recipient_type, '', '').length
-      : formData.recipient_type === 'Specific Emails'
-        ? formData.specific_emails.split(',').length
-        : (formData.recipient_ids?.split(',').length || 0);
-
-    await sendMutation.mutateAsync({
-      ...formData,
-      attachments: JSON.stringify(fileUrls),
-      delivery_count: recipientCount,
-    });
+  const getRecipientCount = () => {
+    const emails = getRecipientEmails(
+      formData.recipient_type,
+      formData.recipient_ids,
+      formData.contact_list_id,
+      formData.specific_emails
+    );
+    return emails.length;
   };
 
   const statusColors = {
     Draft: 'bg-gray-100 text-gray-800',
+    Scheduled: 'bg-blue-100 text-blue-800',
+    Sending: 'bg-yellow-100 text-yellow-800',
     Sent: 'bg-green-100 text-green-800',
     Failed: 'bg-red-100 text-red-800',
   };
@@ -246,7 +276,7 @@ export default function MessagingCenter() {
             <div className="space-y-4">
               <div>
                 <Label>Recipients *</Label>
-                <Select value={formData.recipient_type} onValueChange={(value) => setFormData({ ...formData, recipient_type: value })}>
+                <Select value={formData.recipient_type} onValueChange={(value) => setFormData({ ...formData, recipient_type: value, recipient_ids: '', contact_list_id: '' })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -259,31 +289,24 @@ export default function MessagingCenter() {
                     <SelectItem value="Specific Emails">Specific Emails</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  {getRecipientCount()} recipient(s) selected
+                </p>
               </div>
 
               {formData.recipient_type === 'Specific Class' && (
                 <div>
                   <Label>Select Class</Label>
-                  <Input
-                    placeholder="Search classes..."
-                    value={classSearchTerm}
-                    onChange={(e) => setClassSearchTerm(e.target.value)}
-                    className="mb-2"
-                  />
                   <Select value={formData.recipient_ids} onValueChange={(value) => setFormData({ ...formData, recipient_ids: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose class" />
                     </SelectTrigger>
                     <SelectContent>
-                      {classArms
-                        .filter(arm =>
-                          `Grade ${arm.grade_level} - ${arm.arm_name}`.toLowerCase().includes(classSearchTerm.toLowerCase())
-                        )
-                        .map(arm => (
-                          <SelectItem key={arm.id} value={arm.id}>
-                            Grade {arm.grade_level} - {arm.arm_name}
-                          </SelectItem>
-                        ))}
+                      {classArms.map(arm => (
+                        <SelectItem key={arm.id} value={arm.id}>
+                          Grade {arm.grade_level} - {arm.arm_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -292,26 +315,16 @@ export default function MessagingCenter() {
               {formData.recipient_type === 'Custom List' && (
                 <div>
                   <Label>Select Contact List</Label>
-                  <Input
-                    placeholder="Search contact lists..."
-                    value={contactListSearchTerm}
-                    onChange={(e) => setContactListSearchTerm(e.target.value)}
-                    className="mb-2"
-                  />
                   <Select value={formData.contact_list_id} onValueChange={(value) => setFormData({ ...formData, contact_list_id: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose contact list" />
                     </SelectTrigger>
                     <SelectContent>
-                      {contactLists
-                        .filter(list =>
-                          list.list_name?.toLowerCase().includes(contactListSearchTerm.toLowerCase())
-                        )
-                        .map(list => (
-                          <SelectItem key={list.id} value={list.id}>
-                            {list.list_name} ({list.contact_count} contacts)
-                          </SelectItem>
-                        ))}
+                      {contactLists.map(list => (
+                        <SelectItem key={list.id} value={list.id}>
+                          {list.list_name} ({list.contact_count || 0} contacts)
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -321,16 +334,11 @@ export default function MessagingCenter() {
                 <div>
                   <Label>Email Addresses *</Label>
                   <Textarea
-                    placeholder="Enter email addresses separated by commas (e.g., john@example.com, jane@example.com)"
+                    placeholder="Enter email addresses separated by commas"
                     value={formData.specific_emails}
                     onChange={(e) => setFormData({ ...formData, specific_emails: e.target.value })}
-                    rows={3}
+                    rows={2}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formData.specific_emails ? 
-                      `${formData.specific_emails.split(',').filter(e => e.trim()).length} recipient(s)` 
-                      : 'Separate multiple emails with commas'}
-                  </p>
                 </div>
               )}
 
@@ -364,7 +372,7 @@ export default function MessagingCenter() {
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Type your message here..."
-                  rows={8}
+                  rows={6}
                 />
               </div>
 
@@ -379,7 +387,7 @@ export default function MessagingCenter() {
                     className="cursor-pointer"
                   />
                   <p className="text-xs text-gray-500">
-                    Max 5 files, each up to 5MB ({attachments.length}/5 files selected)
+                    Max 5 files, each up to 5MB ({attachments.length}/5)
                   </p>
                   {attachments.length > 0 && (
                     <div className="space-y-1">
@@ -388,15 +396,8 @@ export default function MessagingCenter() {
                           <div className="flex items-center gap-2">
                             <Paperclip className="w-4 h-4 text-gray-500" />
                             <span className="text-sm text-gray-700">{file.name}</span>
-                            <span className="text-xs text-gray-500">
-                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                            </span>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => removeAttachment(index)}>
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
@@ -419,16 +420,14 @@ export default function MessagingCenter() {
               <Button
                 onClick={handleSend}
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={sendMutation.isPending || uploading}
+                disabled={sendMutation.isPending}
               >
                 <Send className="w-4 h-4 mr-2" />
-                {uploading
-                  ? 'Uploading files...'
-                  : sendMutation.isPending 
-                    ? 'Processing...' 
-                    : formData.scheduled_date 
-                      ? 'Schedule Message' 
-                      : 'Send Message'}
+                {sendMutation.isPending 
+                  ? 'Sending...' 
+                  : formData.scheduled_date 
+                    ? 'Schedule Message' 
+                    : `Send to ${getRecipientCount()} Recipients`}
               </Button>
             </div>
           </CardContent>
@@ -466,6 +465,11 @@ export default function MessagingCenter() {
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         {notification.channel}
+                        {notification.sent_date && (
+                          <span className="ml-2">
+                            {format(new Date(notification.sent_date), 'MMM d, HH:mm')}
+                          </span>
+                        )}
                       </span>
                       <span className="flex items-center gap-2">
                         {notification.delivery_count > 0 && (
