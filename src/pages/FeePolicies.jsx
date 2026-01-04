@@ -10,11 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, FileText, Trash2 } from 'lucide-react';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function FeePolicies() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState(null);
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   const { data: policies = [] } = useQuery({
     queryKey: ['fee-policies'],
@@ -99,7 +101,7 @@ export default function FeePolicies() {
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Total Amount:</span>
-                  <span className="font-bold text-gray-900">${policy.total_amount?.toLocaleString()}</span>
+                  <span className="font-bold text-gray-900">{formatAmount(policy.total_amount)}</span>
                 </div>
                 {policy.late_payment_penalty_rate > 0 && (
                   <div className="flex justify-between text-sm">
@@ -146,12 +148,13 @@ export default function FeePolicies() {
         sessions={sessions}
         terms={terms}
         onSubmit={handleSubmit}
+        formatAmount={formatAmount}
       />
     </div>
   );
 }
 
-function PolicyFormDialog({ open, onOpenChange, policy, sessions, terms, onSubmit }) {
+function PolicyFormDialog({ open, onOpenChange, policy, sessions, terms, onSubmit, formatAmount }) {
   const [formData, setFormData] = useState(policy || {
     policy_name: '',
     description: '',
@@ -266,7 +269,7 @@ function PolicyFormDialog({ open, onOpenChange, policy, sessions, terms, onSubmi
             </div>
             <div className="mt-2 text-right">
               <span className="text-sm text-gray-600">Total: </span>
-              <span className="font-bold text-lg">${formData.total_amount?.toLocaleString()}</span>
+              <span className="font-bold text-lg">{formatAmount(formData.total_amount)}</span>
             </div>
           </div>
 

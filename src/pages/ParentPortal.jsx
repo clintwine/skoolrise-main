@@ -14,11 +14,13 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ParentPortal() {
   const [user, setUser] = useState(null);
   const [studentIds, setStudentIds] = useState([]);
   const [expandedCard, setExpandedCard] = useState(null);
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -112,7 +114,7 @@ export default function ParentPortal() {
       icon: DollarSign,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
-      value: `$${totalOutstanding.toLocaleString()}`,
+      value: formatAmount(totalOutstanding),
       subtitle: `${overdueInvoices.length} overdue`,
       alert: overdueInvoices.length > 0,
     },
@@ -290,7 +292,7 @@ export default function ParentPortal() {
                         Due: {new Date(invoice.due_date).toLocaleDateString()}
                       </span>
                       <span className="text-lg font-bold text-text">
-                        ${invoice.balance.toLocaleString()}
+                        {formatAmount(invoice.balance)}
                       </span>
                     </div>
                   </div>
