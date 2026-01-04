@@ -31,9 +31,14 @@ export default function ParentPortal() {
   }, []);
 
   const { data: parents = [], isLoading: parentsLoading } = useQuery({
-    queryKey: ['parents', user?.id],
+    queryKey: ['parents', user?.id, user?.parent_profile_id],
     queryFn: async () => {
       if (!user?.id) return [];
+      // Use profile_id from User first, fallback to user_id query
+      if (user.parent_profile_id) {
+        const parent = await base44.entities.Parent.get(user.parent_profile_id);
+        return parent ? [parent] : [];
+      }
       return await base44.entities.Parent.filter({ user_id: user.id });
     },
     enabled: !!user?.id,
@@ -42,9 +47,22 @@ export default function ParentPortal() {
   const parentProfile = parents[0];
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['parent-students', parentProfile?.id],
+    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids],
     queryFn: async () => {
       if (!parentProfile?.id) return [];
+      // Use linked_student_ids from Parent entity
+      if (parentProfile.linked_student_ids) {
+        try {
+          const studentIds = JSON.parse(parentProfile.linked_student_ids);
+          if (Array.isArray(studentIds) && studentIds.length > 0) {
+            const allStudents = await base44.entities.Student.list();
+            return allStudents.filter(s => studentIds.includes(s.id));
+          }
+        } catch (e) {
+          console.error('Error parsing linked_student_ids:', e);
+        }
+      }
+      // Fallback to old parent_id method
       return await base44.entities.Student.filter({ parent_id: parentProfile.id });
     },
     enabled: !!parentProfile?.id,

@@ -9,11 +9,21 @@ import { Badge } from '@/components/ui/badge';
 
 export default function TeacherDashboard() {
   const [user, setUser] = useState(null);
+  const [teacherProfile, setTeacherProfile] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      
+      // Fetch teacher profile
+      if (currentUser?.teacher_profile_id) {
+        const profile = await base44.entities.Teacher.get(currentUser.teacher_profile_id);
+        setTeacherProfile(profile);
+      } else if (currentUser?.id) {
+        const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
+        setTeacherProfile(teachers[0]);
+      }
     };
     fetchUser();
   }, []);

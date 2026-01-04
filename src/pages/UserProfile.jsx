@@ -67,12 +67,16 @@ export default function UserProfile() {
       let attendance = [];
       let grades = [];
 
+      // Use profile_id from User entity first, fallback to user_id query for backward compatibility
       if (baseRole === 'student' || baseRole === 'user') {
-        const students = await base44.entities.Student.filter({ user_id: userId });
-        profile = students[0];
+        if (userRecord.student_profile_id) {
+          profile = await base44.entities.Student.get(userRecord.student_profile_id);
+        } else {
+          const students = await base44.entities.Student.filter({ user_id: userId });
+          profile = students[0];
+        }
         if (profile?.parent_id) {
-          const parents = await base44.entities.Parent.filter({ id: profile.parent_id });
-          linkedParent = parents[0];
+          linkedParent = await base44.entities.Parent.get(profile.parent_id);
         }
         if (profile) {
           attendance = await base44.entities.Attendance.filter({ student_id: profile.id });
@@ -80,11 +84,26 @@ export default function UserProfile() {
           grades = submissions.filter(s => s.grade !== null);
         }
       } else if (baseRole === 'teacher' || baseRole === 'admin') {
-        const teachers = await base44.entities.Teacher.filter({ user_id: userId });
-        profile = teachers[0];
+        if (userRecord.teacher_profile_id) {
+          profile = await base44.entities.Teacher.get(userRecord.teacher_profile_id);
+        } else {
+          const teachers = await base44.entities.Teacher.filter({ user_id: userId });
+          profile = teachers[0];
+        }
       } else if (baseRole === 'parent') {
-        const parents = await base44.entities.Parent.filter({ user_id: userId });
-        profile = parents[0];
+        if (userRecord.parent_profile_id) {
+          profile = await base44.entities.Parent.get(userRecord.parent_profile_id);
+        } else {
+          const parents = await base44.entities.Parent.filter({ user_id: userId });
+          profile = parents[0];
+        }
+      } else if (baseRole === 'vendor') {
+        if (userRecord.vendor_profile_id) {
+          profile = await base44.entities.Vendor.get(userRecord.vendor_profile_id);
+        } else {
+          const vendors = await base44.entities.Vendor.filter({ user_id: userId });
+          profile = vendors[0];
+        }
       }
 
       return { userRecord, profile, role: baseRole, linkedParent, attendance, grades };
