@@ -177,9 +177,15 @@ export default function UserManagement() {
       return;
     }
 
+    // CRITICAL: If assigning admin user_type, also set role to 'admin' for full access
+    const updateData = { user_type: editingUserType };
+    if (editingUserType === 'admin') {
+      updateData.role = 'admin';
+    }
+
     await updateUserMutation.mutateAsync({
       userId: editingUser.id,
-      data: { user_type: editingUserType }
+      data: updateData
     });
 
     if (!profiles[editingUserType]) {
@@ -191,9 +197,15 @@ export default function UserManagement() {
   };
 
   const handleConfirmChange = async () => {
+    // CRITICAL: If assigning admin user_type, also set role to 'admin' for full access
+    const updateData = { user_type: editingUserType };
+    if (editingUserType === 'admin') {
+      updateData.role = 'admin';
+    }
+
     await updateUserMutation.mutateAsync({
       userId: editingUser.id,
-      data: { user_type: editingUserType }
+      data: updateData
     });
 
     const profiles = findExistingProfiles(editingUser);
