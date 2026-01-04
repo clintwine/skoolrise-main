@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Brain, Library, Edit, Trash2, Calendar, Video, Award, Bell, Users } from 'lucide-react';
+import { Plus, Brain, Library, Edit, Trash2, Calendar, Video, Award, Bell, Users, CheckCircle, Clock } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/SkeletonLoader';
