@@ -17,7 +17,6 @@ import BehaviorTracking from './pages/BehaviorTracking';
 import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
-import ClassDiscussions from './pages/ClassDiscussions';
 import ClassroomResources from './pages/ClassroomResources';
 import ConferenceScheduling from './pages/ConferenceScheduling';
 import ContactLists from './pages/ContactLists';
@@ -73,7 +72,6 @@ import RoomAccessManagement from './pages/RoomAccessManagement';
 import SalaryManagement from './pages/SalaryManagement';
 import ScannerSettings from './pages/ScannerSettings';
 import SchoolSettings from './pages/SchoolSettings';
-import SecureMessaging from './pages/SecureMessaging';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
 import SettingsHub from './pages/SettingsHub';
@@ -127,7 +125,6 @@ export const PAGES = {
     "BiometricAttendance": BiometricAttendance,
     "BookshopManager": BookshopManager,
     "BookshopReports": BookshopReports,
-    "ClassDiscussions": ClassDiscussions,
     "ClassroomResources": ClassroomResources,
     "ConferenceScheduling": ConferenceScheduling,
     "ContactLists": ContactLists,
@@ -183,7 +180,6 @@ export const PAGES = {
     "SalaryManagement": SalaryManagement,
     "ScannerSettings": ScannerSettings,
     "SchoolSettings": SchoolSettings,
-    "SecureMessaging": SecureMessaging,
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
     "SettingsHub": SettingsHub,

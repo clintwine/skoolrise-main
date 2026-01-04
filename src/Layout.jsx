@@ -248,8 +248,6 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Messaging Center', icon: Mail, path: 'MessagingCenter' },
           { name: 'Contact Lists', icon: Users, path: 'ContactLists' },
           { name: 'Delivery Reports', icon: BarChart3, path: 'DeliveryReports' },
-          { name: 'Secure Messaging', icon: MessageSquare, path: 'SecureMessaging' },
-          { name: 'Class Discussions', icon: MessageSquare, path: 'ClassDiscussions' },
           { name: 'Event Calendar', icon: Calendar, path: 'EventCalendar' },
         ]
       },
