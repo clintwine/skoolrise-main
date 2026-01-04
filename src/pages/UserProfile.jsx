@@ -11,9 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  User, Mail, Phone, MapPin, GraduationCap, Calendar,
-  Shield, Users, FileText, Lock, Camera, Link2, Search
+  Mail, Phone, MapPin, GraduationCap,
+  Users, FileText, Lock, Camera, Link2, Search
 } from 'lucide-react';
+import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -282,9 +283,14 @@ export default function UserProfile() {
                 )}
               </div>
               <div className="pb-2">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {profile?.first_name} {profile?.last_name}
-                </h1>
+                <div className="flex items-center gap-2">
+                  {userRecord?.title && (
+                    <span className="text-lg font-medium text-gray-700">{userRecord.title}</span>
+                  )}
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {profile?.first_name} {profile?.last_name}
+                  </h1>
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge className={getRoleBadge()}>{role?.toUpperCase()}</Badge>
                   <span className="text-sm text-gray-500 flex items-center gap-1">
@@ -295,12 +301,24 @@ export default function UserProfile() {
               </div>
             </div>
             {canEdit && !editMode && (
-              <Button 
-                onClick={() => setEditMode(true)}
-                className="bg-gray-900 hover:bg-gray-800 text-white"
-              >
-                Edit Profile
-              </Button>
+              <div className="flex gap-2">
+                {role === 'parent' && (
+                  <Button 
+                    onClick={() => window.location.href = createPageUrl('ParentLinkingRequests')}
+                    variant="outline"
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                  >
+                    <Link2 className="w-4 h-4 mr-2" />
+                    Link Children
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => setEditMode(true)}
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                >
+                  Edit Profile
+                </Button>
+              </div>
             )}
             {editMode && (
               <div className="flex gap-2">

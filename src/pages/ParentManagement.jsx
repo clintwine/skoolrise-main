@@ -167,10 +167,7 @@ export default function ParentManagement() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(createPageUrl('UserProfile') + `?id=${parent.user_id}&role=parent`);
-                          }}
+                          onClick={() => navigate(createPageUrl('UserProfile') + `?id=${parent.user_id}&role=parent`)}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           View Profile
