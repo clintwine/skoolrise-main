@@ -7,19 +7,37 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, CheckCircle, Clock, AlertCircle, Plus } from 'lucide-react';
+import { format, addMonths } from 'date-fns';
 import { useCurrency } from '@/components/CurrencyProvider';
+import { toast } from 'sonner';
 
 export default function InstalmentPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState('');
+  const [numberOfInstalments, setNumberOfInstalments] = useState(3);
+  const [planName, setPlanName] = useState('');
   const queryClient = useQueryClient();
   const { formatAmount, symbol } = useCurrency();
 
   const { data: plans = [] } = useQuery({
     queryKey: ['instalment-plans'],
     queryFn: () => base44.entities.InstalmentPlan.list('-created_date'),
+  });
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['invoices-for-plans'],
+    queryFn: async () => {
+      const allInvoices = await base44.entities.FeeInvoice.list('-created_date');
+      // Only show invoices that don't have an instalment plan yet and aren't fully paid
+      return allInvoices.filter(inv => 
+        inv.status !== 'Paid' && 
+        !plans.some(p => p.invoice_id === inv.id)
+      );
+    },
   });
 
   const updatePlanMutation = useMutation({
@@ -41,6 +59,58 @@ export default function InstalmentPlans() {
     mutationFn: ({ id, data }) => base44.entities.FeeInvoice.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    },
+  });
+
+  const createPlanMutation = useMutation({
+    mutationFn: async (data) => {
+      const invoice = invoices.find(inv => inv.id === data.invoiceId);
+      if (!invoice) throw new Error('Invoice not found');
+
+      const totalAmount = invoice.balance || invoice.total_amount;
+      const instalmentAmount = totalAmount / data.numberOfInstalments;
+      
+      // Generate instalment schedule
+      const instalments = [];
+      const startDate = new Date();
+      for (let i = 0; i < data.numberOfInstalments; i++) {
+        const dueDate = addMonths(startDate, i);
+        instalments.push({
+          instalment_number: i + 1,
+          amount: instalmentAmount,
+          due_date: dueDate.toISOString().split('T')[0],
+          status: 'Pending',
+          payment_date: null,
+        });
+      }
+
+      return await base44.entities.InstalmentPlan.create({
+        plan_name: data.planName || `Payment Plan - ${invoice.student_name}`,
+        invoice_id: invoice.id,
+        student_id: invoice.student_id,
+        student_name: invoice.student_name,
+        total_amount: totalAmount,
+        number_of_instalments: data.numberOfInstalments,
+        instalment_amount: instalmentAmount,
+        instalments_paid: 0,
+        amount_paid: 0,
+        instalments: JSON.stringify(instalments),
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: addMonths(startDate, data.numberOfInstalments - 1).toISOString().split('T')[0],
+        status: 'Active',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instalment-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices-for-plans'] });
+      setCreateDialogOpen(false);
+      setSelectedInvoiceId('');
+      setNumberOfInstalments(3);
+      setPlanName('');
+      toast.success('Instalment plan created successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to create plan: ' + error.message);
     },
   });
 
@@ -122,11 +192,19 @@ export default function InstalmentPlans() {
     Overdue: 'bg-red-100 text-red-800',
   };
 
+  const selectedInvoice = invoices.find(inv => inv.id === selectedInvoiceId);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Instalment Plans</h1>
-        <p className="text-gray-600 mt-1">Manage student payment plans</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Instalment Plans</h1>
+          <p className="text-gray-600 mt-1">Manage student payment plans</p>
+        </div>
+        <Button onClick={() => setCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Plan
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -273,6 +351,91 @@ export default function InstalmentPlans() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Create Plan Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-lg bg-white">
+          <DialogHeader>
+            <DialogTitle>Create Instalment Plan</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Select Invoice</Label>
+              <Select value={selectedInvoiceId} onValueChange={setSelectedInvoiceId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select an invoice" />
+                </SelectTrigger>
+                <SelectContent>
+                  {invoices.map(inv => (
+                    <SelectItem key={inv.id} value={inv.id}>
+                      {inv.invoice_number} - {inv.student_name} ({formatAmount(inv.balance || inv.total_amount)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedInvoice && (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">Invoice: {selectedInvoice.invoice_number}</p>
+                <p className="text-sm text-gray-600">Student: {selectedInvoice.student_name}</p>
+                <p className="font-semibold text-gray-900">
+                  Outstanding: {formatAmount(selectedInvoice.balance || selectedInvoice.total_amount)}
+                </p>
+              </div>
+            )}
+
+            <div>
+              <Label>Plan Name (Optional)</Label>
+              <Input
+                value={planName}
+                onChange={(e) => setPlanName(e.target.value)}
+                placeholder="e.g., Term 1 Fee Payment Plan"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label>Number of Instalments</Label>
+              <Select value={numberOfInstalments.toString()} onValueChange={(v) => setNumberOfInstalments(parseInt(v))}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">2 Instalments</SelectItem>
+                  <SelectItem value="3">3 Instalments</SelectItem>
+                  <SelectItem value="4">4 Instalments</SelectItem>
+                  <SelectItem value="6">6 Instalments</SelectItem>
+                  <SelectItem value="12">12 Instalments</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedInvoice && (
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Each instalment:</strong>{' '}
+                  {formatAmount((selectedInvoice.balance || selectedInvoice.total_amount) / numberOfInstalments)}
+                </p>
+                <p className="text-sm text-blue-800">
+                  <strong>Duration:</strong> {numberOfInstalments} months
+                </p>
+              </div>
+            )}
+
+            <Button 
+              onClick={() => createPlanMutation.mutate({ 
+                invoiceId: selectedInvoiceId, 
+                numberOfInstalments, 
+                planName 
+              })}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={!selectedInvoiceId || createPlanMutation.isPending}
+            >
+              {createPlanMutation.isPending ? 'Creating...' : 'Create Instalment Plan'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

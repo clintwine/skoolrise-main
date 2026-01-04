@@ -28,7 +28,8 @@ export function CurrencyProvider({ children }) {
       const schools = await base44.entities.School.list();
       return schools[0];
     },
-    staleTime: 300000,
+    staleTime: 30000, // Reduced to 30 seconds for faster updates
+    refetchOnWindowFocus: true,
   });
 
   const currency = school?.currency || 'USD';
