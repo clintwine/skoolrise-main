@@ -49,12 +49,13 @@ export default function UserProfile() {
     queryKey: ['profile-data', targetUserId, currentUser?.id],
     queryFn: async () => {
       const userId = targetUserId || currentUser?.id;
-      if (!userId) return null;
+      if (!userId || !currentUser) return null;
 
       let userRecord = currentUser;
       if (targetUserId && targetUserId !== currentUser?.id) {
         const users = await base44.entities.User.list();
         userRecord = users.find(u => u.id === targetUserId);
+        if (!userRecord) return null;
       }
 
       const role = targetRole || userRecord?.user_type || 'user';
