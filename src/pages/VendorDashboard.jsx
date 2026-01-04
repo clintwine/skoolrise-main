@@ -20,8 +20,14 @@ export default function VendorDashboard() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.vendor_id) {
-        setVendorId(currentUser.vendor_id);
+
+      if (currentUser?.vendor_profile_id) {
+        setVendorId(currentUser.vendor_profile_id);
+      } else if (currentUser?.id) {
+        const vendors = await base44.entities.Vendor.filter({ user_id: currentUser.id });
+        if (vendors.length > 0) {
+          setVendorId(vendors[0].id);
+        }
       }
     };
     fetchUser();

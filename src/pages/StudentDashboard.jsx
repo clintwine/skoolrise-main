@@ -9,29 +9,28 @@ import { format } from 'date-fns';
 
 export default function StudentDashboard() {
   const [user, setUser] = useState(null);
+  const [studentProfile, setStudentProfile] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        
+        // Fetch student profile
+        if (currentUser?.student_profile_id) {
+          const profile = await base44.entities.Student.get(currentUser.student_profile_id);
+          setStudentProfile(profile);
+        } else if (currentUser?.id) {
+          const students = await base44.entities.Student.filter({ user_id: currentUser.id });
+          setStudentProfile(students[0]);
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
       }
     };
     fetchUser();
   }, []);
-
-  const { data: students = [] } = useQuery({
-    queryKey: ['students', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await base44.entities.Student.filter({ user_id: user.id });
-    },
-    enabled: !!user?.id,
-  });
-
-  const studentProfile = students[0];
 
   const { data: enrollments = [] } = useQuery({
     queryKey: ['student-enrollments', studentProfile?.id],

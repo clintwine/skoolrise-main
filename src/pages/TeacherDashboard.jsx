@@ -29,21 +29,23 @@ export default function TeacherDashboard() {
   }, []);
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', user?.id],
+    queryKey: ['teacher-classes', teacherProfile?.id],
     queryFn: async () => {
+      if (!teacherProfile?.id) return [];
       const allClasses = await base44.entities.Class.list();
-      return user ? allClasses.filter(c => c.teacher_id === user.id) : [];
+      return allClasses.filter(c => c.teacher_id === teacherProfile.id);
     },
-    enabled: !!user,
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments', user?.id],
+    queryKey: ['teacher-assignments', teacherProfile?.id],
     queryFn: async () => {
+      if (!teacherProfile?.id) return [];
       const allAssignments = await base44.entities.Assignment.list('-created_date');
-      return user ? allAssignments.filter(a => a.teacher_id === user.id).slice(0, 10) : [];
+      return allAssignments.filter(a => a.teacher_id === teacherProfile.id).slice(0, 10);
     },
-    enabled: !!user,
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: submissions = [] } = useQuery({
