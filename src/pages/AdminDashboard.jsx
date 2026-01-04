@@ -6,8 +6,11 @@ import { Users, GraduationCap, BookOpen, TrendingUp, CheckSquare, Award, DollarS
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function AdminDashboard() {
+  const { formatAmount } = useCurrency();
+
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
@@ -129,19 +132,19 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             <div className="space-y-3 sm:space-y-4">
-              <div className="flex justify-between items-center p-2 sm:p-3 bg-blue-50 rounded-lg">
-                <span className="text-xs sm:text-sm text-gray-700">Total Invoiced</span>
-                <span className="text-base sm:text-xl font-bold text-blue-600">${totalInvoiced.toLocaleString()}</span>
+                <div className="flex justify-between items-center p-2 sm:p-3 bg-blue-50 rounded-lg">
+                  <span className="text-xs sm:text-sm text-gray-700">Total Invoiced</span>
+                  <span className="text-base sm:text-xl font-bold text-blue-600">{formatAmount(totalInvoiced)}</span>
+                </div>
+                <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 rounded-lg">
+                  <span className="text-xs sm:text-sm text-gray-700">Collected</span>
+                  <span className="text-base sm:text-xl font-bold text-green-600">{formatAmount(totalCollected)}</span>
+                </div>
+                <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 rounded-lg">
+                  <span className="text-xs sm:text-sm text-gray-700">Outstanding</span>
+                  <span className="text-base sm:text-xl font-bold text-red-600">{formatAmount(totalOutstanding)}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 rounded-lg">
-                <span className="text-xs sm:text-sm text-gray-700">Collected</span>
-                <span className="text-base sm:text-xl font-bold text-green-600">${totalCollected.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 rounded-lg">
-                <span className="text-xs sm:text-sm text-gray-700">Outstanding</span>
-                <span className="text-base sm:text-xl font-bold text-red-600">${totalOutstanding.toLocaleString()}</span>
-              </div>
-            </div>
           </CardContent>
         </Card>
 

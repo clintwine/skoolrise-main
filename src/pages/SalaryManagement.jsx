@@ -10,12 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DollarSign, Plus, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function SalaryManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSalary, setEditingSalary] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   const { data: salaries = [] } = useQuery({
     queryKey: ['salaries', selectedMonth],
@@ -93,7 +95,7 @@ export default function SalaryManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Pending</p>
-                <p className="text-2xl font-bold text-orange-600">${totalPending.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatAmount(totalPending)}</p>
               </div>
               <Clock className="w-8 h-8 text-orange-600" />
             </div>
@@ -104,7 +106,7 @@ export default function SalaryManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
@@ -115,7 +117,7 @@ export default function SalaryManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Payroll</p>
-                <p className="text-2xl font-bold text-blue-600">${(totalPending + totalPaid).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatAmount(totalPending + totalPaid)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-600" />
             </div>
@@ -146,10 +148,10 @@ export default function SalaryManagement() {
                 {salaries.map((salary) => (
                   <tr key={salary.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{salary.teacher_name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">${salary.basic_salary.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-sm text-green-600">${salary.allowances.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-sm text-red-600">${salary.deductions.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-blue-600">${salary.net_salary.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{formatAmount(salary.basic_salary)}</td>
+                    <td className="px-6 py-4 text-sm text-green-600">{formatAmount(salary.allowances)}</td>
+                    <td className="px-6 py-4 text-sm text-red-600">{formatAmount(salary.deductions)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-blue-600">{formatAmount(salary.net_salary)}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {salary.payment_date ? format(new Date(salary.payment_date), 'MMM d, yyyy') : '-'}
                     </td>

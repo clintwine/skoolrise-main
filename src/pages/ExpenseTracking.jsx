@@ -11,12 +11,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingDown, Plus, Upload } from 'lucide-react';
 import { format } from 'date-fns';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ExpenseTracking() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [filterCategory, setFilterCategory] = useState('all');
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses'],
@@ -100,7 +102,7 @@ export default function ExpenseTracking() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Expenses</p>
-                <p className="text-2xl font-bold text-blue-600">${totalExpenses.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatAmount(totalExpenses)}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-blue-600" />
             </div>
@@ -111,7 +113,7 @@ export default function ExpenseTracking() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Paid</p>
-                <p className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-green-600" />
             </div>
@@ -122,7 +124,7 @@ export default function ExpenseTracking() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-orange-600">${totalPending.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatAmount(totalPending)}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-orange-600" />
             </div>
@@ -155,7 +157,7 @@ export default function ExpenseTracking() {
                     <td className="px-6 py-4"><Badge variant="outline">{expense.category}</Badge></td>
                     <td className="px-6 py-4 text-sm text-gray-900">{expense.description}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{expense.paid_to}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-red-600">${expense.amount.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-red-600">{formatAmount(expense.amount)}</td>
                     <td className="px-6 py-4"><Badge className={statusColors[expense.status]}>{expense.status}</Badge></td>
                     <td className="px-6 py-4">
                       <Button variant="outline" size="sm" onClick={() => { setEditingExpense(expense); setIsFormOpen(true); }}>
