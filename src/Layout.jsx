@@ -5,6 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommandPalette from './components/CommandPalette';
 import NoRoleScreen from './components/NoRoleScreen';
+import MobileBottomNav from './components/MobileBottomNav';
+import OfflineIndicator from './components/OfflineIndicator';
 import {
   GraduationCap,
   Users,
@@ -396,6 +398,9 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Offline Indicator */}
+      <OfflineIndicator />
+
       {/* Command Palette */}
       <CommandPalette 
         isOpen={commandPaletteOpen} 
@@ -518,7 +523,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Main Content */}
         <main className="flex-1 min-h-screen">
-          <div className="p-4 lg:p-8">
+          <div className="p-4 lg:p-8 pb-24 lg:pb-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentPageName}
@@ -532,6 +537,12 @@ export default function Layout({ children, currentPageName }) {
             </AnimatePresence>
           </div>
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav 
+          userRole={getUserRole()} 
+          currentPageName={currentPageName} 
+        />
         </div>
         </div>
         );
