@@ -7,10 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { TrendingUp, DollarSign, Package, Repeat } from 'lucide-react';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function BookshopReports() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const { formatAmount } = useCurrency();
 
   const { data: bookSales = [] } = useQuery({
     queryKey: ['book-sales'],
@@ -149,7 +151,7 @@ export default function BookshopReports() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">${totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatAmount(totalRevenue)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />
             </div>
@@ -160,7 +162,7 @@ export default function BookshopReports() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Profit</p>
-                <p className="text-2xl font-bold text-blue-600">${totalProfit.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatAmount(totalProfit)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-blue-600" />
             </div>
@@ -171,7 +173,7 @@ export default function BookshopReports() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Stock Value (Retail)</p>
-                <p className="text-2xl font-bold text-purple-600">${totalStockValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatAmount(totalStockValue)}</p>
               </div>
               <Package className="w-8 h-8 text-purple-600" />
             </div>
@@ -182,7 +184,7 @@ export default function BookshopReports() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Stock Value (Cost)</p>
-                <p className="text-2xl font-bold text-orange-600">${totalCostValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatAmount(totalCostValue)}</p>
               </div>
               <Repeat className="w-8 h-8 text-orange-600" />
             </div>
@@ -238,7 +240,7 @@ export default function BookshopReports() {
                   </div>
                   <div className="text-center p-2 bg-white rounded">
                     <p className="text-xs text-gray-600">Total Value</p>
-                    <p className="text-lg font-bold text-purple-600">${vendor.totalValue.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-purple-600">{formatAmount(vendor.totalValue)}</p>
                   </div>
                 </div>
               </div>
@@ -264,7 +266,7 @@ export default function BookshopReports() {
                   <Badge className="bg-green-100 text-green-800">
                     Turnover: {item.turnoverRate}x
                   </Badge>
-                  <p className="text-sm text-gray-600 mt-1">Value: ${item.value.toFixed(2)}</p>
+                  <p className="text-sm text-gray-600 mt-1">Value: {formatAmount(item.value)}</p>
                 </div>
               </div>
             ))}

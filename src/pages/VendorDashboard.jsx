@@ -8,11 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Package, ShoppingCart, BookOpen, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import BookRecommendationForm from '../components/bookshop/BookRecommendationForm';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function VendorDashboard() {
   const [user, setUser] = useState(null);
   const [vendorId, setVendorId] = useState(null);
   const [showRecommendationForm, setShowRecommendationForm] = useState(false);
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -109,7 +111,7 @@ export default function VendorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total PO Value</p>
-                <p className="text-3xl font-bold text-green-600">${totalPOValue.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-green-600">{formatAmount(totalPOValue)}</p>
               </div>
               <Package className="w-10 h-10 text-green-600" />
             </div>
@@ -159,7 +161,7 @@ export default function VendorDashboard() {
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {po.expected_delivery_date ? format(new Date(po.expected_delivery_date), 'MMM d, yyyy') : '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">${po.total_cost?.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">{formatAmount(po.total_cost)}</td>
                       <td className="px-6 py-4">
                         <Badge className={statusColors[po.status]}>{po.status}</Badge>
                       </td>
@@ -200,7 +202,7 @@ export default function VendorDashboard() {
                       <td className="px-6 py-4 text-sm text-gray-600">{item.isbn}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{item.author || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{item.grade_level || '-'}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-green-600">${item.wholesale_price}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-green-600">{formatAmount(item.wholesale_price)}</td>
                       <td className="px-6 py-4">
                         <Badge className={item.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
                           {item.status}
