@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import BulkPaymentImport from '../components/fees/BulkPaymentImport';
+import { useCurrency } from '../components/CurrencyProvider';
 
 export default function FeesManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +36,8 @@ export default function FeesManagement() {
     Paid: 'bg-green-100 text-green-800',
     Overdue: 'bg-red-100 text-red-800',
   };
+
+  const { formatAmount } = useCurrency();
 
   const totalAmount = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
   const totalPaid = invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0);
@@ -81,7 +84,7 @@ export default function FeesManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Invoiced</p>
-                <p className="text-2xl font-bold text-gray-900">${totalAmount.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatAmount(totalAmount)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-600" />
             </div>
@@ -92,7 +95,7 @@ export default function FeesManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</p>
               </div>
               <Receipt className="w-8 h-8 text-green-600" />
             </div>
@@ -103,7 +106,7 @@ export default function FeesManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Outstanding</p>
-                <p className="text-2xl font-bold text-orange-600">${totalOutstanding.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatAmount(totalOutstanding)}</p>
               </div>
               <AlertCircle className="w-8 h-8 text-orange-600" />
             </div>
@@ -184,9 +187,9 @@ export default function FeesManagement() {
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {invoice.due_date ? format(new Date(invoice.due_date), 'MMM d, yyyy') : '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">${invoice.total_amount?.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-sm text-green-600">${invoice.amount_paid?.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-sm text-orange-600">${invoice.balance?.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{formatAmount(invoice.total_amount)}</td>
+                      <td className="px-6 py-4 text-sm text-green-600">{formatAmount(invoice.amount_paid)}</td>
+                      <td className="px-6 py-4 text-sm text-orange-600">{formatAmount(invoice.balance)}</td>
                       <td className="px-6 py-4">
                         <Badge className={statusColors[invoice.status]}>
                           {invoice.status}
