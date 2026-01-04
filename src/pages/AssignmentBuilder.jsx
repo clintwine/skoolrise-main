@@ -64,9 +64,9 @@ export default function AssignmentBuilder() {
 
   const teacherProfile = teachers[0];
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
   });
 
   const { data: questionBank = [] } = useQuery({
@@ -76,10 +76,10 @@ export default function AssignmentBuilder() {
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (data) => {
-      const selectedClass = classes.find(c => c.id === data.class_id);
+      const selectedArm = classArms.find(c => c.id === data.class_id);
       const assignment = await base44.entities.Assignment.create({
         ...data,
-        class_name: selectedClass?.class_name,
+        class_name: selectedArm ? `Grade ${selectedArm.grade_level} - ${selectedArm.arm_name}` : '',
         teacher_id: teacherProfile?.id,
       });
 
@@ -330,8 +330,10 @@ Return as JSON array with this exact structure:
                   className="w-full p-2 border rounded-lg mt-1"
                 >
                   <option value="">Select class...</option>
-                  {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.class_name}</option>
+                  {classArms.map(arm => (
+                    <option key={arm.id} value={arm.id}>
+                      Grade {arm.grade_level} - {arm.arm_name}
+                    </option>
                   ))}
                 </select>
               </div>
