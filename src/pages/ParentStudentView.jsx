@@ -17,6 +17,7 @@ import {
   ShoppingCart, CheckCircle, XCircle, ClipboardList, TrendingUp, Plus, Link2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ParentStudentView() {
   const [user, setUser] = useState(null);
@@ -30,6 +31,7 @@ export default function ParentStudentView() {
   const [linkForm, setLinkForm] = useState({ student_name: '', student_id_number: '', relationship: 'Parent' });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -229,7 +231,7 @@ export default function ParentStudentView() {
     queryClient.invalidateQueries({ queryKey: ['book-inventory'] });
     setCart([]);
     setIsCartOpen(false);
-    toast.success(`Purchase successful! Total: $${totalAmount.toFixed(2)}`);
+    toast.success(`Purchase successful! Total: ${formatAmount(totalAmount)}`);
   };
 
   const totalClasses = classes.length;
@@ -529,7 +531,7 @@ export default function ParentStudentView() {
                           <p className="text-sm text-gray-600">ISBN: {book.isbn}</p>
                           {inventory && (
                             <p className="text-lg font-bold text-blue-600 mt-2">
-                              ${inventory.retail_price}
+                              {formatAmount(inventory.retail_price)}
                             </p>
                           )}
                           <p className="text-xs text-gray-500 mt-1">
@@ -618,7 +620,7 @@ export default function ParentStudentView() {
                         <p className="font-semibold">{item.title}</p>
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                         <p className="text-sm font-semibold text-blue-600">
-                          ${(item.inventory.retail_price * item.quantity).toFixed(2)}
+                          {formatAmount(item.inventory.retail_price * item.quantity)}
                         </p>
                       </div>
                       <Button 
@@ -634,7 +636,7 @@ export default function ParentStudentView() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-lg font-semibold">Total:</p>
-                    <p className="text-2xl font-bold text-blue-600">${cartTotal.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-blue-600">{formatAmount(cartTotal)}</p>
                   </div>
                   <Button 
                     onClick={handleCheckout}
