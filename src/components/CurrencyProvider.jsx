@@ -28,20 +28,27 @@ export function CurrencyProvider({ children }) {
       const schools = await base44.entities.School.list();
       return schools[0];
     },
-    staleTime: 30000, // Reduced to 30 seconds for faster updates
+    staleTime: 10000, // 10 seconds for quick updates
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const currency = school?.currency || 'USD';
   const currencyData = CURRENCIES[currency] || CURRENCIES.USD;
 
-  const formatAmount = (amount) => {
+  const formatAmount = React.useCallback((amount) => {
     const num = parseFloat(amount) || 0;
     return `${currencyData.symbol}${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
+  }, [currencyData.symbol]);
+
+  const value = React.useMemo(() => ({
+    currency,
+    symbol: currencyData.symbol,
+    formatAmount
+  }), [currency, currencyData.symbol, formatAmount]);
 
   return (
-    <CurrencyContext.Provider value={{ currency, symbol: currencyData.symbol, formatAmount }}>
+    <CurrencyContext.Provider value={value}>
       {children}
     </CurrencyContext.Provider>
   );

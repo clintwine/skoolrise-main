@@ -142,9 +142,13 @@ function GeneralSettingsContent() {
       }
     },
     onSuccess: () => {
+      // Invalidate all queries that use school/currency data
       queryClient.invalidateQueries({ queryKey: ['school-settings'] });
       queryClient.invalidateQueries({ queryKey: ['school-currency'] });
-      toast.success('Settings saved successfully');
+      // Also invalidate invoice and fee queries to refresh currency display
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['instalment-plans'] });
+      toast.success('Settings saved successfully. Currency changes may take a moment to reflect across the app.');
     },
     onError: (error) => {
       toast.error('Failed to save: ' + error.message);
