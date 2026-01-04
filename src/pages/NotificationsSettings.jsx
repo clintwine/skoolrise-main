@@ -107,27 +107,20 @@ export default function NotificationsSettings() {
       return;
     }
 
-    if (emailConfig.provider === 'smtp') {
-      if (!emailConfig.smtp_host || !emailConfig.smtp_username || !emailConfig.smtp_password || !emailConfig.from_email) {
-        toast.error('Please fill in all email configuration fields before testing');
-        return;
-      }
-    } else {
-      if (!emailConfig.api_key || !emailConfig.from_email) {
-        toast.error('Please fill in all email configuration fields before testing');
-        return;
-      }
+    if (!emailConfig.from_email || !emailConfig.from_name) {
+      toast.error('Please fill in From Name and From Email before testing');
+      return;
     }
 
     setTesting({ ...testing, email: true });
     try {
       await base44.integrations.Core.SendEmail({
         to: testEmail,
-        subject: 'Test Email from SkoolRise',
-        body: 'This is a test email.\n\nConfiguration: ' + emailConfig.provider + '\nFrom: ' + (emailConfig.from_name || 'SkoolRise') + ' <' + emailConfig.from_email + '>\n\nNote: This test uses Base44 default email service. Your custom SMTP/API configuration will be used in production notifications.',
+        subject: 'Test Email from ' + (emailConfig.from_name || 'SkoolRise'),
+        body: 'This is a test email.\n\nConfiguration: ' + emailConfig.provider + '\nFrom: ' + (emailConfig.from_name || 'SkoolRise') + ' <' + emailConfig.from_email + '>\n\nIf you received this email, your notification settings are configured correctly.',
         from_name: emailConfig.from_name || "SkoolRise Notifications",
       });
-      toast.success('Test email sent! Check your inbox.');
+      toast.success('Test email sent from ' + emailConfig.from_name + '! Check your inbox.');
     } catch (error) {
       toast.error('Failed to send test email: ' + error.message);
     } finally {

@@ -26,9 +26,9 @@ export default function UnifiedAttendance() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
   });
 
   const { data: students = [] } = useQuery({
@@ -111,9 +111,11 @@ export default function UnifiedAttendance() {
   const lateCount = attendance.filter(a => a.status === 'Late' && a.attendance_type === activeTab.replace('-', '_')).length;
   const totalRecords = attendance.filter(a => a.attendance_type === activeTab.replace('-', '_')).length;
 
-  const filteredStudents = students.filter(s => 
-    selectedClass ? s.class_id === selectedClass : true
-  ).filter(s =>
+  const filteredStudents = students.filter(s => {
+    if (!selectedClass) return true;
+    const arm = classArms.find(a => a.id === selectedClass);
+    return arm ? s.grade_level === arm.grade_level : false;
+  }).filter(s =>
     searchQuery ? 
       `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.student_id_number?.includes(searchQuery) : true
@@ -296,11 +298,13 @@ export default function UnifiedAttendance() {
                 <h3 className="font-semibold text-gray-900">Class Register</h3>
                 <Select value={selectedClass} onValueChange={setSelectedClass}>
                   <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select class" />
+                    <SelectValue placeholder="Select class arm" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.map(cls => (
-                      <SelectItem key={cls.id} value={cls.id}>{cls.class_name}</SelectItem>
+                    {classArms.map(arm => (
+                      <SelectItem key={arm.id} value={arm.id}>
+                        Grade {arm.grade_level} - {arm.arm_name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -308,7 +312,7 @@ export default function UnifiedAttendance() {
 
               {!selectedClass ? (
                 <div className="text-center text-gray-500 py-12">
-                  Select a class to begin
+                  Select a class arm to begin
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -367,14 +371,16 @@ export default function UnifiedAttendance() {
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label>Select Class</Label>
+                    <Label>Select Class Arm</Label>
                     <Select value={selectedClass} onValueChange={setSelectedClass}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select class" />
+                        <SelectValue placeholder="Select class arm" />
                       </SelectTrigger>
                       <SelectContent>
-                        {classes.map(cls => (
-                          <SelectItem key={cls.id} value={cls.id}>{cls.class_name}</SelectItem>
+                        {classArms.map(arm => (
+                          <SelectItem key={arm.id} value={arm.id}>
+                            Grade {arm.grade_level} - {arm.arm_name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -412,7 +418,7 @@ export default function UnifiedAttendance() {
 
               {!selectedClass || !selectedSubject || !selectedPeriod ? (
                 <div className="text-center text-gray-500 py-12">
-                  Select Class and Subject to begin
+                  Select Class Arm and Subject to begin
                 </div>
               ) : (
                 <div className="space-y-2 mt-6">

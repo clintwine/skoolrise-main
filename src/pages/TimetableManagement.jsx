@@ -69,13 +69,16 @@ export default function TimetableManagement() {
       delete updateData.created_date;
       delete updateData.updated_date;
       delete updateData.created_by;
-      return await base44.entities.Timetable.update(id, updateData);
+      const result = await base44.entities.Timetable.update(id, updateData);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
+      queryClient.invalidateQueries({ queryKey: ['timetable', selectedClassArm] });
       setIsFormOpen(false);
       setEditingSlot(null);
       setIsDetailOpen(false);
+      setSelectedSlot(null);
     },
   });
 
