@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Plus, Save, CheckCircle, Sparkles, 
   GripVertical, X, BookOpen, ChevronLeft, Map,
@@ -22,6 +23,8 @@ import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
 import CreateQuestionDialog from '../components/CreateQuestionDialog';
 import ReactQuill from 'react-quill';
+import LatePolicyConfig from '../components/assignments/LatePolicyConfig';
+import RubricBuilder from '../components/assignments/RubricBuilder';
 
 export default function AssignmentBuilder() {
   const navigate = useNavigate();
@@ -36,9 +39,11 @@ export default function AssignmentBuilder() {
     type: 'Homework',
     status: 'Draft',
     allow_late_submissions: true,
-    late_penalty_percent: 10,
+    late_policy_config: JSON.stringify({ type: 'none', deduction_percent: 10, grace_period_hours: 0, max_deduction: 50 }),
     allow_group_submissions: false,
+    rubric_id: '',
   });
+  const [rubricBuilderOpen, setRubricBuilderOpen] = useState(false);
 
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
@@ -74,6 +79,11 @@ export default function AssignmentBuilder() {
   const { data: questionBank = [] } = useQuery({
     queryKey: ['questions'],
     queryFn: () => base44.entities.QuestionBank.list(),
+  });
+
+  const { data: rubrics = [] } = useQuery({
+    queryKey: ['rubrics'],
+    queryFn: () => base44.entities.Rubric.list(),
   });
 
   const createAssignmentMutation = useMutation({
@@ -383,25 +393,10 @@ Return as JSON array with this exact structure:
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label>Allow Late Submissions</Label>
-                <Switch
-                  checked={assignmentData.allow_late_submissions}
-                  onCheckedChange={(checked) => setAssignmentData({ ...assignmentData, allow_late_submissions: checked })}
-                />
-              </div>
-
-              {assignmentData.allow_late_submissions && (
-                <div>
-                  <Label>Late Penalty (%)</Label>
-                  <Input
-                    type="number"
-                    value={assignmentData.late_penalty_percent}
-                    onChange={(e) => setAssignmentData({ ...assignmentData, late_penalty_percent: parseInt(e.target.value) })}
-                    className="mt-1"
-                  />
-                </div>
-              )}
+              <LatePolicyConfig
+                value={assignmentData.late_policy_config}
+                onChange={(config) => setAssignmentData({ ...assignmentData, late_policy_config: config })}
+              />
 
               <div className="flex items-center justify-between">
                 <Label>Allow Group Submissions</Label>
@@ -409,6 +404,35 @@ Return as JSON array with this exact structure:
                   checked={assignmentData.allow_group_submissions}
                   onCheckedChange={(checked) => setAssignmentData({ ...assignmentData, allow_group_submissions: checked })}
                 />
+              </div>
+
+              <div>
+                <Label>Grading Rubric (Optional)</Label>
+                <div className="flex gap-2 mt-1">
+                  <Select 
+                    value={assignmentData.rubric_id} 
+                    onValueChange={(v) => setAssignmentData({ ...assignmentData, rubric_id: v })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select rubric..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>No Rubric</SelectItem>
+                      {rubrics.map(r => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name} ({r.total_points} pts)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setRubricBuilderOpen(true)}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -528,6 +552,15 @@ Return as JSON array with this exact structure:
         onOpenChange={setCreateQuestionOpen}
         question={null}
         onSubmit={handleCreateNewQuestion}
+      />
+
+      {/* Rubric Builder Dialog */}
+      <RubricBuilder
+        open={rubricBuilderOpen}
+        onOpenChange={setRubricBuilderOpen}
+        onRubricCreated={(rubric) => {
+          setAssignmentData({ ...assignmentData, rubric_id: rubric.id });
+        }}
       />
 
       {/* AI Generate Dialog */}
