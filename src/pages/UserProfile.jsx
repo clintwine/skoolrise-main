@@ -165,7 +165,27 @@ export default function UserProfile() {
     );
   }
 
-  const { userRecord = {}, profile = {}, role, linkedParent, attendance = [], grades = [] } = profileData;
+  const { userRecord, profile, role, linkedParent, attendance = [], grades = [] } = profileData;
+  
+  if (!userRecord || !profile) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 rounded-t-2xl" />
+          <div className="bg-white rounded-b-2xl p-6 -mt-12">
+            <div className="flex items-end gap-4">
+              <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white" />
+              <div className="space-y-2 pb-2">
+                <div className="h-6 w-48 bg-gray-200 rounded" />
+                <div className="h-4 w-32 bg-gray-200 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   const isOwnProfile = !targetUserId || targetUserId === currentUser?.id;
   const canEdit = isOwnProfile || currentUser?.role === 'admin';
 
