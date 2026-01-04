@@ -263,6 +263,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'SYSTEM',
         items: [
           { name: 'Settings Hub', icon: Settings, path: 'SettingsHub' },
+          { name: 'Scheduled Reports', icon: Calendar, path: 'ScheduledReports' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
         ]

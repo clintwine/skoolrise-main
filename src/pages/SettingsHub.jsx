@@ -16,6 +16,11 @@ import { toast } from 'sonner';
 // Import settings components content
 import NotificationsSettings from './NotificationsSettings';
 import BackupSettings from './BackupSettings';
+import AuditLogs from './AuditLogs';
+
+function AuditLogsContent() {
+  return <AuditLogs />;
+}
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -38,6 +43,7 @@ export default function SettingsHub() {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'backup', label: 'Backup & Restore', icon: HardDrive },
+    { id: 'audit', label: 'Audit Logs', icon: Database },
     { id: 'demo', label: 'Demo Data', icon: Database },
   ];
 
@@ -92,6 +98,7 @@ export default function SettingsHub() {
             {activeTab === 'notifications' && <NotificationsSettings />}
             {activeTab === 'security' && <SecuritySettingsContent />}
             {activeTab === 'backup' && <BackupSettings />}
+            {activeTab === 'audit' && <AuditLogsContent />}
             {activeTab === 'demo' && <DemoDataSettings />}
           </motion.div>
         </AnimatePresence>
