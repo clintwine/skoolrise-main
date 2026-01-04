@@ -97,12 +97,12 @@ export default function Layout({ children, currentPageName }) {
 
         setUser(currentUser);
 
-        // Redirect root pages to user-specific dashboard
+        // Redirect root pages to user-specific dashboard based on single user_type
         if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
-          const isAdmin = currentUser.role === 'admin' || userType === 'admin' || userType === 'parent_admin';
-          const isTeacher = userType === 'teacher' || userType === 'parent_teacher';
+          const isAdmin = currentUser.role === 'admin' || userType === 'admin';
+          const isTeacher = userType === 'teacher';
           const isStudent = userType === 'student';
-          const isParent = userType === 'parent' || userType === 'parent_teacher' || userType === 'parent_admin';
+          const isParent = userType === 'parent';
           const isVendor = userType === 'vendor';
 
           if (isAdmin) {
@@ -145,10 +145,10 @@ export default function Layout({ children, currentPageName }) {
     if (!user) return [];
 
     const userType = user.user_type || '';
-    const isAdmin = user.role === 'admin' || userType === 'admin' || userType === 'parent_admin';
-    const isTeacher = userType === 'teacher' || userType === 'parent_teacher';
+    const isAdmin = user.role === 'admin' || userType === 'admin';
+    const isTeacher = userType === 'teacher';
     const isStudent = userType === 'student';
-    const isParent = userType === 'parent' || userType === 'parent_teacher' || userType === 'parent_admin';
+    const isParent = userType === 'parent';
     const isVendor = userType === 'vendor';
 
     const vendorGroups = [
@@ -369,10 +369,11 @@ export default function Layout({ children, currentPageName }) {
   const getUserRole = () => {
     if (!user) return null;
     const userType = user.user_type || '';
-    if (user.role === 'admin' || userType === 'admin' || userType === 'parent_admin') return 'admin';
-    if (userType === 'teacher' || userType === 'parent_teacher') return 'teacher';
+    if (user.role === 'admin' || userType === 'admin') return 'admin';
+    if (userType === 'teacher') return 'teacher';
     if (userType === 'student') return 'student';
     if (userType === 'parent') return 'parent';
+    if (userType === 'vendor') return 'vendor';
     return null;
   };
 

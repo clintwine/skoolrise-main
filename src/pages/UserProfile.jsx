@@ -102,8 +102,11 @@ export default function UserProfile() {
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    if (profileData?.profile) {
-      setFormData({ ...profileData.profile });
+    if (profileData?.profile && profileData?.userRecord) {
+      setFormData({ 
+        ...profileData.profile,
+        title: profileData.userRecord.title 
+      });
     }
   }, [profileData]);
 
@@ -116,12 +119,20 @@ export default function UserProfile() {
       delete cleanData.created_by;
       delete cleanData.user_id;
 
+      // Update profile entity
       if (profileData.role === 'student') {
         await base44.entities.Student.update(profileData.profile.id, cleanData);
       } else if (profileData.role === 'teacher' || profileData.role === 'admin') {
         await base44.entities.Teacher.update(profileData.profile.id, cleanData);
       } else if (profileData.role === 'parent') {
         await base44.entities.Parent.update(profileData.profile.id, cleanData);
+      }
+
+      // Sync title to User entity
+      if (data.title !== undefined) {
+        await base44.entities.User.update(profileData.userRecord.id, { 
+          title: data.title 
+        });
       }
     },
     onSuccess: () => {
@@ -381,6 +392,11 @@ export default function UserProfile() {
                            role === 'parent' ? 'Parent Profile' : 'Profile'}
                         </h3>
                       </div>
+
+                      <div className="mb-4">
+                        <p className="text-xs text-gray-500 mb-1">Title</p>
+                        <p className="font-medium text-gray-900">{userRecord?.title || 'Not set'}</p>
+                      </div>
                       
                       {role === 'student' && (
                         <div className="grid grid-cols-2 gap-6">
@@ -474,11 +490,27 @@ export default function UserProfile() {
                 <Card className="bg-white rounded-2xl shadow-md">
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-gray-900 mb-4">Edit Details</h3>
-                    
+
                     <div className="space-y-6">
                       <div>
                         <h4 className="font-semibold text-gray-900 mb-3">Personal Information</h4>
                         <div className="grid grid-cols-2 gap-4">
+                          <div className="col-span-2">
+                            <Label>Title</Label>
+                            <Select value={formData.title || ''} onValueChange={(v) => setFormData({ ...formData, title: v })}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select title" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Mr">Mr</SelectItem>
+                                <SelectItem value="Mrs">Mrs</SelectItem>
+                                <SelectItem value="Ms">Ms</SelectItem>
+                                <SelectItem value="Dr">Dr</SelectItem>
+                                <SelectItem value="Prof">Prof</SelectItem>
+                                <SelectItem value="Miss">Miss</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                           <div>
                             <Label>First Name</Label>
                             <Input
