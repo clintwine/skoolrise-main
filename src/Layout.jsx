@@ -4,6 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommandPalette from './components/CommandPalette';
+import NoRoleScreen from './components/NoRoleScreen';
 import {
   GraduationCap,
   Users,
@@ -389,49 +390,9 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // If user has no role, show message
+  // If user has no role, show message with request button
   if (user?.noRole) {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="glass-morphism sticky top-0 z-50 shadow-sm">
-          <div className="flex items-center justify-between px-4 py-3 lg:px-6">
-            <div className="flex items-center">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/90d2daf9a_oie_b7JlP4U16so5.png" 
-                alt="SkoolRise Logo" 
-                className="h-15 w-40"
-              />
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200"
-              title="Logout"
-            >
-              <LogOutIcon className="w-5 h-5 text-text-secondary" />
-            </button>
-          </div>
-        </header>
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md p-8 bg-white rounded-2xl shadow-lg text-center"
-          >
-            <UserCircle className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-text mb-2">No Role Assigned</h2>
-            <p className="text-text-secondary mb-4">
-              Your account has been created but no role has been assigned yet. 
-              Please contact your administrator to assign you a role (Teacher, Student, Parent, etc.) 
-              so you can access the system.
-            </p>
-            <div className="p-4 bg-blue-50 rounded-xl text-sm text-blue-800">
-              <p><strong>Email:</strong> {user.email}</p>
-              <p className="mt-2">Contact your school administrator to complete your account setup.</p>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    );
+    return <NoRoleScreen user={user} onLogout={handleLogout} />;
   }
 
   return (
