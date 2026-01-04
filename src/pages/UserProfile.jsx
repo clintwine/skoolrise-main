@@ -94,9 +94,9 @@ export default function UserProfile() {
   });
 
   const { data: allParents = [] } = useQuery({
-    queryKey: ['all-parents'],
+    queryKey: ['all-parents-for-linking'],
     queryFn: () => base44.entities.Parent.list(),
-    enabled: editMode && profileData?.role === 'student' && currentUser?.role === 'admin',
+    enabled: linkParentOpen || (editMode && profileData?.role === 'student' && currentUser?.role === 'admin'),
   });
 
   const [formData, setFormData] = useState({});
@@ -806,18 +806,24 @@ export default function UserProfile() {
               />
             </div>
             <div className="max-h-64 overflow-y-auto space-y-2">
-              {filteredParents.map((parent) => (
-                <div
-                  key={parent.id}
-                  onClick={() => setSelectedParentId(parent.id)}
-                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedParentId === parent.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <p className="font-medium text-gray-900">{parent.first_name} {parent.last_name}</p>
-                  <p className="text-sm text-gray-500">{parent.phone}</p>
+              {filteredParents.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  {parentSearch ? 'No parents found matching your search' : 'No parents available. Please add parents first.'}
                 </div>
-              ))}
+              ) : (
+                filteredParents.map((parent) => (
+                  <div
+                    key={parent.id}
+                    onClick={() => setSelectedParentId(parent.id)}
+                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                      selectedParentId === parent.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <p className="font-medium text-gray-900">{parent.first_name} {parent.last_name}</p>
+                    <p className="text-sm text-gray-500">{parent.phone}</p>
+                  </div>
+                ))
+              )}
             </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setLinkParentOpen(false)}>Cancel</Button>

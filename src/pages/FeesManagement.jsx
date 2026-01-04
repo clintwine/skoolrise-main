@@ -193,7 +193,7 @@ export default function FeesManagement() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-                        <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
+                        <Link to={createPageUrl('InvoiceDetail') + `?id=${invoice.id}`}>
                           <Button variant="outline" size="sm">View</Button>
                         </Link>
                       </td>
