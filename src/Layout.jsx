@@ -195,18 +195,18 @@ export default function Layout({ children, currentPageName }) {
         ]
       },
       {
-        id: 'academics',
-        groupName: 'ACADEMICS & RECORDS',
-        items: [
-          { name: 'Unified Attendance', icon: CheckSquare, path: 'UnifiedAttendance' },
-          { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
-          { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
-          { name: 'Behavior Analytics', icon: TrendingUp, path: 'BehaviorAnalytics' },
-          { name: 'Report Cards', icon: FileText, path: 'ReportCardsManagement' },
-          { name: 'Curriculum Mapping', icon: BookOpen, path: 'CurriculumMapping' },
-          { name: 'Conference Scheduling', icon: Calendar, path: 'ConferenceScheduling' },
-        ]
-      },
+          id: 'academics',
+          groupName: 'ACADEMICS & RECORDS',
+          items: [
+            { name: 'Unified Attendance', icon: CheckSquare, path: 'UnifiedAttendance' },
+            { name: 'Assignments', icon: ClipboardList, path: 'AssignmentManagement' },
+            { name: 'Behavior', icon: Award, path: 'BehaviorManagement' },
+            { name: 'Behavior Analytics', icon: TrendingUp, path: 'BehaviorAnalytics' },
+            { name: 'Report Cards', icon: FileText, path: 'ReportCardsManagement' },
+            { name: 'Curriculum Mapping', icon: BookOpen, path: 'CurriculumMapping' },
+            { name: 'Conferences', icon: Calendar, path: 'ConferenceScheduling' },
+          ]
+        },
       {
         id: 'cbt',
         groupName: 'CBT / EXAMINATIONS',
@@ -339,19 +339,19 @@ export default function Layout({ children, currentPageName }) {
 
     const parentGroups = [
       {
-        id: 'parent-home',
-        groupName: 'PARENT PORTAL',
-        items: [
-          { name: 'Home', icon: Home, path: 'ParentPortal' },
-          { name: 'My Children', icon: Users, path: 'ParentStudentView' },
-          { name: 'Calendar', icon: Calendar, path: 'ParentCalendar' },
-          { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
-          { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },
-          { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },
-          { name: 'Reports', icon: FileText, path: 'ParentReports' },
-          { name: 'Behavior', icon: Award, path: 'ParentBehavior' },
-        ]
-      }
+            id: 'parent-home',
+            groupName: 'PARENT PORTAL',
+            items: [
+              { name: 'Home', icon: Home, path: 'ParentPortal' },
+              { name: 'My Children', icon: Users, path: 'ParentStudentView' },
+              { name: 'Conferences', icon: Calendar, path: 'ParentConferences' },
+              { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
+              { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },
+              { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },
+              { name: 'Reports', icon: FileText, path: 'ParentReports' },
+              { name: 'Behavior', icon: Award, path: 'ParentBehavior' },
+            ]
+          }
     ];
 
     if (isAdmin) return adminGroups;

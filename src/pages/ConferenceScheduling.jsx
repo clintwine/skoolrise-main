@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, Video, Phone, Users, Plus } from 'lucide-react';
+import { Calendar, Clock, Video, Phone, Users, Plus, Settings } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import TeacherAvailabilityManager from '../components/conference/TeacherAvailabilityManager';
 
 export default function ConferenceScheduling() {
   const [user, setUser] = useState(null);
@@ -44,6 +46,13 @@ export default function ConferenceScheduling() {
     queryKey: ['students'],
     queryFn: () => base44.entities.Student.list(),
   });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: () => base44.entities.Teacher.list(),
+  });
+
+  const currentTeacher = teachers.find(t => t.user_id === user?.id);
 
   const createConferenceMutation = useMutation({
     mutationFn: async (data) => {
@@ -250,6 +259,19 @@ export default function ConferenceScheduling() {
         </CardContent>
       </Card>
 
+      <Tabs defaultValue="upcoming" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="upcoming">Upcoming Conferences</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+          {(user?.role === 'admin' || currentTeacher) && (
+            <TabsTrigger value="availability">
+              <Settings className="w-4 h-4 mr-1" />
+              My Availability
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="upcoming">
       <Card>
         <CardHeader>
           <CardTitle>Upcoming Conferences</CardTitle>
@@ -302,6 +324,90 @@ export default function ConferenceScheduling() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Calendar View - {format(currentDate, 'MMMM yyyy')}</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
+                  >
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
+                    Today
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center font-semibold text-gray-600 p-2">
+                    {day}
+                  </div>
+                ))}
+                {daysInMonth.map((day, idx) => {
+                  const dayConferences = getConferencesForDay(day);
+                  const isToday = isSameDay(day, new Date());
+                  return (
+                    <div
+                      key={idx}
+                      className={`min-h-24 border rounded-lg p-2 hover:bg-blue-50 cursor-pointer transition-colors ${isToday ? 'bg-blue-50 border-blue-300' : ''}`}
+                      onClick={() => {
+                        setBookingForm({
+                          ...bookingForm,
+                          scheduled_date: format(day, "yyyy-MM-dd'T'09:00"),
+                        });
+                        setShowBookingForm(true);
+                      }}
+                    >
+                      <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
+                        {format(day, 'd')}
+                      </div>
+                      <div className="space-y-1">
+                        {dayConferences.map(conf => (
+                          <div
+                            key={conf.id}
+                            className="text-xs p-1 rounded bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedConference(conf);
+                            }}
+                          >
+                            {format(new Date(conf.scheduled_date), 'h:mm a')}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {(user?.role === 'admin' || currentTeacher) && (
+          <TabsContent value="availability">
+            <TeacherAvailabilityManager 
+              teacherId={currentTeacher?.id || user?.id}
+              teacherName={currentTeacher ? `${currentTeacher.first_name} ${currentTeacher.last_name}` : user?.full_name}
+            />
+          </TabsContent>
+        )}
+      </Tabs>
 
       <Dialog open={showBookingForm} onOpenChange={setShowBookingForm}>
         <DialogContent className="bg-white">

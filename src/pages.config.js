@@ -103,6 +103,7 @@ import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
 import AuditLogs from './pages/AuditLogs';
 import ScheduledReports from './pages/ScheduledReports';
+import ParentConferences from './pages/ParentConferences';
 import __Layout from './Layout.jsx';
 
 
@@ -212,6 +213,7 @@ export const PAGES = {
     "VendorProfile": VendorProfile,
     "AuditLogs": AuditLogs,
     "ScheduledReports": ScheduledReports,
+    "ParentConferences": ParentConferences,
 }
 
 export const pagesConfig = {
