@@ -4,8 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle } from 'lucide-react';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function InventoryView() {
+  const { formatAmount } = useCurrency();
+  
   const { data: inventory = [] } = useQuery({
     queryKey: ['book-inventory'],
     queryFn: () => base44.entities.BookInventory.list(),
@@ -51,8 +54,8 @@ export default function InventoryView() {
                         {item.current_stock}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{item.reorder_level}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">${item.cost_price?.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-green-600">${item.retail_price?.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{formatAmount(item.cost_price)}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-green-600">{formatAmount(item.retail_price)}</td>
                       <td className="px-6 py-4">
                         <Badge className={
                           item.status === 'In Stock' ? 'bg-green-100 text-green-800' :

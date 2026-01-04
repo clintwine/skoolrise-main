@@ -8,10 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { Package } from 'lucide-react';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function PurchaseOrdersView() {
   const [selectedPO, setSelectedPO] = useState(null);
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   const { data: purchaseOrders = [] } = useQuery({
     queryKey: ['purchase-orders'],
@@ -127,7 +129,7 @@ export default function PurchaseOrdersView() {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {po.order_date ? format(new Date(po.order_date), 'MMM d, yyyy') : '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">${po.total_cost?.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">{formatAmount(po.total_cost)}</td>
                     <td className="px-6 py-4">
                       <Badge className={statusColors[po.status]}>{po.status}</Badge>
                     </td>
@@ -212,8 +214,8 @@ export default function PurchaseOrdersView() {
                           <tr key={idx}>
                             <td className="px-4 py-2 text-sm">{item.title}</td>
                             <td className="px-4 py-2 text-sm">{item.quantity}</td>
-                            <td className="px-4 py-2 text-sm">${item.unit_price}</td>
-                            <td className="px-4 py-2 text-sm font-semibold">${item.total}</td>
+                            <td className="px-4 py-2 text-sm">{formatAmount(item.unit_price)}</td>
+                            <td className="px-4 py-2 text-sm font-semibold">{formatAmount(item.total)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -224,7 +226,7 @@ export default function PurchaseOrdersView() {
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total Cost:</span>
-                    <span className="text-xl font-bold text-green-600">${selectedPO.total_cost?.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-green-600">{formatAmount(selectedPO.total_cost)}</span>
                   </div>
                 </div>
               </div>

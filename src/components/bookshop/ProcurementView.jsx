@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ShoppingCart, Camera, CheckCircle, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import Scanner from '../Scanner';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ProcurementView({ scannerEnabled }) {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -16,6 +17,7 @@ export default function ProcurementView({ scannerEnabled }) {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [scannedBook, setScannedBook] = useState(null);
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   const { data: catalogItems = [] } = useQuery({
     queryKey: ['book-catalog'],
@@ -186,7 +188,7 @@ export default function ProcurementView({ scannerEnabled }) {
                     <td className="px-6 py-4 text-sm text-gray-600">{item.author || '-'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{item.grade_level || '-'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{item.vendor_name}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-green-600">${item.wholesale_price}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-green-600">{formatAmount(item.wholesale_price)}</td>
                     <td className="px-6 py-4">
                       <Badge className={item.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
                         {item.status}
