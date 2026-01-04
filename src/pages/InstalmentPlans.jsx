@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function InstalmentPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
   const queryClient = useQueryClient();
+  const { formatAmount, symbol } = useCurrency();
 
   const { data: plans = [] } = useQuery({
     queryKey: ['instalment-plans'],
@@ -147,15 +149,15 @@ export default function InstalmentPlans() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Amount:</span>
-                    <span className="font-bold">${plan.total_amount?.toLocaleString()}</span>
+                    <span className="font-bold">{formatAmount(plan.total_amount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Amount Paid:</span>
-                    <span className="font-bold text-green-600">${plan.amount_paid?.toLocaleString()}</span>
+                    <span className="font-bold text-green-600">{formatAmount(plan.amount_paid)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Remaining:</span>
-                    <span className="font-bold text-orange-600">${(plan.total_amount - plan.amount_paid)?.toLocaleString()}</span>
+                    <span className="font-bold text-orange-600">{formatAmount(plan.total_amount - plan.amount_paid)}</span>
                   </div>
                 </div>
 
@@ -201,11 +203,11 @@ export default function InstalmentPlans() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Amount</p>
-                    <p className="font-semibold">${selectedPlan.total_amount?.toLocaleString()}</p>
+                    <p className="font-semibold">{formatAmount(selectedPlan.total_amount)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Amount Paid</p>
-                    <p className="font-semibold text-green-600">${selectedPlan.amount_paid?.toLocaleString()}</p>
+                    <p className="font-semibold text-green-600">{formatAmount(selectedPlan.amount_paid)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Instalments</p>
@@ -246,7 +248,7 @@ export default function InstalmentPlans() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">${inst.amount?.toFixed(2)}</p>
+                          <p className="font-bold">{formatAmount(inst.amount)}</p>
                           <Badge className={instalmentStatusColors[inst.status]}>{inst.status}</Badge>
                         </div>
                       </div>
@@ -260,7 +262,7 @@ export default function InstalmentPlans() {
                   <h3 className="font-semibold mb-3">Record Payment</h3>
                   <div className="space-y-3">
                     <div>
-                      <Label>Payment Amount ($)</Label>
+                      <Label>Payment Amount ({symbol})</Label>
                       <Input type="number" step="0.01" value={paymentAmount} onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)} placeholder="Enter amount" />
                     </div>
                     <Button onClick={recordPayment} disabled={paymentAmount <= 0} className="w-full bg-blue-600 hover:bg-blue-700">

@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function CreateInvoice() {
   const navigate = useNavigate();
+  const { formatAmount, symbol } = useCurrency();
   const [formData, setFormData] = useState({
     student_id: '',
     session_id: '',
@@ -295,7 +297,7 @@ export default function CreateInvoice() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Discount Amount ($)</Label>
+                <Label>Discount Amount ({symbol})</Label>
                 <Input type="number" step="0.01" value={formData.discount_amount} onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) || 0 })} />
               </div>
               <div>
@@ -303,7 +305,7 @@ export default function CreateInvoice() {
                 <Input placeholder="e.g., Scholarship, Early payment" value={formData.discount_reason} onChange={(e) => setFormData({ ...formData, discount_reason: e.target.value })} />
               </div>
               <div>
-                <Label>Penalty Amount ($)</Label>
+                <Label>Penalty Amount ({symbol})</Label>
                 <Input type="number" step="0.01" value={formData.penalty_amount} onChange={(e) => setFormData({ ...formData, penalty_amount: parseFloat(e.target.value) || 0 })} />
               </div>
             </div>
@@ -324,7 +326,7 @@ export default function CreateInvoice() {
                 <Label>Number of Instalments</Label>
                 <Input type="number" min="2" max="12" value={formData.number_of_instalments} onChange={(e) => setFormData({ ...formData, number_of_instalments: parseInt(e.target.value) || 1 })} />
                 <p className="text-sm text-gray-600 mt-1">
-                  Each instalment: ${(total / formData.number_of_instalments).toFixed(2)}
+                  Each instalment: {formatAmount(total / formData.number_of_instalments)}
                 </p>
               </div>
             )}
@@ -339,23 +341,23 @@ export default function CreateInvoice() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold">{formatAmount(subtotal)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>Discount:</span>
-                  <span>-${discount.toFixed(2)}</span>
+                  <span>-{formatAmount(discount)}</span>
                 </div>
               )}
               {penalty > 0 && (
                 <div className="flex justify-between text-sm text-red-600">
                   <span>Penalty:</span>
-                  <span>+${penalty.toFixed(2)}</span>
+                  <span>+{formatAmount(penalty)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
                 <span>Total Amount:</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatAmount(total)}</span>
               </div>
             </div>
           </CardContent>

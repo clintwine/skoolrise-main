@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DollarSign, CreditCard, Download, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ParentFees() {
   const [user, setUser] = useState(null);
@@ -14,6 +15,7 @@ export default function ParentFees() {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('paystack');
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -96,19 +98,19 @@ export default function ParentFees() {
     // Simulate payment gateway integration
     if (method === 'paystack') {
       // In production: integrate Paystack
-      alert(`Redirecting to Paystack to pay $${amount}...`);
+      alert(`Redirecting to Paystack to pay ${formatAmount(amount)}...`);
       setTimeout(() => {
         paymentMutation.mutate({ invoiceId: selectedInvoice.id, amount, method: 'Paystack' });
       }, 1500);
     } else if (method === 'stripe') {
       // In production: integrate Stripe
-      alert(`Redirecting to Stripe to pay $${amount}...`);
+      alert(`Redirecting to Stripe to pay ${formatAmount(amount)}...`);
       setTimeout(() => {
         paymentMutation.mutate({ invoiceId: selectedInvoice.id, amount, method: 'Stripe' });
       }, 1500);
     } else if (method === 'flutterwave') {
       // In production: integrate Flutterwave
-      alert(`Redirecting to Flutterwave to pay $${amount}...`);
+      alert(`Redirecting to Flutterwave to pay ${formatAmount(amount)}...`);
       setTimeout(() => {
         paymentMutation.mutate({ invoiceId: selectedInvoice.id, amount, method: 'Flutterwave' });
       }, 1500);
@@ -146,7 +148,7 @@ export default function ParentFees() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Invoiced</p>
-                <p className="text-2xl font-bold text-blue-600">${invoices.reduce((sum, inv) => sum + inv.total_amount, 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatAmount(invoices.reduce((sum, inv) => sum + inv.total_amount, 0))}</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-600" />
             </div>
@@ -157,7 +159,7 @@ export default function ParentFees() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
@@ -168,7 +170,7 @@ export default function ParentFees() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Outstanding</p>
-                <p className="text-2xl font-bold text-orange-600">${totalOutstanding.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatAmount(totalOutstanding)}</p>
               </div>
               <CreditCard className="w-8 h-8 text-orange-600" />
             </div>
@@ -203,9 +205,9 @@ export default function ParentFees() {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {format(new Date(invoice.due_date), 'MMM d, yyyy')}
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">${invoice.total_amount.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-sm text-green-600">${invoice.amount_paid.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-orange-600">${invoice.balance.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">{formatAmount(invoice.total_amount)}</td>
+                    <td className="px-6 py-4 text-sm text-green-600">{formatAmount(invoice.amount_paid)}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-orange-600">{formatAmount(invoice.balance)}</td>
                     <td className="px-6 py-4">
                       <Badge className={statusColors[invoice.status]}>{invoice.status}</Badge>
                     </td>
@@ -248,7 +250,7 @@ export default function ParentFees() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-600">${payment.amount.toLocaleString()}</p>
+                  <p className="font-bold text-green-600">{formatAmount(payment.amount)}</p>
                   <Badge className="bg-green-100 text-green-800">{payment.status}</Badge>
                 </div>
               </div>
@@ -276,7 +278,7 @@ export default function ParentFees() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount Due:</span>
-                  <span className="font-bold text-orange-600">${selectedInvoice.balance.toLocaleString()}</span>
+                  <span className="font-bold text-orange-600">{formatAmount(selectedInvoice.balance)}</span>
                 </div>
               </div>
 
