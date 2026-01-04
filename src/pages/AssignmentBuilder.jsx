@@ -47,6 +47,8 @@ export default function AssignmentBuilder() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [questionCount, setQuestionCount] = useState(5);
+  const [aiSourceFile, setAiSourceFile] = useState(null);
+  const [aiSourceFileUrl, setAiSourceFileUrl] = useState('');
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -168,20 +170,35 @@ export default function AssignmentBuilder() {
     { value: 'Research', label: 'Research', icon: Search },
   ];
 
+  const handleAIFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setAiSourceFile(file);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAiSourceFileUrl(file_url);
+      toast.success('File uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload file');
+      setAiSourceFile(null);
+    }
+  };
+
   const handleAIGenerate = async () => {
-    if (!aiPrompt.trim()) {
-      toast.error('Please enter a topic or description');
+    if (!aiPrompt.trim() && !aiSourceFileUrl) {
+      toast.error('Please enter a topic or upload a source file');
       return;
     }
 
     setAiGenerating(true);
     try {
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Generate ${questionCount} multiple choice questions about: ${aiPrompt}
+      const promptText = `Generate ${questionCount} multiple choice questions${aiPrompt ? ` about: ${aiPrompt}` : ' based on the provided source material'}.
 
 Each question should have 4 options with one correct answer.
 Make questions educational and appropriate for students.
 Vary the difficulty (easy, medium, hard).
+${aiSourceFileUrl ? 'Use the uploaded file as the source material for generating questions.' : ''}
 
 Return as JSON array with this exact structure:
 {
@@ -195,7 +212,11 @@ Return as JSON array with this exact structure:
       "explanation": "Brief explanation why this is correct"
     }
   ]
-}`,
+}`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: promptText,
+        file_urls: aiSourceFileUrl ? [aiSourceFileUrl] : undefined,
         response_json_schema: {
           type: "object",
           properties: {
@@ -233,6 +254,8 @@ Return as JSON array with this exact structure:
         toast.success(`Generated ${newQuestions.length} questions!`);
         setAiGenerateOpen(false);
         setAiPrompt('');
+        setAiSourceFile(null);
+        setAiSourceFileUrl('');
       }
     } catch (error) {
       console.error('AI generation error:', error);
@@ -527,6 +550,31 @@ Return as JSON array with this exact structure:
                 className="mt-1"
               />
             </div>
+            
+            <div>
+              <Label>Upload Source Material (Optional)</Label>
+              <p className="text-xs text-gray-500 mb-2">Upload a PDF, image, or document for the AI to generate questions from</p>
+              <Input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
+                onChange={handleAIFileUpload}
+                className="mt-1"
+              />
+              {aiSourceFile && (
+                <div className="mt-2 p-2 bg-green-50 rounded-lg flex items-center justify-between">
+                  <span className="text-sm text-green-700">{aiSourceFile.name}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => { setAiSourceFile(null); setAiSourceFileUrl(''); }}
+                    className="text-red-500 h-6 px-2"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div>
               <Label>Number of Questions</Label>
               <div className="flex gap-2 mt-1">
@@ -546,6 +594,7 @@ Return as JSON array with this exact structure:
             <div className="bg-purple-50 p-3 rounded-lg text-sm text-purple-800">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="list-disc list-inside space-y-1 text-purple-700">
+                <li>Enter a topic OR upload source material (or both)</li>
                 <li>AI will generate multiple choice questions</li>
                 <li>Each question includes correct answer and explanation</li>
                 <li>You can edit or remove any generated question</li>
@@ -555,7 +604,7 @@ Return as JSON array with this exact structure:
               <Button variant="outline" onClick={() => setAiGenerateOpen(false)}>Cancel</Button>
               <Button 
                 onClick={handleAIGenerate} 
-                disabled={aiGenerating || !aiPrompt.trim()}
+                disabled={aiGenerating || (!aiPrompt.trim() && !aiSourceFileUrl)}
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 {aiGenerating ? (

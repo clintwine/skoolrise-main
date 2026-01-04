@@ -107,22 +107,36 @@ export default function NotificationsSettings() {
       return;
     }
 
-    if (!emailConfig.from_email || !emailConfig.from_name) {
-      toast.error('Please fill in From Name and From Email before testing');
+    if (!emailConfig.from_name) {
+      toast.error('Please fill in "From Name" before testing');
       return;
     }
 
     setTesting({ ...testing, email: true });
     try {
+      // Build detailed test message showing current configuration
+      const configDetails = emailConfig.provider === 'smtp' 
+        ? `SMTP Host: ${emailConfig.smtp_host || 'Not set'}\nPort: ${emailConfig.smtp_port || 'Not set'}\nEncryption: ${emailConfig.smtp_encryption || 'None'}`
+        : `API Provider: ${emailConfig.api_provider || 'Not set'}`;
+
       await base44.integrations.Core.SendEmail({
         to: testEmail,
-        subject: 'Test Email from ' + (emailConfig.from_name || 'SkoolRise'),
-        body: 'This is a test email.\n\nConfiguration: ' + emailConfig.provider + '\nFrom: ' + (emailConfig.from_name || 'SkoolRise') + ' <' + emailConfig.from_email + '>\n\nIf you received this email, your notification settings are configured correctly.',
-        from_name: emailConfig.from_name || "SkoolRise Notifications",
+        subject: `Test Email - ${emailConfig.from_name}`,
+        body: `This is a test email to verify your notification settings.\n\n` +
+              `=== Configuration Being Tested ===\n` +
+              `From Name: ${emailConfig.from_name}\n` +
+              `From Email: ${emailConfig.from_email || 'Using default'}\n` +
+              `Provider Type: ${emailConfig.provider === 'smtp' ? 'SMTP' : 'API'}\n` +
+              `${configDetails}\n\n` +
+              `=== Result ===\n` +
+              `✅ If you received this email, your configuration is working correctly!\n` +
+              `You can now save your settings.\n\n` +
+              `Sent at: ${new Date().toLocaleString()}`,
+        from_name: emailConfig.from_name,
       });
-      toast.success('Test email sent from ' + emailConfig.from_name + '! Check your inbox.');
+      toast.success(`Test email sent successfully to ${testEmail}! Check your inbox to confirm delivery.`);
     } catch (error) {
-      toast.error('Failed to send test email: ' + error.message);
+      toast.error(`Failed to send test email: ${error.message}. Please check your configuration.`);
     } finally {
       setTesting({ ...testing, email: false });
     }
