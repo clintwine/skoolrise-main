@@ -8,9 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Plus, Save, CheckCircle, Sparkles, 
-  GripVertical, X, BookOpen, ChevronLeft, Map
+  GripVertical, X, BookOpen, ChevronLeft, Map,
+  ClipboardList, HelpCircle, FolderKanban, FileText,
+  FlaskConical, Video, Search, Loader2
 } from 'lucide-react';
 import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +43,10 @@ export default function AssignmentBuilder() {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
   const [questionBankOpen, setQuestionBankOpen] = useState(false);
+  const [aiGenerateOpen, setAiGenerateOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [questionCount, setQuestionCount] = useState(5);
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -151,14 +159,88 @@ export default function AssignmentBuilder() {
   const totalPoints = selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
 
   const assignmentTypes = [
-    { value: 'Homework', label: 'Homework', icon: '📝' },
-    { value: 'Quiz', label: 'Quiz', icon: '❓' },
-    { value: 'Project', label: 'Project', icon: '🎯' },
-    { value: 'Essay', label: 'Essay', icon: '✍️' },
-    { value: 'Lab', label: 'Lab', icon: '🔬' },
-    { value: 'Video', label: 'Video', icon: '🎥' },
-    { value: 'Research', label: 'Research', icon: '📚' },
+    { value: 'Homework', label: 'Homework', icon: ClipboardList },
+    { value: 'Quiz', label: 'Quiz', icon: HelpCircle },
+    { value: 'Project', label: 'Project', icon: FolderKanban },
+    { value: 'Essay', label: 'Essay', icon: FileText },
+    { value: 'Lab', label: 'Lab', icon: FlaskConical },
+    { value: 'Video', label: 'Video', icon: Video },
+    { value: 'Research', label: 'Research', icon: Search },
   ];
+
+  const handleAIGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error('Please enter a topic or description');
+      return;
+    }
+
+    setAiGenerating(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate ${questionCount} multiple choice questions about: ${aiPrompt}
+
+Each question should have 4 options with one correct answer.
+Make questions educational and appropriate for students.
+Vary the difficulty (easy, medium, hard).
+
+Return as JSON array with this exact structure:
+{
+  "questions": [
+    {
+      "question_text": "Question here?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct_answer": "Option A",
+      "difficulty": "Medium",
+      "points": 2,
+      "explanation": "Brief explanation why this is correct"
+    }
+  ]
+}`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  question_text: { type: "string" },
+                  options: { type: "array", items: { type: "string" } },
+                  correct_answer: { type: "string" },
+                  difficulty: { type: "string" },
+                  points: { type: "number" },
+                  explanation: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (response.questions && response.questions.length > 0) {
+        const newQuestions = response.questions.map((q, idx) => ({
+          id: `temp_ai_${Date.now()}_${idx}`,
+          question_text: q.question_text,
+          question_type: 'Multiple Choice',
+          options: JSON.stringify(q.options),
+          correct_answer: q.correct_answer,
+          difficulty: q.difficulty || 'Medium',
+          points: q.points || 2,
+          explanation: q.explanation || '',
+        }));
+
+        setSelectedQuestions([...selectedQuestions, ...newQuestions]);
+        toast.success(`Generated ${newQuestions.length} questions!`);
+        setAiGenerateOpen(false);
+        setAiPrompt('');
+      }
+    } catch (error) {
+      console.error('AI generation error:', error);
+      toast.error('Failed to generate questions. Please try again.');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col bg-gray-50">
@@ -206,20 +288,27 @@ export default function AssignmentBuilder() {
               <div>
                 <Label className="text-xs uppercase text-gray-500">TYPE</Label>
                 <div className="grid grid-cols-4 gap-2 mt-2">
-                  {assignmentTypes.map((type) => (
-                    <button
-                      key={type.value}
-                      onClick={() => setAssignmentData({ ...assignmentData, type: type.value })}
-                      className={`p-3 rounded-lg border transition-all ${
-                        assignmentData.type === type.value
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">{type.icon}</div>
-                      <p className="text-xs font-medium">{type.label}</p>
-                    </button>
-                  ))}
+                  {assignmentTypes.map((type) => {
+                    const IconComponent = type.icon;
+                    return (
+                      <button
+                        key={type.value}
+                        onClick={() => setAssignmentData({ ...assignmentData, type: type.value })}
+                        className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center ${
+                          assignmentData.type === type.value
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <IconComponent className={`w-5 h-5 mb-1 ${
+                          assignmentData.type === type.value ? 'text-blue-600' : 'text-gray-500'
+                        }`} />
+                        <p className={`text-xs font-medium ${
+                          assignmentData.type === type.value ? 'text-blue-700' : 'text-gray-700'
+                        }`}>{type.label}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -315,6 +404,10 @@ export default function AssignmentBuilder() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setAiGenerateOpen(true)} className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Generate
+              </Button>
               <Button variant="outline" onClick={() => setQuestionBankOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add from Bank
@@ -411,6 +504,74 @@ export default function AssignmentBuilder() {
         question={null}
         onSubmit={handleCreateNewQuestion}
       />
+
+      {/* AI Generate Dialog */}
+      <Dialog open={aiGenerateOpen} onOpenChange={setAiGenerateOpen}>
+        <DialogContent className="bg-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              Generate Questions with AI
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Topic or Description</Label>
+              <Textarea
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="e.g., Photosynthesis process in plants, or World War II causes and effects..."
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Number of Questions</Label>
+              <div className="flex gap-2 mt-1">
+                {[3, 5, 10, 15].map((num) => (
+                  <Button
+                    key={num}
+                    variant={questionCount === num ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setQuestionCount(num)}
+                    className={questionCount === num ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                  >
+                    {num}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-purple-50 p-3 rounded-lg text-sm text-purple-800">
+              <p className="font-medium mb-1">How it works:</p>
+              <ul className="list-disc list-inside space-y-1 text-purple-700">
+                <li>AI will generate multiple choice questions</li>
+                <li>Each question includes correct answer and explanation</li>
+                <li>You can edit or remove any generated question</li>
+              </ul>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => setAiGenerateOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleAIGenerate} 
+                disabled={aiGenerating || !aiPrompt.trim()}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {aiGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate {questionCount} Questions
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
