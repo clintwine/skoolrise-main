@@ -107,6 +107,19 @@ export default function NotificationsSettings() {
       return;
     }
 
+    // Validate configuration before testing
+    if (emailConfig.provider === 'smtp') {
+      if (!emailConfig.smtp_host || !emailConfig.smtp_username || !emailConfig.smtp_password) {
+        toast.error('Please complete SMTP configuration (host, username, password) before testing');
+        return;
+      }
+    } else if (emailConfig.provider === 'api') {
+      if (!emailConfig.api_key) {
+        toast.error('Please provide API key before testing');
+        return;
+      }
+    }
+
     if (!emailConfig.from_name) {
       toast.error('Please fill in "From Name" before testing');
       return;
@@ -114,29 +127,34 @@ export default function NotificationsSettings() {
 
     setTesting({ ...testing, email: true });
     try {
-      // Build detailed test message showing current configuration
       const configDetails = emailConfig.provider === 'smtp' 
-        ? `SMTP Host: ${emailConfig.smtp_host || 'Not set'}\nPort: ${emailConfig.smtp_port || 'Not set'}\nEncryption: ${emailConfig.smtp_encryption || 'None'}`
-        : `API Provider: ${emailConfig.api_provider || 'Not set'}`;
+        ? `SMTP Host: ${emailConfig.smtp_host}\nPort: ${emailConfig.smtp_port}\nEncryption: ${emailConfig.smtp_encryption}`
+        : `API Provider: ${emailConfig.api_provider}\nSending Domain: ${emailConfig.sending_domain || emailConfig.from_email}`;
 
-      await base44.integrations.Core.SendEmail({
+      // Use custom email function to test with actual configuration
+      const response = await base44.functions.invoke('sendCustomEmail', {
         to: testEmail,
         subject: `Test Email - ${emailConfig.from_name}`,
         body: `This is a test email to verify your notification settings.\n\n` +
               `=== Configuration Being Tested ===\n` +
               `From Name: ${emailConfig.from_name}\n` +
-              `From Email: ${emailConfig.from_email || 'Using default'}\n` +
+              `From Email: ${emailConfig.from_email}\n` +
               `Provider Type: ${emailConfig.provider === 'smtp' ? 'SMTP' : 'API'}\n` +
               `${configDetails}\n\n` +
               `=== Result ===\n` +
               `✅ If you received this email, your configuration is working correctly!\n` +
               `You can now save your settings.\n\n` +
               `Sent at: ${new Date().toLocaleString()}`,
-        from_name: emailConfig.from_name,
+        config: emailConfig,
       });
-      toast.success(`Test email sent successfully to ${testEmail}! Check your inbox to confirm delivery.`);
+
+      if (response.data.success) {
+        toast.success(`✅ Test email sent successfully via ${emailConfig.provider === 'smtp' ? 'SMTP' : emailConfig.api_provider}! Check ${testEmail} to confirm delivery.`);
+      } else {
+        toast.error(`❌ ${response.data.error || 'Failed to send test email'}`);
+      }
     } catch (error) {
-      toast.error(`Failed to send test email: ${error.message}. Please check your configuration.`);
+      toast.error(`❌ Failed to send: ${error.message}. Please verify your configuration.`);
     } finally {
       setTesting({ ...testing, email: false });
     }
@@ -402,7 +420,10 @@ export default function NotificationsSettings() {
               </div>
 
               <div className="border-t pt-4">
-                <Label>Send Test Email</Label>
+                <Label>Test Configuration</Label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Test your email settings before saving. The system will use your configured provider ({emailConfig.provider === 'smtp' ? 'SMTP' : emailConfig.api_provider || 'API'}).
+                </p>
                 <div className="flex gap-2 mt-2">
                   <Input
                     type="email"
@@ -411,11 +432,11 @@ export default function NotificationsSettings() {
                     onChange={(e) => setTestEmail(e.target.value)}
                   />
                   <Button onClick={handleTestEmail} disabled={testing.email} className="bg-blue-600 hover:bg-blue-700">
-                    {testing.email ? 'Sending...' : 'Send Test'}
+                    {testing.email ? 'Testing...' : 'Test Now'}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Note: Test email uses Base44 service. Save configuration first, then implement a backend function for production SMTP/API sending.
+                <p className="text-xs text-green-600 mt-2">
+                  ✓ This will test with your actual configuration. If successful, you can save the settings.
                 </p>
               </div>
 

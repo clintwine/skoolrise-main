@@ -9,66 +9,92 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { to, subject, body, attachments } = await req.json();
+    const { to, subject, body, config } = await req.json();
 
-    if (!to || !subject || !body) {
-      return Response.json({ error: 'Missing required fields: to, subject, body' }, { status: 400 });
+    if (!to || !subject || !body || !config) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get user's email configuration
-    if (!user.email_settings) {
-      return Response.json({ 
-        error: 'No email configuration found. Please configure email settings first.' 
-      }, { status: 400 });
-    }
+    let result;
 
-    const emailConfig = JSON.parse(user.email_settings);
+    if (config.provider === 'smtp') {
+      // SMTP sending
+      if (!config.smtp_host || !config.smtp_username || !config.smtp_password) {
+        return Response.json({ 
+          success: false, 
+          error: 'SMTP configuration incomplete. Please provide host, username, and password.' 
+        }, { status: 400 });
+      }
 
-    // Handle different email providers
-    if (emailConfig.provider === 'api') {
-      // API-based providers (Resend, SendGrid, Mailgun)
-      if (emailConfig.api_provider === 'resend') {
+      // Use nodemailer via npm
+      const nodemailer = await import('npm:nodemailer@6.9.9');
+      
+      const transporter = nodemailer.default.createTransport({
+        host: config.smtp_host,
+        port: parseInt(config.smtp_port) || 587,
+        secure: config.smtp_encryption === 'SSL',
+        auth: {
+          user: config.smtp_username,
+          pass: config.smtp_password,
+        },
+      });
+
+      result = await transporter.sendMail({
+        from: config.from_email 
+          ? `"${config.from_name || 'SkoolRise'}" <${config.from_email}>`
+          : config.smtp_username,
+        to,
+        subject,
+        text: body,
+      });
+
+    } else if (config.provider === 'api') {
+      // API-based sending (Resend, SendGrid, etc.)
+      if (!config.api_key) {
+        return Response.json({ 
+          success: false, 
+          error: 'API key is required for API-based email sending.' 
+        }, { status: 400 });
+      }
+
+      if (config.api_provider === 'resend') {
         const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${emailConfig.api_key}`,
+            'Authorization': `Bearer ${config.api_key}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: emailConfig.from_name 
-              ? `${emailConfig.from_name} <${emailConfig.from_email}>` 
-              : emailConfig.from_email,
+            from: config.from_email || config.sending_domain || 'onboarding@resend.dev',
             to: [to],
-            subject: subject,
+            subject,
             text: body,
           }),
         });
 
-        const data = await response.json();
+        result = await response.json();
         
         if (!response.ok) {
           return Response.json({ 
-            error: 'Failed to send email via Resend', 
-            details: data 
+            success: false, 
+            error: `Resend API error: ${result.message || 'Unknown error'}` 
           }, { status: response.status });
         }
 
-        return Response.json({ success: true, provider: 'resend', messageId: data.id });
-
-      } else if (emailConfig.api_provider === 'sendgrid') {
+      } else if (config.api_provider === 'sendgrid') {
         const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${emailConfig.api_key}`,
+            'Authorization': `Bearer ${config.api_key}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             personalizations: [{ to: [{ email: to }] }],
             from: { 
-              email: emailConfig.from_email,
-              name: emailConfig.from_name || 'SkoolRise'
+              email: config.from_email || config.sending_domain,
+              name: config.from_name || 'SkoolRise'
             },
-            subject: subject,
+            subject,
             content: [{ type: 'text/plain', value: body }],
           }),
         });
@@ -76,60 +102,60 @@ Deno.serve(async (req) => {
         if (!response.ok) {
           const error = await response.text();
           return Response.json({ 
-            error: 'Failed to send email via SendGrid', 
-            details: error 
+            success: false, 
+            error: `SendGrid API error: ${error}` 
           }, { status: response.status });
         }
+        result = { id: 'sendgrid-success' };
 
-        return Response.json({ success: true, provider: 'sendgrid' });
-
-      } else if (emailConfig.api_provider === 'mailgun') {
-        const domain = emailConfig.sending_domain || 'sandbox.mailgun.org';
-        const formData = new FormData();
-        formData.append('from', emailConfig.from_name 
-          ? `${emailConfig.from_name} <${emailConfig.from_email}>` 
-          : emailConfig.from_email);
-        formData.append('to', to);
-        formData.append('subject', subject);
-        formData.append('text', body);
-
+      } else if (config.api_provider === 'mailgun') {
+        const domain = config.sending_domain || 'sandbox.mailgun.org';
         const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
           method: 'POST',
           headers: {
-            'Authorization': `Basic ${btoa(`api:${emailConfig.api_key}`)}`,
+            'Authorization': `Basic ${btoa(`api:${config.api_key}`)}`,
           },
-          body: formData,
+          body: new URLSearchParams({
+            from: `${config.from_name || 'SkoolRise'} <${config.from_email || `mailgun@${domain}`}>`,
+            to,
+            subject,
+            text: body,
+          }),
         });
 
-        const data = await response.json();
-
+        result = await response.json();
+        
         if (!response.ok) {
           return Response.json({ 
-            error: 'Failed to send email via Mailgun', 
-            details: data 
+            success: false, 
+            error: `Mailgun API error: ${result.message || 'Unknown error'}` 
           }, { status: response.status });
         }
 
-        return Response.json({ success: true, provider: 'mailgun', messageId: data.id });
+      } else {
+        return Response.json({ 
+          success: false, 
+          error: `Unsupported API provider: ${config.api_provider}` 
+        }, { status: 400 });
       }
-
-    } else if (emailConfig.provider === 'smtp') {
-      // For SMTP, we'll use a simpler approach via SendGrid's SMTP relay or similar
-      // Note: Direct SMTP in Deno requires more complex setup, so we'll use an HTTP-to-SMTP service
+    } else {
       return Response.json({ 
-        error: 'SMTP support requires additional configuration. Please use API-based providers (Resend, SendGrid, Mailgun) for now.' 
+        success: false, 
+        error: 'Invalid provider type. Use "smtp" or "api".' 
       }, { status: 400 });
     }
 
     return Response.json({ 
-      error: 'Unsupported email provider configuration' 
-    }, { status: 400 });
+      success: true, 
+      message: 'Email sent successfully',
+      result 
+    });
 
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Email sending error:', error);
     return Response.json({ 
-      error: 'Failed to send email', 
-      details: error.message 
+      success: false, 
+      error: error.message || 'Failed to send email' 
     }, { status: 500 });
   }
 });
