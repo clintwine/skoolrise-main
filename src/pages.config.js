@@ -106,6 +106,9 @@ import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
 import ParentSchoolShop from './pages/ParentSchoolShop';
 import ParentActivities from './pages/ParentActivities';
+import SchoolShopManagement from './pages/SchoolShopManagement';
+import TripsManagement from './pages/TripsManagement';
+import ClubsManagement from './pages/ClubsManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -218,6 +221,9 @@ export const PAGES = {
     "VendorProfile": VendorProfile,
     "ParentSchoolShop": ParentSchoolShop,
     "ParentActivities": ParentActivities,
+    "SchoolShopManagement": SchoolShopManagement,
+    "TripsManagement": TripsManagement,
+    "ClubsManagement": ClubsManagement,
 }
 
 export const pagesConfig = {

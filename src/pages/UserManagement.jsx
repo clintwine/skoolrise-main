@@ -177,10 +177,13 @@ export default function UserManagement() {
       return;
     }
 
-    // CRITICAL: If assigning admin user_type, also set role to 'admin' for full access
+    // CRITICAL: Set role based on user_type - admin gets 'admin' role, others get 'user' role
     const updateData = { user_type: editingUserType };
     if (editingUserType === 'admin') {
       updateData.role = 'admin';
+    } else {
+      // When switching away from admin, reset role to 'user'
+      updateData.role = 'user';
     }
 
     await updateUserMutation.mutateAsync({
@@ -197,10 +200,12 @@ export default function UserManagement() {
   };
 
   const handleConfirmChange = async () => {
-    // CRITICAL: If assigning admin user_type, also set role to 'admin' for full access
+    // CRITICAL: Set role based on user_type - admin gets 'admin' role, others get 'user' role
     const updateData = { user_type: editingUserType };
     if (editingUserType === 'admin') {
       updateData.role = 'admin';
+    } else {
+      updateData.role = 'user';
     }
 
     await updateUserMutation.mutateAsync({
