@@ -267,37 +267,37 @@ export default function UserProfile() {
       {/* Header Card */}
       <Card className="overflow-hidden rounded-2xl shadow-lg">
         <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600" />
-        <CardContent className="relative pt-0 pb-6 px-6">
-          <div className="flex items-end justify-between -mt-12">
-            <div className="flex items-end gap-4">
-              <div className="relative w-24 h-24 rounded-full bg-gray-100 border-4 border-white shadow-lg flex items-center justify-center group">
-                {profile?.photo_url ? (
-                  <img src={profile.photo_url} alt="" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <span className="text-3xl font-bold text-gray-600">{getInitials()}</span>
+        <CardContent className="relative pt-16 pb-6 px-6">
+          <div className="absolute -top-12 left-6">
+            <div className="relative w-24 h-24 rounded-full bg-gray-100 border-4 border-white shadow-lg flex items-center justify-center group">
+              {profile?.photo_url ? (
+                <img src={profile.photo_url} alt="" className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <span className="text-3xl font-bold text-gray-600">{getInitials()}</span>
+              )}
+              {editMode && (
+                <div className="absolute inset-0 rounded-full bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                {userRecord?.title && (
+                  <span className="text-lg font-medium text-gray-700">{userRecord.title}</span>
                 )}
-                {editMode && (
-                  <div className="absolute inset-0 rounded-full bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                )}
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {profile?.first_name} {profile?.last_name}
+                </h1>
               </div>
-              <div className="pb-2">
-                <div className="flex items-center gap-2">
-                  {userRecord?.title && (
-                    <span className="text-lg font-medium text-gray-700">{userRecord.title}</span>
-                  )}
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {profile?.first_name} {profile?.last_name}
-                  </h1>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge className={getRoleBadge()}>{role?.toUpperCase()}</Badge>
-                  <span className="text-sm text-gray-500 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {profile?.address || 'No location set'}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge className={getRoleBadge()}>{role?.toUpperCase()}</Badge>
+                <span className="text-sm text-gray-500 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {profile?.address || 'No location set'}
+                </span>
               </div>
             </div>
             {canEdit && !editMode && (

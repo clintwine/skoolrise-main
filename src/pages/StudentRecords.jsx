@@ -46,7 +46,25 @@ export default function StudentRecords() {
 
   const linkParentMutation = useMutation({
     mutationFn: async ({ studentId, parentId }) => {
+      // Update student's parent_id
       await base44.entities.Student.update(studentId, { parent_id: parentId });
+      
+      // Also update parent's linked_student_ids to sync both sides
+      const parent = parents.find(p => p.id === parentId);
+      if (parent) {
+        let linkedIds = [];
+        try {
+          linkedIds = parent.linked_student_ids ? JSON.parse(parent.linked_student_ids) : [];
+        } catch (e) {
+          linkedIds = [];
+        }
+        if (!linkedIds.includes(studentId)) {
+          linkedIds.push(studentId);
+          await base44.entities.Parent.update(parentId, { 
+            linked_student_ids: JSON.stringify(linkedIds) 
+          });
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
@@ -229,7 +247,6 @@ export default function StudentRecords() {
                           )}
                           <div>
                             <p className="font-medium text-text">{student.first_name} {student.last_name}</p>
-                            <p className="text-xs text-text-secondary">DOB: {student.date_of_birth || 'N/A'}</p>
                           </div>
                         </div>
                       </td>

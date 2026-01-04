@@ -139,7 +139,7 @@ export default function ParentManagement() {
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">Mr./Mrs. {parent.last_name}</p>
+                            <p className="font-medium text-gray-900">{parent.first_name} {parent.last_name}</p>
                           </div>
                         </div>
                       </td>
