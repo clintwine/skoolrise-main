@@ -9,56 +9,47 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Check if demo users already exist
-    const existingUsers = await base44.asServiceRole.entities.User.list();
-    const demoTeacherExists = existingUsers.some(u => u.email === 'teacher@demo.com');
-    const demoStudentExists = existingUsers.some(u => u.email === 'student@demo.com');
+    // Step 1: Delete all existing data
+    const entitiesToClear = [
+      'Submission', 'AssignmentQuestion', 'Assignment', 'QuestionBank',
+      'Timetable', 'Enrollment', 'Attendance', 'Behavior', 'ReportCard',
+      'FeeInvoice', 'Payment', 'FeeReminder', 'Expense', 'Salary',
+      'Student', 'Parent', 'Teacher', 'Vendor',
+      'Class', 'ClassArm', 'Course', 'Subject',
+      'Term', 'AcademicSession', 'GradingScale',
+      'AuditLog', 'AnalyticsEvent', 'CachedData', 'ScheduledReport',
+      'Notification', 'Message', 'MessageThread'
+    ];
 
-    let demoTeacherUserId, demoStudentUserId;
-
-    // Create demo users if they don't exist
-    if (!demoTeacherExists) {
-      await base44.users.inviteUser('teacher@demo.com', 'admin');
-      const users = await base44.asServiceRole.entities.User.list();
-      const teacherUser = users.find(u => u.email === 'teacher@demo.com');
-      demoTeacherUserId = teacherUser?.id;
-      
-      // Update user profile
-      if (demoTeacherUserId) {
-        await base44.asServiceRole.entities.User.update(demoTeacherUserId, {
-          full_name: 'Demo Teacher',
-          profile_completed: true,
-          is_activated: true,
-          user_types: ['teacher'],
-        });
+    for (const entityName of entitiesToClear) {
+      try {
+        const items = await base44.asServiceRole.entities[entityName].list();
+        for (const item of items) {
+          await base44.asServiceRole.entities[entityName].delete(item.id);
+        }
+      } catch (e) {
+        console.log(`Skipping ${entityName}: ${e.message}`);
       }
-    } else {
-      const users = await base44.asServiceRole.entities.User.list();
-      const teacherUser = users.find(u => u.email === 'teacher@demo.com');
-      demoTeacherUserId = teacherUser?.id;
     }
 
-    if (!demoStudentExists) {
-      await base44.users.inviteUser('student@demo.com', 'user');
-      const users = await base44.asServiceRole.entities.User.list();
-      const studentUser = users.find(u => u.email === 'student@demo.com');
-      demoStudentUserId = studentUser?.id;
-      
-      if (demoStudentUserId) {
-        await base44.asServiceRole.entities.User.update(demoStudentUserId, {
-          full_name: 'Demo Student',
-          profile_completed: true,
-          is_activated: true,
-          user_types: ['student'],
-        });
-      }
-    } else {
-      const users = await base44.asServiceRole.entities.User.list();
-      const studentUser = users.find(u => u.email === 'student@demo.com');
-      demoStudentUserId = studentUser?.id;
+    // Step 2: Create School Info
+    const schools = await base44.asServiceRole.entities.School.list();
+    let school = schools[0];
+    if (!school) {
+      school = await base44.asServiceRole.entities.School.create({
+        school_name: 'SkoolRise Academy',
+        school_code: 'SKR001',
+        address: '123 Education Lane, Knowledge City',
+        phone: '+1 234 567 8900',
+        email: 'info@skoolrise.com',
+        website: 'https://skoolrise.com',
+        motto: 'Excellence in Education',
+        principal_name: 'Dr. Sarah Johnson',
+        currency: 'USD',
+      });
     }
 
-    // Create Academic Session
+    // Step 3: Create Academic Session and Terms
     const session = await base44.asServiceRole.entities.AcademicSession.create({
       session_name: '2025-2026',
       start_date: '2025-09-01',
@@ -67,8 +58,7 @@ Deno.serve(async (req) => {
       status: 'Active',
     });
 
-    // Create Term
-    const term = await base44.asServiceRole.entities.Term.create({
+    const term1 = await base44.asServiceRole.entities.Term.create({
       session_id: session.id,
       term_name: 'First Term',
       term_number: 1,
@@ -78,245 +68,428 @@ Deno.serve(async (req) => {
       status: 'Active',
     });
 
-    // Create Teacher Profile
-    const teacher = await base44.asServiceRole.entities.Teacher.create({
-      user_id: demoTeacherUserId,
-      first_name: 'Demo',
-      last_name: 'Teacher',
-      staff_id: 'TCH001',
-      department: 'Mathematics',
-      position: 'Senior Teacher',
-      hire_date: '2020-01-15',
-      status: 'Active',
-      qualifications: 'BSc Mathematics, MEd Education',
-    });
-
-    // Create Student Profile
-    const student = await base44.asServiceRole.entities.Student.create({
-      user_id: demoStudentUserId,
-      first_name: 'Demo',
-      last_name: 'Student',
-      student_id_number: 'STU001',
-      date_of_birth: '2010-05-15',
-      gender: 'Male',
-      admission_date: '2024-09-01',
-      grade_level: '10',
-      status: 'Active',
-    });
-
-    // Create Course
-    const course = await base44.asServiceRole.entities.Course.create({
-      course_code: 'MATH101',
-      course_name: 'Mathematics',
-      description: 'General Mathematics for Grade 10',
-      department: 'Mathematics',
-      grade_level: '10',
-      credits: 3,
-      status: 'Active',
-    });
-
-    // Create Class Arm
-    const classArm = await base44.asServiceRole.entities.ClassArm.create({
-      name: 'Grade 10A',
-      grade_level: '10',
-      capacity: 30,
-      class_teacher_id: teacher.id,
-      class_teacher_name: 'Demo Teacher',
-      academic_year: '2025-2026',
-      status: 'Active',
-    });
-
-    // Create Class
-    const classEntity = await base44.asServiceRole.entities.Class.create({
-      class_name: 'Mathematics - Grade 10A',
-      course_id: course.id,
-      teacher_id: teacher.id,
-      teacher_name: 'Demo Teacher',
-      schedule: 'Mon/Wed/Fri 9:00-10:00',
-      room: 'Room 101',
-      academic_year: '2025-2026',
-      term: 'Fall',
-      max_students: 30,
-      status: 'Active',
-    });
-
-    // Create Enrollment
-    await base44.asServiceRole.entities.Enrollment.create({
-      student_id: student.id,
-      student_name: 'Demo Student',
-      class_id: classEntity.id,
-      class_name: 'Mathematics - Grade 10A',
-      enrollment_date: '2025-09-01',
-      status: 'Enrolled',
-    });
-
-    // Create Timetable entries
-    const timetableSlots = [
-      { day: 'Monday', period: 1, start: '09:00', end: '10:00', subject: 'Mathematics', room: 'Room 101' },
-      { day: 'Monday', period: 2, start: '10:15', end: '11:15', subject: 'Physics', room: 'Lab 201' },
-      { day: 'Wednesday', period: 1, start: '09:00', end: '10:00', subject: 'Mathematics', room: 'Room 101' },
-      { day: 'Wednesday', period: 3, start: '13:00', end: '14:00', subject: 'Chemistry', room: 'Lab 202' },
-      { day: 'Friday', period: 1, start: '09:00', end: '10:00', subject: 'Mathematics', room: 'Room 101' },
-      { day: 'Friday', period: 2, start: '10:15', end: '11:15', subject: 'Biology', room: 'Lab 203' },
+    // Step 4: Create Subjects
+    const subjectsData = [
+      { subject_name: 'Mathematics', subject_code: 'MATH', department: 'Sciences', is_core: true },
+      { subject_name: 'English Language', subject_code: 'ENG', department: 'Languages', is_core: true },
+      { subject_name: 'Physics', subject_code: 'PHY', department: 'Sciences', is_core: true },
+      { subject_name: 'Chemistry', subject_code: 'CHEM', department: 'Sciences', is_core: true },
+      { subject_name: 'Biology', subject_code: 'BIO', department: 'Sciences', is_core: true },
+      { subject_name: 'History', subject_code: 'HIST', department: 'Arts', is_core: false },
+      { subject_name: 'Geography', subject_code: 'GEO', department: 'Arts', is_core: false },
+      { subject_name: 'Computer Science', subject_code: 'CS', department: 'Technology', is_core: false },
     ];
 
-    for (const slot of timetableSlots) {
-      await base44.asServiceRole.entities.Timetable.create({
-        class_arm_id: classArm.id,
-        class_arm_name: classArm.name,
-        day_of_week: slot.day,
-        period_number: slot.period,
-        start_time: slot.start,
-        end_time: slot.end,
-        subject: slot.subject,
-        teacher_id: teacher.id,
-        teacher_name: 'Demo Teacher',
-        room: slot.room,
-        session_id: session.id,
-        term_id: term.id,
+    const subjects = [];
+    for (const s of subjectsData) {
+      const subject = await base44.asServiceRole.entities.Subject.create({ ...s, status: 'Active' });
+      subjects.push(subject);
+    }
+
+    // Step 5: Create Grading Scale
+    const grades = [
+      { grade: 'A', min_score: 90, max_score: 100, grade_point: 4.0, remark: 'Excellent' },
+      { grade: 'B', min_score: 80, max_score: 89, grade_point: 3.0, remark: 'Very Good' },
+      { grade: 'C', min_score: 70, max_score: 79, grade_point: 2.0, remark: 'Good' },
+      { grade: 'D', min_score: 60, max_score: 69, grade_point: 1.0, remark: 'Pass' },
+      { grade: 'F', min_score: 0, max_score: 59, grade_point: 0.0, remark: 'Fail' },
+    ];
+
+    for (const g of grades) {
+      await base44.asServiceRole.entities.GradingScale.create({ ...g, scale_name: 'Standard', is_active: true });
+    }
+
+    // Step 6: Get or create demo users
+    const existingUsers = await base44.asServiceRole.entities.User.list();
+    
+    // Find or create teacher user
+    let teacherUser = existingUsers.find(u => u.email === 'teacher@demo.com');
+    if (!teacherUser) {
+      await base44.users.inviteUser('teacher@demo.com', 'user');
+      const users = await base44.asServiceRole.entities.User.list();
+      teacherUser = users.find(u => u.email === 'teacher@demo.com');
+    }
+    if (teacherUser) {
+      await base44.asServiceRole.entities.User.update(teacherUser.id, {
+        full_name: 'John Smith',
+        title: 'Mr',
+        profile_completed: true,
+        is_activated: true,
+        user_type: 'teacher',
       });
     }
 
-    // Create 30+ Questions in Question Bank
-    const questions = [
-      // Mathematics MCQ
+    // Find or create parent user
+    let parentUser = existingUsers.find(u => u.email === 'parent@demo.com');
+    if (!parentUser) {
+      await base44.users.inviteUser('parent@demo.com', 'user');
+      const users = await base44.asServiceRole.entities.User.list();
+      parentUser = users.find(u => u.email === 'parent@demo.com');
+    }
+    if (parentUser) {
+      await base44.asServiceRole.entities.User.update(parentUser.id, {
+        full_name: 'Mary Johnson',
+        title: 'Mrs',
+        profile_completed: true,
+        is_activated: true,
+        user_type: 'parent',
+      });
+    }
+
+    // Find or create student user
+    let studentUser = existingUsers.find(u => u.email === 'student@demo.com');
+    if (!studentUser) {
+      await base44.users.inviteUser('student@demo.com', 'user');
+      const users = await base44.asServiceRole.entities.User.list();
+      studentUser = users.find(u => u.email === 'student@demo.com');
+    }
+    if (studentUser) {
+      await base44.asServiceRole.entities.User.update(studentUser.id, {
+        full_name: 'James Johnson',
+        title: 'Mr',
+        profile_completed: true,
+        is_activated: true,
+        user_type: 'student',
+      });
+    }
+
+    // Step 7: Create Teacher Profiles
+    const teachersData = [
+      { first_name: 'John', last_name: 'Smith', staff_id: 'TCH001', department: 'Mathematics', position: 'Head of Department', user_id: teacherUser?.id },
+      { first_name: 'Emily', last_name: 'Davis', staff_id: 'TCH002', department: 'Sciences', position: 'Senior Teacher' },
+      { first_name: 'Michael', last_name: 'Brown', staff_id: 'TCH003', department: 'Languages', position: 'Teacher' },
+      { first_name: 'Sarah', last_name: 'Wilson', staff_id: 'TCH004', department: 'Arts', position: 'Teacher' },
+    ];
+
+    const teachers = [];
+    for (const t of teachersData) {
+      const teacher = await base44.asServiceRole.entities.Teacher.create({
+        ...t,
+        hire_date: '2020-01-15',
+        status: 'Active',
+        qualifications: 'MSc, B.Ed',
+        phone: '+1 555 ' + Math.floor(Math.random() * 9000000 + 1000000),
+      });
+      teachers.push(teacher);
+    }
+
+    // Step 8: Create Parent Profile
+    const parent = await base44.asServiceRole.entities.Parent.create({
+      user_id: parentUser?.id,
+      first_name: 'Mary',
+      last_name: 'Johnson',
+      phone: '+1 555 1234567',
+      address: '456 Family Street, Hometown',
+    });
+
+    // Step 9: Create Class Arms
+    const classArmsData = [
+      { arm_name: 'A', grade_level: '10', class_teacher_id: teachers[0].id, max_students: 35 },
+      { arm_name: 'B', grade_level: '10', class_teacher_id: teachers[1].id, max_students: 35 },
+      { arm_name: 'A', grade_level: '11', class_teacher_id: teachers[2].id, max_students: 30 },
+      { arm_name: 'A', grade_level: '12', class_teacher_id: teachers[3].id, max_students: 30 },
+    ];
+
+    const classArms = [];
+    for (const ca of classArmsData) {
+      const teacher = teachers.find(t => t.id === ca.class_teacher_id);
+      const classArm = await base44.asServiceRole.entities.ClassArm.create({
+        ...ca,
+        class_teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : '',
+        room: `Room ${ca.grade_level}${ca.arm_name}`,
+        status: 'Active',
+      });
+      classArms.push(classArm);
+    }
+
+    // Step 10: Create Students
+    const studentsData = [
+      { first_name: 'James', last_name: 'Johnson', grade_level: '10', gender: 'Male', user_id: studentUser?.id },
+      { first_name: 'Emma', last_name: 'Williams', grade_level: '10', gender: 'Female' },
+      { first_name: 'Oliver', last_name: 'Brown', grade_level: '10', gender: 'Male' },
+      { first_name: 'Sophia', last_name: 'Miller', grade_level: '10', gender: 'Female' },
+      { first_name: 'Liam', last_name: 'Davis', grade_level: '11', gender: 'Male' },
+      { first_name: 'Ava', last_name: 'Garcia', grade_level: '11', gender: 'Female' },
+      { first_name: 'Noah', last_name: 'Martinez', grade_level: '12', gender: 'Male' },
+      { first_name: 'Isabella', last_name: 'Rodriguez', grade_level: '12', gender: 'Female' },
+    ];
+
+    const students = [];
+    for (let i = 0; i < studentsData.length; i++) {
+      const s = studentsData[i];
+      const student = await base44.asServiceRole.entities.Student.create({
+        ...s,
+        student_id_number: `STU${String(i + 1).padStart(3, '0')}`,
+        date_of_birth: `200${8 + Math.floor(i / 2)}-0${(i % 12) + 1}-${10 + i}`,
+        admission_date: '2024-09-01',
+        status: 'Active',
+        parent_id: i === 0 ? parent.id : null,
+        parent_email: i === 0 ? 'parent@demo.com' : null,
+      });
+      students.push(student);
+    }
+
+    // Update parent with linked student IDs
+    if (parentUser) {
+      await base44.asServiceRole.entities.User.update(parentUser.id, {
+        parent_of_student_ids: students[0].id,
+      });
+    }
+
+    // Step 11: Create Enrollments
+    for (const student of students) {
+      const classArm = classArms.find(ca => ca.grade_level === student.grade_level);
+      if (classArm) {
+        await base44.asServiceRole.entities.Enrollment.create({
+          student_id: student.id,
+          student_name: `${student.first_name} ${student.last_name}`,
+          class_arm_id: classArm.id,
+          class_name: `Grade ${classArm.grade_level} - ${classArm.arm_name}`,
+          enrollment_date: '2025-09-01',
+          session_id: session.id,
+          status: 'Enrolled',
+        });
+      }
+    }
+
+    // Step 12: Create Timetable
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const periods = [
+      { period: 1, start: '08:00', end: '08:45' },
+      { period: 2, start: '08:50', end: '09:35' },
+      { period: 3, start: '09:40', end: '10:25' },
+      { period: 4, start: '10:45', end: '11:30' },
+      { period: 5, start: '11:35', end: '12:20' },
+      { period: 6, start: '13:00', end: '13:45' },
+      { period: 7, start: '13:50', end: '14:35' },
+    ];
+
+    for (const classArm of classArms.slice(0, 2)) {
+      for (const day of days) {
+        for (let i = 0; i < Math.min(5, periods.length); i++) {
+          const p = periods[i];
+          const subjectIdx = (days.indexOf(day) + i) % subjects.length;
+          const teacherIdx = i % teachers.length;
+          
+          await base44.asServiceRole.entities.Timetable.create({
+            class_arm_id: classArm.id,
+            class_arm_name: `Grade ${classArm.grade_level} - ${classArm.arm_name}`,
+            day_of_week: day,
+            period_number: p.period,
+            start_time: p.start,
+            end_time: p.end,
+            subject: subjects[subjectIdx].subject_name,
+            teacher_id: teachers[teacherIdx].id,
+            teacher_name: `${teachers[teacherIdx].first_name} ${teachers[teacherIdx].last_name}`,
+            room: classArm.room,
+            session_id: session.id,
+            term_id: term1.id,
+          });
+        }
+      }
+    }
+
+    // Step 13: Create Attendance Records (last 30 days)
+    const attendanceStatuses = ['Present', 'Present', 'Present', 'Present', 'Present', 'Late', 'Absent'];
+    for (let d = 0; d < 20; d++) {
+      const date = new Date();
+      date.setDate(date.getDate() - d);
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+      
+      for (const student of students) {
+        const status = attendanceStatuses[Math.floor(Math.random() * attendanceStatuses.length)];
+        await base44.asServiceRole.entities.Attendance.create({
+          student_id: student.id,
+          student_name: `${student.first_name} ${student.last_name}`,
+          date: date.toISOString().split('T')[0],
+          status: status,
+          type: 'School',
+          marked_by: teachers[0].id,
+          marked_by_name: `${teachers[0].first_name} ${teachers[0].last_name}`,
+        });
+      }
+    }
+
+    // Step 14: Create Fee Policies and Invoices
+    const feePolicy = await base44.asServiceRole.entities.FeePolicy.create({
+      name: 'Standard Tuition 2025-2026',
+      description: 'Regular tuition fees for all students',
+      amount: 5000,
+      fee_type: 'Tuition',
+      frequency: 'Term',
+      applicable_grades: 'All',
+      session_id: session.id,
+      is_active: true,
+    });
+
+    for (const student of students) {
+      const paid = Math.random() > 0.4;
+      const partialPaid = !paid && Math.random() > 0.5;
+      const amountPaid = paid ? 5000 : (partialPaid ? 2500 : 0);
+      
+      await base44.asServiceRole.entities.FeeInvoice.create({
+        invoice_number: `INV-${session.id.slice(-4)}-${student.student_id_number}`,
+        student_id: student.id,
+        student_name: `${student.first_name} ${student.last_name}`,
+        session_id: session.id,
+        term_id: term1.id,
+        fee_policy_id: feePolicy.id,
+        invoice_date: '2025-09-01',
+        due_date: '2025-09-30',
+        subtotal: 5000,
+        total_amount: 5000,
+        amount_paid: amountPaid,
+        balance: 5000 - amountPaid,
+        status: paid ? 'Paid' : (partialPaid ? 'Partially Paid' : (Math.random() > 0.5 ? 'Overdue' : 'Pending')),
+        fee_items: JSON.stringify([{ name: 'Tuition Fee', amount: 5000 }]),
+      });
+    }
+
+    // Step 15: Create Behavior Records
+    const behaviorTypes = ['Merit', 'Merit', 'Merit', 'Demerit', 'Warning'];
+    const behaviorCategories = ['Academic Excellence', 'Good Conduct', 'Leadership', 'Participation', 'Tardiness'];
+    
+    for (let i = 0; i < 15; i++) {
+      const student = students[Math.floor(Math.random() * students.length)];
+      const type = behaviorTypes[Math.floor(Math.random() * behaviorTypes.length)];
+      const category = behaviorCategories[Math.floor(Math.random() * behaviorCategories.length)];
+      const date = new Date();
+      date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+      
+      await base44.asServiceRole.entities.Behavior.create({
+        student_id: student.id,
+        student_name: `${student.first_name} ${student.last_name}`,
+        teacher_id: teachers[0].id,
+        teacher_name: `${teachers[0].first_name} ${teachers[0].last_name}`,
+        date: date.toISOString().split('T')[0],
+        type: type,
+        category: category,
+        points: type === 'Merit' ? Math.floor(Math.random() * 5) + 1 : -(Math.floor(Math.random() * 3) + 1),
+        description: `${type} for ${category.toLowerCase()}`,
+      });
+    }
+
+    // Step 16: Create Question Bank
+    const questionsData = [
       { text: 'What is 15 + 27?', type: 'Multiple Choice', options: ['40', '42', '44', '45'], correct: '42', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
       { text: 'Solve for x: 2x + 5 = 13', type: 'Multiple Choice', options: ['2', '3', '4', '5'], correct: '4', subject: 'Mathematics', difficulty: 'Medium', points: 3 },
       { text: 'What is the square root of 144?', type: 'Multiple Choice', options: ['10', '11', '12', '13'], correct: '12', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
       { text: 'What is 25% of 200?', type: 'Multiple Choice', options: ['25', '50', '75', '100'], correct: '50', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
-      { text: 'If a triangle has angles 60°, 60°, what is the third angle?', type: 'Multiple Choice', options: ['30°', '45°', '60°', '90°'], correct: '60°', subject: 'Mathematics', difficulty: 'Medium', points: 3 },
-      
-      // Science MCQ
-      { text: 'What is the chemical symbol for water?', type: 'Multiple Choice', options: ['H2O', 'CO2', 'O2', 'N2'], correct: 'H2O', subject: 'Science', difficulty: 'Easy', points: 2 },
+      { text: 'What is the chemical symbol for water?', type: 'Multiple Choice', options: ['H2O', 'CO2', 'O2', 'N2'], correct: 'H2O', subject: 'Chemistry', difficulty: 'Easy', points: 2 },
       { text: 'What is the speed of light?', type: 'Multiple Choice', options: ['300,000 km/s', '150,000 km/s', '450,000 km/s', '600,000 km/s'], correct: '300,000 km/s', subject: 'Physics', difficulty: 'Medium', points: 3 },
-      { text: 'What is the atomic number of Carbon?', type: 'Multiple Choice', options: ['4', '6', '8', '12'], correct: '6', subject: 'Chemistry', difficulty: 'Medium', points: 3 },
       { text: 'What is the powerhouse of the cell?', type: 'Multiple Choice', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'], correct: 'Mitochondria', subject: 'Biology', difficulty: 'Easy', points: 2 },
-      
-      // True/False
-      { text: 'The Earth revolves around the Sun.', type: 'True/False', options: ['True', 'False'], correct: 'True', subject: 'Science', difficulty: 'Easy', points: 1, explanation: 'Earth orbits the Sun in approximately 365.25 days.' },
-      { text: 'Water boils at 50°C at sea level.', type: 'True/False', options: ['True', 'False'], correct: 'False', subject: 'Physics', difficulty: 'Easy', points: 1, explanation: 'Water boils at 100°C at sea level.' },
-      { text: 'Pythagoras theorem only applies to right triangles.', type: 'True/False', options: ['True', 'False'], correct: 'True', subject: 'Mathematics', difficulty: 'Medium', points: 1 },
-      { text: 'Photosynthesis occurs in animal cells.', type: 'True/False', options: ['True', 'False'], correct: 'False', subject: 'Biology', difficulty: 'Easy', points: 1 },
-      { text: 'The square of 5 is 25.', type: 'True/False', options: ['True', 'False'], correct: 'True', subject: 'Mathematics', difficulty: 'Easy', points: 1 },
-      { text: 'Gold is a non-metal.', type: 'True/False', options: ['True', 'False'], correct: 'False', subject: 'Chemistry', difficulty: 'Easy', points: 1 },
-      
-      // Essay Questions
-      { text: 'Explain the process of photosynthesis and its importance to life on Earth.', type: 'Essay', options: '[]', correct: 'Photosynthesis converts light energy into chemical energy...', subject: 'Biology', difficulty: 'Hard', points: 10, model_answer: 'Photosynthesis is the process by which plants use sunlight, water, and carbon dioxide to produce oxygen and glucose. It occurs in chloroplasts and is essential for oxygen production and the food chain.' },
-      { text: 'Describe Newton\'s three laws of motion with examples.', type: 'Essay', options: '[]', correct: 'First law: inertia, Second law: F=ma, Third law: action-reaction', subject: 'Physics', difficulty: 'Hard', points: 10 },
-      { text: 'Discuss the importance of the water cycle to our ecosystem.', type: 'Essay', options: '[]', correct: 'Water cycle regulates climate, provides fresh water...', subject: 'Science', difficulty: 'Medium', points: 8 },
-      { text: 'Explain the concept of prime numbers and provide examples.', type: 'Theory', options: '[]', correct: 'Prime numbers are divisible only by 1 and themselves...', subject: 'Mathematics', difficulty: 'Medium', points: 5 },
-      
-      // More MCQ variations
+      { text: 'The Earth revolves around the Sun.', type: 'True/False', options: ['True', 'False'], correct: 'True', subject: 'Physics', difficulty: 'Easy', points: 1 },
+      { text: 'Water boils at 50°C at sea level.', type: 'True/False', options: ['True', 'False'], correct: 'False', subject: 'Physics', difficulty: 'Easy', points: 1 },
+      { text: 'Explain the process of photosynthesis.', type: 'Essay', options: '[]', correct: 'Photosynthesis converts light energy...', subject: 'Biology', difficulty: 'Hard', points: 10 },
       { text: 'What is 7 × 8?', type: 'Multiple Choice', options: ['54', '56', '58', '60'], correct: '56', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
-      { text: 'What is the capital of France?', type: 'Multiple Choice', options: ['London', 'Berlin', 'Paris', 'Rome'], correct: 'Paris', subject: 'Geography', difficulty: 'Easy', points: 2 },
-      { text: 'Who wrote Romeo and Juliet?', type: 'Multiple Choice', options: ['Charles Dickens', 'William Shakespeare', 'Jane Austen', 'Mark Twain'], correct: 'William Shakespeare', subject: 'Literature', difficulty: 'Easy', points: 2 },
-      { text: 'What is the longest river in the world?', type: 'Multiple Choice', options: ['Amazon', 'Nile', 'Yangtze', 'Mississippi'], correct: 'Nile', subject: 'Geography', difficulty: 'Medium', points: 3 },
+      { text: 'Who wrote Romeo and Juliet?', type: 'Multiple Choice', options: ['Charles Dickens', 'William Shakespeare', 'Jane Austen', 'Mark Twain'], correct: 'William Shakespeare', subject: 'English Language', difficulty: 'Easy', points: 2 },
       { text: 'What year did World War II end?', type: 'Multiple Choice', options: ['1943', '1944', '1945', '1946'], correct: '1945', subject: 'History', difficulty: 'Medium', points: 3 },
-      
-      // Advanced questions
-      { text: 'Solve the quadratic equation: x² - 5x + 6 = 0', type: 'Multiple Choice', options: ['x = 1, 6', 'x = 2, 3', 'x = -2, -3', 'x = 0, 5'], correct: 'x = 2, 3', subject: 'Mathematics', difficulty: 'Hard', points: 5 },
       { text: 'What is the derivative of x²?', type: 'Multiple Choice', options: ['x', '2x', 'x²', '2x²'], correct: '2x', subject: 'Mathematics', difficulty: 'Hard', points: 5 },
-      { text: 'Which planet is closest to the Sun?', type: 'Multiple Choice', options: ['Venus', 'Earth', 'Mercury', 'Mars'], correct: 'Mercury', subject: 'Science', difficulty: 'Easy', points: 2 },
-      { text: 'What is the chemical formula for table salt?', type: 'Multiple Choice', options: ['NaCl', 'KCl', 'CaCl2', 'MgCl2'], correct: 'NaCl', subject: 'Chemistry', difficulty: 'Easy', points: 2 },
-      { text: 'What is the boiling point of water in Fahrenheit?', type: 'Multiple Choice', options: ['100°F', '150°F', '212°F', '273°F'], correct: '212°F', subject: 'Physics', difficulty: 'Medium', points: 3 },
-      { text: 'How many continents are there?', type: 'Multiple Choice', options: ['5', '6', '7', '8'], correct: '7', subject: 'Geography', difficulty: 'Easy', points: 2 },
-      { text: 'What is the smallest prime number?', type: 'Multiple Choice', options: ['0', '1', '2', '3'], correct: '2', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
+      { text: 'Which planet is closest to the Sun?', type: 'Multiple Choice', options: ['Venus', 'Earth', 'Mercury', 'Mars'], correct: 'Mercury', subject: 'Physics', difficulty: 'Easy', points: 2 },
     ];
 
-    const createdQuestions = [];
-    for (const q of questions) {
+    const questions = [];
+    for (const q of questionsData) {
       const question = await base44.asServiceRole.entities.QuestionBank.create({
         question_text: q.text,
         question_type: q.type,
         options: JSON.stringify(q.options),
         correct_answer: q.correct,
-        correct_answers: [q.correct],
         subject: q.subject,
         difficulty: q.difficulty,
         points: q.points,
-        explanation: q.explanation || '',
-        model_answer: q.model_answer || '',
         status: 'Active',
       });
-      createdQuestions.push(question);
+      questions.push(question);
     }
 
-    // Create 10 Assignments with mixed statuses
-    const assignmentTypes = ['Homework', 'Quiz', 'Essay', 'Project', 'Lab'];
-    const assignmentStatuses = ['Published', 'Published', 'Published', 'Published', 'Published', 'Draft', 'Draft', 'Closed'];
-    
+    // Step 17: Create Assignments
+    const assignmentsData = [
+      { title: 'Math Homework Week 1', type: 'Homework', status: 'Published', daysFromNow: 7 },
+      { title: 'Physics Quiz Chapter 3', type: 'Quiz', status: 'Published', daysFromNow: 3 },
+      { title: 'Biology Essay: Ecosystems', type: 'Essay', status: 'Published', daysFromNow: 14 },
+      { title: 'Chemistry Lab Report', type: 'Lab', status: 'Draft', daysFromNow: 10 },
+      { title: 'History Project: World War II', type: 'Project', status: 'Published', daysFromNow: 21 },
+    ];
+
     const assignments = [];
-    for (let i = 0; i < 10; i++) {
-      const daysFromNow = i < 5 ? i + 2 : -(i - 5);
+    for (const a of assignmentsData) {
       const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + daysFromNow);
+      dueDate.setDate(dueDate.getDate() + a.daysFromNow);
       
       const assignment = await base44.asServiceRole.entities.Assignment.create({
-        title: `${assignmentTypes[i % assignmentTypes.length]} ${i + 1}: ${i < 3 ? 'Algebra Basics' : i < 6 ? 'Geometry Concepts' : 'Calculus Introduction'}`,
-        description: `<p>Complete the ${assignmentTypes[i % assignmentTypes.length].toLowerCase()} on the assigned topic. Show all your work.</p>`,
-        class_id: classEntity.id,
-        class_name: classEntity.class_name,
-        teacher_id: teacher.id,
+        title: a.title,
+        description: `<p>Complete this ${a.type.toLowerCase()} assignment.</p>`,
+        class_id: classArms[0].id,
+        class_name: `Grade ${classArms[0].grade_level} - ${classArms[0].arm_name}`,
+        teacher_id: teachers[0].id,
         due_date: dueDate.toISOString(),
-        max_points: i < 3 ? 20 : i < 6 ? 30 : 50,
-        type: assignmentTypes[i % assignmentTypes.length],
-        status: assignmentStatuses[i],
-        submission_type: 'Both',
+        max_points: a.type === 'Quiz' ? 20 : a.type === 'Project' ? 50 : 30,
+        type: a.type,
+        status: a.status,
       });
       assignments.push(assignment);
-
-      // Link 3-5 questions to Quiz assignments
-      if (assignment.type === 'Quiz' && assignment.status === 'Published') {
-        const questionsToAdd = createdQuestions.slice(i * 3, i * 3 + 5);
-        for (let j = 0; j < questionsToAdd.length; j++) {
-          await base44.asServiceRole.entities.AssignmentQuestion.create({
-            assignment_id: assignment.id,
-            question_bank_id: questionsToAdd[j].id,
-            order: j + 1,
-          });
-        }
-      }
     }
 
-    // Create Submissions for published assignments
-    const publishedAssignments = assignments.filter(a => a.status === 'Published');
-    for (let i = 0; i < Math.min(publishedAssignments.length, 6); i++) {
-      const assignment = publishedAssignments[i];
-      const submissionStatuses = ['Submitted', 'Submitted', 'Graded', 'Graded', 'Graded', 'Missing'];
-      const status = submissionStatuses[i];
+    // Step 18: Create Report Cards
+    for (const student of students.slice(0, 4)) {
+      const gradesArray = subjects.slice(0, 5).map(s => ({
+        subject: s.subject_name,
+        ca_score: Math.floor(Math.random() * 20) + 10,
+        exam_score: Math.floor(Math.random() * 40) + 30,
+        total: 0,
+        grade: '',
+      }));
       
-      if (status !== 'Missing') {
-        const submission = await base44.asServiceRole.entities.Submission.create({
-          assignment_id: assignment.id,
-          student_id: student.id,
-          student_name: 'Demo Student',
-          submitted_date: new Date().toISOString(),
-          content: status === 'Submitted' ? 'This is my submission for the assignment.' : '',
-          status: status,
-          is_late: i === 5,
-        });
+      gradesArray.forEach(g => {
+        g.total = g.ca_score + g.exam_score;
+        g.grade = g.total >= 90 ? 'A' : g.total >= 80 ? 'B' : g.total >= 70 ? 'C' : g.total >= 60 ? 'D' : 'F';
+      });
+      
+      const avgScore = gradesArray.reduce((sum, g) => sum + g.total, 0) / gradesArray.length;
+      
+      await base44.asServiceRole.entities.ReportCard.create({
+        student_id: student.id,
+        student_name: `${student.first_name} ${student.last_name}`,
+        session_id: session.id,
+        term_id: term1.id,
+        class_id: classArms[0].id,
+        grades: JSON.stringify(gradesArray),
+        average_score: Math.round(avgScore),
+        grade: avgScore >= 90 ? 'A' : avgScore >= 80 ? 'B' : avgScore >= 70 ? 'C' : avgScore >= 60 ? 'D' : 'F',
+        position: Math.floor(Math.random() * 8) + 1,
+        teacher_comment: 'Good progress this term. Keep up the excellent work!',
+        principal_comment: 'Well done. Continue to strive for excellence.',
+        status: 'Published',
+      });
+    }
 
-        if (status === 'Graded') {
-          const grade = Math.floor(Math.random() * 10) + (assignment.max_points * 0.6);
-          await base44.asServiceRole.entities.Submission.update(submission.id, {
-            grade: grade,
-            feedback: 'Good work! Keep it up.',
-          });
-        }
-      }
+    // Step 19: Create Fee Reminders
+    const overdueInvoices = await base44.asServiceRole.entities.FeeInvoice.filter({ status: 'Overdue' });
+    for (const invoice of overdueInvoices.slice(0, 3)) {
+      await base44.asServiceRole.entities.FeeReminder.create({
+        invoice_id: invoice.id,
+        student_id: invoice.student_id,
+        student_name: invoice.student_name,
+        reminder_type: 'Email',
+        reminder_date: new Date().toISOString(),
+        status: 'Sent',
+        message: `Dear Parent, this is a reminder that the fee payment of $${invoice.balance} is overdue.`,
+      });
     }
 
     return Response.json({ 
       success: true, 
-      message: 'Demo data seeded successfully!',
+      message: 'All data cleared and demo data seeded successfully!',
       data: {
+        school: school.id,
         session: session.id,
-        teacher: teacher.id,
-        student: student.id,
-        class: classEntity.id,
-        questions: createdQuestions.length,
+        subjects: subjects.length,
+        teachers: teachers.length,
+        students: students.length,
+        classArms: classArms.length,
+        questions: questions.length,
         assignments: assignments.length,
-        timetable: timetableSlots.length,
       }
     });
   } catch (error) {
