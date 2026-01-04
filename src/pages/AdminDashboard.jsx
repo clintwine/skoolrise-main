@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, GraduationCap, BookOpen, TrendingUp, CheckSquare, Award, DollarSign, AlertTriangle, Brain } from 'lucide-react';
+import { Users, GraduationCap, BookOpen, TrendingUp, CheckSquare, Award, DollarSign, AlertTriangle, Brain, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useCurrency } from '@/components/CurrencyProvider';
+import AIInsightsWidget from '../components/dashboard/AIInsightsWidget';
+import PredictiveAlerts from '../components/dashboard/PredictiveAlerts';
+import DashboardWidgetGrid from '../components/dashboard/DashboardWidgetGrid';
 
 export default function AdminDashboard() {
   const { formatAmount } = useCurrency();
+  const [widgetLayout, setWidgetLayout] = useState(null);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -85,6 +89,8 @@ export default function AdminDashboard() {
   ];
 
   return (
+    <DashboardWidgetGrid onLayoutChange={setWidgetLayout}>
+      {({ isWidgetEnabled }) => (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
@@ -99,6 +105,7 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
+      {isWidgetEnabled('students') && (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -121,8 +128,10 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {isWidgetEnabled('financial') && (
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -147,7 +156,9 @@ export default function AdminDashboard() {
               </div>
           </CardContent>
         </Card>
+        )}
 
+        {isWidgetEnabled('attendance') && (
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -172,8 +183,10 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
 
+      {isWidgetEnabled('performance') && (
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -194,48 +207,19 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <Card className="bg-gradient-to-br from-red-500 to-orange-600 text-white">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
-              AI: At-Risk Students
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-            <p className="text-2xl sm:text-3xl font-bold mb-2">{atRiskStudents.length}</p>
-            <p className="text-sm sm:text-base text-white/80 mb-3 sm:mb-4">Students identified as needing support</p>
-            <Link to={createPageUrl('StudentRecords')}>
-              <button className="px-3 py-2 sm:px-4 sm:py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm sm:text-base">
-                View Details
-              </button>
-            </Link>
-          </CardContent>
-        </Card>
+        {isWidgetEnabled('at-risk') && (
+        <PredictiveAlerts />
+        )}
 
-        <Card className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
-              AI Insights & Predictions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-            <div className="space-y-2 sm:space-y-3">
-              <p className="text-xs sm:text-sm text-white/90">✓ Curriculum areas needing improvement identified</p>
-              <p className="text-xs sm:text-sm text-white/90">✓ Teacher performance metrics analyzed</p>
-              <p className="text-xs sm:text-sm text-white/90">✓ Resource utilization optimized</p>
-              <Link to={createPageUrl('AdminReportsDashboard')}>
-                <button className="mt-3 sm:mt-4 px-3 py-2 sm:px-4 sm:py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm sm:text-base">
-                  View Full Analytics
-                </button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        {isWidgetEnabled('ai-insights') && (
+        <AIInsightsWidget />
+        )}
       </div>
 
+      {isWidgetEnabled('quick-actions') && (
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
@@ -247,7 +231,7 @@ export default function AdminDashboard() {
               <h3 className="font-semibold text-sm sm:text-base text-gray-900">Manage Students</h3>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">Add, edit, or view records</p>
             </Link>
-            <Link to={createPageUrl('AttendanceManagement')} className="p-3 sm:p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:shadow-md transition-all">
+            <Link to={createPageUrl('UnifiedAttendance')} className="p-3 sm:p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:shadow-md transition-all">
               <CheckSquare className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 mb-2" />
               <h3 className="font-semibold text-sm sm:text-base text-gray-900">Track Attendance</h3>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">Monitor attendance records</p>
@@ -260,6 +244,9 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
+      )}
+    </DashboardWidgetGrid>
   );
 }
