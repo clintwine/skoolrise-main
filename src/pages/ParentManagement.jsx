@@ -143,7 +143,7 @@ export default function ParentManagement() {
                         <div className="space-y-1 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
                             <Mail className="w-3 h-3" />
-                            <span>{userRecord?.email || 'N/A'}</span>
+                            <span>{parent.email || 'N/A'}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Phone className="w-3 h-3" />
