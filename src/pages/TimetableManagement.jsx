@@ -310,58 +310,6 @@ export default function TimetableManagement() {
         </CardContent>
       </Card>
 
-      {selectedClassArm && viewMode === 'list' && (
-        <Card className="bg-white shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Weekly Timetable
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {days.map(day => (
-                  <div key={day}>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{day}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {groupedByDay[day]?.map(slot => (
-                        <div
-                          key={slot.id}
-                          onClick={() => {
-                            setEditingSlot(slot);
-                            setIsFormOpen(true);
-                          }}
-                          className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 cursor-pointer transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-blue-600">Period {slot.period_number}</span>
-                            <span className="text-xs text-gray-600 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {slot.start_time} - {slot.end_time}
-                            </span>
-                          </div>
-                          <p className="font-semibold text-gray-900">{slot.subject}</p>
-                          <p className="text-sm text-gray-600">{slot.teacher_name}</p>
-                          {slot.room && <p className="text-xs text-gray-500">Room {slot.room}</p>}
-                        </div>
-                      ))}
-                    </div>
-                    {(!groupedByDay[day] || groupedByDay[day].length === 0) && (
-                      <p className="text-sm text-gray-500 italic">No periods scheduled</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {selectedClassArm && viewMode === 'calendar' && (
         <Card className="bg-white shadow-md">
           <CardHeader>
@@ -384,7 +332,6 @@ export default function TimetableManagement() {
                 </thead>
                 <tbody>
                   {timeSlots.map((slot, slotIdx) => {
-                    // Track which cells to skip due to rowSpan
                     const skipCells = {};
                     
                     return (
@@ -396,7 +343,6 @@ export default function TimetableManagement() {
                           const period = getPeriodForSlot(day, slot.start, slot.end);
                           const isStart = isStartingSlot(day, slot.start, period);
                           
-                          // If there's a period but this isn't the start, skip rendering (covered by rowSpan)
                           if (period && !isStart) {
                             return null;
                           }
@@ -450,6 +396,60 @@ export default function TimetableManagement() {
           </CardContent>
         </Card>
       )}
+
+      {selectedClassArm && viewMode === 'list' && (
+        <Card className="bg-white shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Weekly Timetable
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {days.map(day => (
+                  <div key={day}>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{day}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {groupedByDay[day]?.map(slot => (
+                        <div
+                          key={slot.id}
+                          onClick={() => {
+                            setEditingSlot(slot);
+                            setIsFormOpen(true);
+                          }}
+                          className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 cursor-pointer transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-blue-600">Period {slot.period_number}</span>
+                            <span className="text-xs text-gray-600 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {slot.start_time} - {slot.end_time}
+                            </span>
+                          </div>
+                          <p className="font-semibold text-gray-900">{slot.subject}</p>
+                          <p className="text-sm text-gray-600">{slot.teacher_name}</p>
+                          {slot.room && <p className="text-xs text-gray-500">Room {slot.room}</p>}
+                        </div>
+                      ))}
+                    </div>
+                    {(!groupedByDay[day] || groupedByDay[day].length === 0) && (
+                      <p className="text-sm text-gray-500 italic">No periods scheduled</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+
 
       {!selectedClassArm && (
         <Card>
@@ -632,6 +632,7 @@ function TimetableFormDialog({ open, onOpenChange, slot, teachers, onSubmit }) {
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                onBlur={(e) => e.target.blur()}
                 required
               />
             </div>
@@ -641,6 +642,7 @@ function TimetableFormDialog({ open, onOpenChange, slot, teachers, onSubmit }) {
                 type="time"
                 value={formData.end_time}
                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                onBlur={(e) => e.target.blur()}
                 required
               />
             </div>

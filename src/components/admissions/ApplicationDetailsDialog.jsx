@@ -31,14 +31,18 @@ export default function ApplicationDetailsDialog({ open, onOpenChange, applicati
   if (!application) return null;
 
   const handleUpdateStage = () => {
-    onUpdate(application.id, {
+    const updates = {
       application_stage: stage,
       status: status,
       interview_date: interviewDate,
       interview_notes: interviewNotes,
       enrollment_deadline: enrollmentDeadline,
       destination_data: destinationData,
-    });
+    };
+    onUpdate(application.id, updates);
+    
+    // Update local state to reflect changes immediately
+    Object.assign(application, updates);
     setIsEditingStage(false);
   };
 
@@ -68,7 +72,7 @@ export default function ApplicationDetailsDialog({ open, onOpenChange, applicati
               <p className="text-gray-600">{application.application_number}</p>
             </div>
             <div className="flex gap-2">
-              <Badge className={stageColors[application.application_stage]}>{application.application_stage}</Badge>
+              <Badge className={stageColors[stage || application.application_stage]}>{stage || application.application_stage}</Badge>
               <Button size="sm" variant="outline" onClick={onEdit}>
                 <Edit className="w-4 h-4 mr-1" />
                 Edit
@@ -225,7 +229,7 @@ export default function ApplicationDetailsDialog({ open, onOpenChange, applicati
               </div>
             ) : (
               <div className="space-y-2 text-sm">
-                <p><span className="text-gray-500">Status:</span> <Badge>{application.status}</Badge></p>
+                <p><span className="text-gray-500">Status:</span> <Badge>{status || application.status}</Badge></p>
                 {application.interview_date && (
                   <p><span className="text-gray-500">Interview Date:</span> {new Date(application.interview_date).toLocaleString()}</p>
                 )}

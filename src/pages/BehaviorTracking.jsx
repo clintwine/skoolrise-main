@@ -28,20 +28,52 @@ export default function BehaviorTracking() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      setTeacherId(currentUser.linked_teacher_id);
+      
+      // Get teacher profile
+      if (currentUser?.teacher_profile_id) {
+        const teacher = await base44.entities.Teacher.get(currentUser.teacher_profile_id);
+        setTeacherId(teacher?.id);
+      } else if (currentUser?.id) {
+        const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
+        setTeacherId(teachers[0]?.id);
+      }
     };
     fetchUser();
   }, []);
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherId],
-    queryFn: () => base44.entities.Class.filter({ teacher_id: teacherId }),
+  const { data: allocations = [] } = useQuery({
+    queryKey: ['teacher-allocations', teacherId],
+    queryFn: async () => {
+      if (!teacherId) return [];
+      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherId });
+    },
     enabled: !!teacherId,
+  });
+
+  const { data: classes = [] } = useQuery({
+    queryKey: ['teacher-classes', allocations],
+    queryFn: async () => {
+      if (allocations.length === 0) return [];
+      const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
+      const allClassArms = await base44.entities.ClassArm.list();
+      return allClassArms.filter(ca => classArmIds.includes(ca.id));
+    },
+    enabled: allocations.length > 0,
+  });
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => base44.entities.Student.list(),
   });
 
   const { data: enrollments = [] } = useQuery({
     queryKey: ['class-enrollments', selectedClass],
-    queryFn: () => base44.entities.Enrollment.filter({ class_id: selectedClass, status: 'Enrolled' }),
+    queryFn: async () => {
+      if (!selectedClass) return [];
+      const selectedClassArm = classes.find(c => c.id === selectedClass);
+      if (!selectedClassArm) return [];
+      return students.filter(s => s.grade_level === selectedClassArm.grade_level);
+    },
     enabled: !!selectedClass,
   });
 
@@ -62,12 +94,13 @@ export default function BehaviorTracking() {
   });
 
   const handleSubmit = () => {
-    const student = enrollments.find(e => e.student_id === formData.student_id);
+    const student = enrollments.find(s => s.id === formData.student_id);
+    const selectedClassArm = classes.find(c => c.id === selectedClass);
     createBehaviorMutation.mutate({
       ...formData,
-      student_name: student?.student_name,
+      student_name: student ? `${student.first_name} ${student.last_name}` : '',
       class_id: selectedClass,
-      class_name: classes.find(c => c.id === selectedClass)?.class_name,
+      class_name: selectedClassArm ? `${selectedClassArm.grade_level}${selectedClassArm.arm_name}` : '',
       date: new Date().toISOString().split('T')[0],
     });
   };
@@ -95,8 +128,10 @@ export default function BehaviorTracking() {
                     <SelectValue placeholder="Select student" />
                   </SelectTrigger>
                   <SelectContent>
-                    {enrollments.map(e => (
-                      <SelectItem key={e.student_id} value={e.student_id}>{e.student_name}</SelectItem>
+                    {enrollments.map(student => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.first_name} {student.last_name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -146,7 +181,9 @@ export default function BehaviorTracking() {
             </SelectTrigger>
             <SelectContent>
               {classes.map(c => (
-                <SelectItem key={c.id} value={c.id}>{c.class_name}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>
+                  {c.grade_level}{c.arm_name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

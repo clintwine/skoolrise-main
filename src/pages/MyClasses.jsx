@@ -15,6 +15,15 @@ export default function MyClasses() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        
+        // Get teacher profile
+        if (currentUser?.teacher_profile_id) {
+          const teacher = await base44.entities.Teacher.get(currentUser.teacher_profile_id);
+          setTeacherId(teacher?.id);
+        } else if (currentUser?.id) {
+          const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
+          setTeacherId(teachers[0]?.id);
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
       }
@@ -22,39 +31,35 @@ export default function MyClasses() {
     fetchUser();
   }, []);
 
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
-    },
-    enabled: !!user?.id,
-  });
-
-  const teacherProfile = teachers[0];
-
-  useEffect(() => {
-    if (teacherProfile?.id) {
-      setTeacherId(teacherProfile.id);
-    }
-  }, [teacherProfile]);
-
-  const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherId],
+  const { data: allocations = [] } = useQuery({
+    queryKey: ['teacher-allocations', teacherId],
     queryFn: async () => {
       if (!teacherId) return [];
-      return await base44.entities.Class.filter({ teacher_id: teacherId });
+      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherId });
     },
     enabled: !!teacherId,
   });
 
-  const { data: enrollments = [] } = useQuery({
-    queryKey: ['enrollments'],
-    queryFn: () => base44.entities.Enrollment.list(),
+  const { data: classes = [] } = useQuery({
+    queryKey: ['teacher-classes', allocations],
+    queryFn: async () => {
+      if (allocations.length === 0) return [];
+      const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
+      const allClassArms = await base44.entities.ClassArm.list();
+      return allClassArms.filter(ca => classArmIds.includes(ca.id));
+    },
+    enabled: allocations.length > 0,
   });
 
-  const getClassStudentCount = (classId) => {
-    return enrollments.filter(e => e.class_id === classId && e.status === 'Enrolled').length;
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => base44.entities.Student.list(),
+  });
+
+  const getClassStudentCount = (classArmId) => {
+    const classArm = classes.find(c => c.id === classArmId);
+    if (!classArm) return 0;
+    return students.filter(s => s.grade_level === classArm.grade_level).length;
   };
 
   return (
@@ -77,44 +82,41 @@ export default function MyClasses() {
             </CardContent>
           </Card>
         ) : (
-          classes.map((classItem) => (
-            <Link key={classItem.id} to={createPageUrl(`ClassManagement?class_id=${classItem.id}`)}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                <CardHeader className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5" />
-                    {classItem.class_name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-3">
+          classes.map((classArm) => (
+            <Card key={classArm.id} className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5" />
+                  {classArm.grade_level}{classArm.arm_name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-3">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm">{getClassStudentCount(classArm.id)} Students</span>
+                </div>
+                {classArm.class_teacher_name && (
+                  <div className="text-sm text-gray-600">
+                    Form Teacher: {classArm.class_teacher_name}
+                  </div>
+                )}
+                {classArm.room && (
                   <div className="flex items-center gap-2 text-gray-600">
-                    <Users className="w-4 h-4" />
-                    <span className="text-sm">{getClassStudentCount(classItem.id)} Students</span>
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">Room {classArm.room}</span>
                   </div>
-                  {classItem.schedule && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-sm">{classItem.schedule}</span>
-                    </div>
-                  )}
-                  {classItem.room && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">Room {classItem.room}</span>
-                    </div>
-                  )}
-                  <div className="pt-3 border-t">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      classItem.status === 'Active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {classItem.status}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+                )}
+                <div className="pt-3 border-t">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    classArm.status === 'Active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {classArm.status}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           ))
         )}
       </div>

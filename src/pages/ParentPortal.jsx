@@ -187,7 +187,7 @@ export default function ParentPortal() {
                 <h3 className="text-xl font-semibold text-text mb-2">No Children Linked</h3>
                 <p className="text-text-secondary mb-4">Link your children to view their information</p>
                 <Link to={createPageUrl('ParentLinkingRequests')}>
-                  <Button className="bg-accent hover:bg-accent-hover text-white">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-base">
                     Link Student
                   </Button>
                 </Link>

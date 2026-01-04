@@ -358,7 +358,7 @@ export default function TeacherAssignments() {
 
           <Button 
             onClick={() => navigate(createPageUrl('AssignmentBuilder'))}
-            className="bg-accent hover:bg-accent-hover text-white px-6"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6"
           >
             <Plus className="w-5 h-5 mr-2" />
             Create Assignment
@@ -429,7 +429,7 @@ export default function TeacherAssignments() {
               <p className="text-text-secondary mb-6">Create your first assignment to get started</p>
               <Button 
                 onClick={() => navigate(createPageUrl('AssignmentBuilder'))}
-                className="bg-accent hover:bg-accent-hover text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create First Assignment

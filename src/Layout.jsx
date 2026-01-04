@@ -303,14 +303,6 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
           { name: 'Grade Submissions', icon: Award, path: 'TeacherAssignments' },
         ]
-      },
-      {
-        id: 'student-overview',
-        groupName: 'STUDENT MANAGEMENT',
-        items: [
-          { name: 'View Students', icon: Users, path: 'StudentRecords' },
-          { name: 'Add Student', icon: UserCircle, path: 'StudentRecords' },
-        ]
       }
     ];
 

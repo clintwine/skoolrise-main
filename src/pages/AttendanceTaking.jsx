@@ -20,20 +20,52 @@ export default function AttendanceTaking() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      setTeacherId(currentUser.linked_teacher_id);
+      
+      // Get teacher profile
+      if (currentUser?.teacher_profile_id) {
+        const teacher = await base44.entities.Teacher.get(currentUser.teacher_profile_id);
+        setTeacherId(teacher?.id);
+      } else if (currentUser?.id) {
+        const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
+        setTeacherId(teachers[0]?.id);
+      }
     };
     fetchUser();
   }, []);
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', teacherId],
-    queryFn: () => base44.entities.Class.filter({ teacher_id: teacherId }),
+  const { data: allocations = [] } = useQuery({
+    queryKey: ['teacher-allocations', teacherId],
+    queryFn: async () => {
+      if (!teacherId) return [];
+      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherId });
+    },
     enabled: !!teacherId,
+  });
+
+  const { data: classes = [] } = useQuery({
+    queryKey: ['teacher-classes', allocations],
+    queryFn: async () => {
+      if (allocations.length === 0) return [];
+      const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
+      const allClassArms = await base44.entities.ClassArm.list();
+      return allClassArms.filter(ca => classArmIds.includes(ca.id));
+    },
+    enabled: allocations.length > 0,
+  });
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => base44.entities.Student.list(),
   });
 
   const { data: enrollments = [] } = useQuery({
     queryKey: ['class-enrollments', selectedClass],
-    queryFn: () => base44.entities.Enrollment.filter({ class_id: selectedClass, status: 'Enrolled' }),
+    queryFn: async () => {
+      if (!selectedClass) return [];
+      const selectedClassArm = classes.find(c => c.id === selectedClass);
+      if (!selectedClassArm) return [];
+      return students.filter(s => s.grade_level === selectedClassArm.grade_level);
+    },
     enabled: !!selectedClass,
   });
 
@@ -48,8 +80,13 @@ export default function AttendanceTaking() {
     existingAttendance.forEach(record => {
       initialData[record.student_id] = record.status;
     });
+    enrollments.forEach(student => {
+      if (!initialData[student.id]) {
+        initialData[student.id] = 'Present';
+      }
+    });
     setAttendanceData(initialData);
-  }, [existingAttendance]);
+  }, [existingAttendance, enrollments]);
 
   const saveAttendanceMutation = useMutation({
     mutationFn: async (records) => {
@@ -70,13 +107,14 @@ export default function AttendanceTaking() {
   });
 
   const handleSave = () => {
-    const records = enrollments.map(enrollment => ({
-      student_id: enrollment.student_id,
-      student_name: enrollment.student_name,
+    const selectedClassArm = classes.find(c => c.id === selectedClass);
+    const records = enrollments.map(student => ({
+      student_id: student.id,
+      student_name: `${student.first_name} ${student.last_name}`,
       class_id: selectedClass,
-      class_name: classes.find(c => c.id === selectedClass)?.class_name,
+      class_name: selectedClassArm ? `${selectedClassArm.grade_level}${selectedClassArm.arm_name}` : '',
       date: selectedDate,
-      status: attendanceData[enrollment.student_id] || 'Present',
+      status: attendanceData[student.id] || 'Present',
     }));
 
     saveAttendanceMutation.mutate(records);
@@ -84,8 +122,8 @@ export default function AttendanceTaking() {
 
   const setAllStatus = (status) => {
     const newData = {};
-    enrollments.forEach(enrollment => {
-      newData[enrollment.student_id] = status;
+    enrollments.forEach(student => {
+      newData[student.id] = status;
     });
     setAttendanceData(newData);
   };
@@ -108,7 +146,9 @@ export default function AttendanceTaking() {
                 </SelectTrigger>
                 <SelectContent>
                   {classes.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.class_name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.grade_level}{c.arm_name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -143,30 +183,30 @@ export default function AttendanceTaking() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {enrollments.map((enrollment) => (
-                <div key={enrollment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <span className="font-medium">{enrollment.student_name}</span>
+              {enrollments.map((student) => (
+                <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <span className="font-medium">{student.first_name} {student.last_name}</span>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant={attendanceData[enrollment.student_id] === 'Present' ? 'default' : 'outline'}
-                      onClick={() => setAttendanceData({ ...attendanceData, [enrollment.student_id]: 'Present' })}
+                      variant={attendanceData[student.id] === 'Present' ? 'default' : 'outline'}
+                      onClick={() => setAttendanceData({ ...attendanceData, [student.id]: 'Present' })}
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Present
                     </Button>
                     <Button
                       size="sm"
-                      variant={attendanceData[enrollment.student_id] === 'Late' ? 'default' : 'outline'}
-                      onClick={() => setAttendanceData({ ...attendanceData, [enrollment.student_id]: 'Late' })}
+                      variant={attendanceData[student.id] === 'Late' ? 'default' : 'outline'}
+                      onClick={() => setAttendanceData({ ...attendanceData, [student.id]: 'Late' })}
                     >
                       <Clock className="w-4 h-4 mr-1" />
                       Late
                     </Button>
                     <Button
                       size="sm"
-                      variant={attendanceData[enrollment.student_id] === 'Absent' ? 'default' : 'outline'}
-                      onClick={() => setAttendanceData({ ...attendanceData, [enrollment.student_id]: 'Absent' })}
+                      variant={attendanceData[student.id] === 'Absent' ? 'default' : 'outline'}
+                      onClick={() => setAttendanceData({ ...attendanceData, [student.id]: 'Absent' })}
                     >
                       <XCircle className="w-4 h-4 mr-1" />
                       Absent

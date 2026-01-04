@@ -278,7 +278,7 @@ function TeacherFormDialog({ open, onOpenChange, teacher, onSubmit }) {
             </div>
             <div>
               <Label>Position</Label>
-              <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, position: e.target.value })} />
+              <Input value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} />
             </div>
             <div>
               <Label>Status</Label>

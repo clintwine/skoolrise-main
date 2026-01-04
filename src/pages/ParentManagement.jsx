@@ -126,7 +126,11 @@ export default function ParentManagement() {
                 {filteredParents.map((parent) => {
                   const linkedStudents = getParentStudents(parent.id);
                   return (
-                    <tr key={parent.id} className="hover:bg-gray-50">
+                    <tr 
+                    key={parent.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => navigate(createPageUrl('UserProfile') + `?id=${parent.user_id}&role=parent`)}
+                  >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -163,10 +167,13 @@ export default function ParentManagement() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(createPageUrl('UserProfile') + `?id=${parent.user_id}&role=parent&edit=true`)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(createPageUrl('UserProfile') + `?id=${parent.user_id}&role=parent`);
+                          }}
                           className="text-blue-600 hover:text-blue-700"
                         >
-                          Edit
+                          View Profile
                         </Button>
                       </td>
                     </tr>
