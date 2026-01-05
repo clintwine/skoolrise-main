@@ -226,7 +226,11 @@ export default function AssignmentBuilder() {
 
   const handlePublish = () => {
     if (!assignmentData.title || !assignmentData.class_id || !assignmentData.due_date) {
-      toast.error('Please fill in all required fields');
+      toast.error('Please fill in all required fields (title, class, due date)');
+      return;
+    }
+    if (!assignmentData.subject_id) {
+      toast.error('Please select a subject');
       return;
     }
     if (selectedQuestions.length === 0) {
