@@ -20,9 +20,29 @@ export default function TeacherAssignmentManager() {
   const [rubricBuilderOpen, setRubricBuilderOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments'],
-    queryFn: () => base44.entities.Assignment.list('-created_date'),
+    queryKey: ['teacher-assignments', teacherProfile?.id],
+    queryFn: async () => {
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date');
+    },
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: submissions = [] } = useQuery({
