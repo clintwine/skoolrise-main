@@ -31,15 +31,35 @@ export default function ParentPortal() {
   }, []);
 
   const { data: parents = [], isLoading: parentsLoading } = useQuery({
-    queryKey: ['parents', user?.id, user?.parent_profile_id],
+    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
     queryFn: async () => {
       if (!user?.id) return [];
-      // Use profile_id from User first, fallback to user_id query
+      
+      // 1. Use profile_id from User first
       if (user.parent_profile_id) {
         const parent = await base44.entities.Parent.get(user.parent_profile_id);
-        return parent ? [parent] : [];
+        if (parent) return [parent];
       }
-      return await base44.entities.Parent.filter({ user_id: user.id });
+      
+      // 2. Try by user_id on Parent entity
+      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
+      if (byUserId.length > 0) return byUserId;
+      
+      // 3. Fallback: find parent by matching email from student's parent_email
+      const allParents = await base44.entities.Parent.list();
+      const allStudents = await base44.entities.Student.list();
+      
+      // Find students where parent_email matches current user's email
+      const matchedStudents = allStudents.filter(s => 
+        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
+      );
+      
+      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
+        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
+        if (parentById) return [parentById];
+      }
+      
+      return [];
     },
     enabled: !!user?.id,
   });
