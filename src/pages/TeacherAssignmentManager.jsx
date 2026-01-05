@@ -128,7 +128,11 @@ export default function TeacherAssignmentManager() {
               const dueDate = new Date(assignment.due_date);
               const isOverdue = dueDate < new Date();
               return (
-                <Card key={assignment.id} className="border-2 border-gray-200 hover:border-blue-300 transition-all hover:shadow-lg">
+                <Card 
+                  key={assignment.id} 
+                  className="border-2 border-gray-200 hover:border-blue-300 transition-all hover:shadow-lg cursor-pointer"
+                  onClick={() => navigate(createPageUrl(`AssignmentBuilder?id=${assignment.id}`))}
+                >
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
                       <div className="flex-1">
@@ -225,7 +229,11 @@ export default function TeacherAssignmentManager() {
         <TabsContent value="all" className="mt-4 sm:mt-6">
           <div className="grid gap-3 sm:gap-4">
             {assignments.map((assignment) => (
-              <Card key={assignment.id} className="border-2 border-gray-200">
+              <Card 
+                key={assignment.id} 
+                className="border-2 border-gray-200 hover:border-blue-300 transition-all hover:shadow-lg cursor-pointer"
+                onClick={() => navigate(createPageUrl(`AssignmentBuilder?id=${assignment.id}`))}
+              >
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex-1">

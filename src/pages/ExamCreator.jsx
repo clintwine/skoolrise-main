@@ -80,6 +80,11 @@ export default function ExamCreator() {
     queryFn: () => base44.entities.Class.list(),
   });
 
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.list(),
+  });
+
   const { data: questionBank = [] } = useQuery({
     queryKey: ['questions'],
     queryFn: () => base44.entities.QuestionBank.list(),
@@ -383,12 +388,18 @@ Return a JSON array of questions with the following structure:
               </div>
               <div>
                 <Label>Subject *</Label>
-                <Input
-                  value={examData.subject}
-                  onChange={(e) => setExamData({ ...examData, subject: e.target.value })}
-                  placeholder="e.g., Mathematics"
-                  className="mt-1"
-                />
+                <Select value={examData.subject} onValueChange={(value) => setExamData({ ...examData, subject: value })}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map(subject => (
+                      <SelectItem key={subject.id} value={subject.subject_name}>
+                        {subject.subject_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

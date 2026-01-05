@@ -155,6 +155,10 @@ export default function AssignmentBuilder() {
       toast.error('Please add at least one question');
       return;
     }
+    if (!teacherProfile?.id) {
+      toast.error('Teacher profile not loaded. Please refresh the page.');
+      return;
+    }
     createAssignmentMutation.mutate({ ...assignmentData, status: 'Published' });
   };
 
