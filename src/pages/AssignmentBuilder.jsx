@@ -149,7 +149,12 @@ export default function AssignmentBuilder() {
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('🎯 mutationFn started with data:', data);
+      console.log('📚 classArms:', classArms);
+      console.log('❓ selectedQuestions:', selectedQuestions);
+      
       const selectedArm = classArms.find(c => c.id === data.class_id);
+      console.log('🏫 selectedArm:', selectedArm);
       
       let assignment;
       if (assignmentId) {
@@ -212,7 +217,8 @@ export default function AssignmentBuilder() {
 
       return assignment;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (result, variables) => {
+      console.log('✨ Mutation SUCCESS!', result);
       queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
       const isDraft = variables.status === 'Draft';
       toast.success(assignmentId 
@@ -224,59 +230,97 @@ export default function AssignmentBuilder() {
       navigate(createPageUrl('TeacherAssignmentManager'));
     },
     onError: (error) => {
-      console.error('Assignment mutation error:', error);
+      console.error('💥 Mutation ERROR:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
       toast.error('Failed to save assignment: ' + (error.message || 'Unknown error'));
     },
   });
 
   const handleSaveDraft = () => {
+    console.log('🔵 handleSaveDraft called');
+    console.log('📋 assignmentData:', assignmentData);
+    console.log('👨‍🏫 teacherProfile:', teacherProfile);
+    
     if (!assignmentData.title) {
+      console.log('❌ Validation failed: No title');
       toast.error('Please fill in the assignment title');
       return;
     }
     if (!assignmentData.class_id) {
+      console.log('❌ Validation failed: No class_id');
       toast.error('Please select a class');
       return;
     }
     if (!assignmentData.subject_id) {
+      console.log('❌ Validation failed: No subject_id');
       toast.error('Please select a subject');
       return;
     }
     if (!teacherProfile?.id) {
+      console.log('❌ Validation failed: No teacherProfile.id');
       toast.error('Teacher profile not loaded. Please refresh the page.');
       return;
     }
     const dataToSave = { ...assignmentData, status: 'Draft' };
+    console.log('✅ All validations passed. Calling mutate with:', dataToSave);
+    console.log('📊 createAssignmentMutation state:', { 
+      isPending: createAssignmentMutation.isPending,
+      isError: createAssignmentMutation.isError,
+      isSuccess: createAssignmentMutation.isSuccess 
+    });
     createAssignmentMutation.mutate(dataToSave);
+    console.log('🚀 mutate() called');
   };
 
   const handlePublish = () => {
+    console.log('🟢 handlePublish called');
+    console.log('📋 assignmentData:', assignmentData);
+    console.log('❓ selectedQuestions:', selectedQuestions);
+    console.log('👨‍🏫 teacherProfile:', teacherProfile);
+    
     if (!assignmentData.title) {
+      console.log('❌ Validation failed: No title');
       toast.error('Please fill in the assignment title');
       return;
     }
     if (!assignmentData.class_id) {
+      console.log('❌ Validation failed: No class_id');
       toast.error('Please select a class');
       return;
     }
     if (!assignmentData.subject_id) {
+      console.log('❌ Validation failed: No subject_id');
       toast.error('Please select a subject');
       return;
     }
     if (!assignmentData.due_date) {
+      console.log('❌ Validation failed: No due_date');
       toast.error('Please set a due date');
       return;
     }
     if (selectedQuestions.length === 0) {
+      console.log('❌ Validation failed: No questions');
       toast.error('Please add at least one question');
       return;
     }
     if (!teacherProfile?.id) {
+      console.log('❌ Validation failed: No teacherProfile.id');
       toast.error('Teacher profile not loaded. Please refresh the page.');
       return;
     }
     const dataToPublish = { ...assignmentData, status: 'Published' };
+    console.log('✅ All validations passed. Calling mutate with:', dataToPublish);
+    console.log('📊 createAssignmentMutation state:', { 
+      isPending: createAssignmentMutation.isPending,
+      isError: createAssignmentMutation.isError,
+      isSuccess: createAssignmentMutation.isSuccess 
+    });
     createAssignmentMutation.mutate(dataToPublish);
+    console.log('🚀 mutate() called');
   };
 
   const handleCreateNewQuestion = (questionData) => {
