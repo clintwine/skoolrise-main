@@ -41,21 +41,26 @@ export default function ParentAttendance() {
 
   const parentProfile = parents[0];
 
-  // Fetch students linked to this parent via linked_student_ids
+  // Fetch students linked to this parent via linked_student_ids or parent_id
   const { data: students = [] } = useQuery({
     queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids],
     queryFn: async () => {
       if (!parentProfile?.id) return [];
+      
+      // Try linked_student_ids first
       if (parentProfile.linked_student_ids) {
         try {
-          const studentIds = JSON.parse(parentProfile.linked_student_ids);
-          if (Array.isArray(studentIds) && studentIds.length > 0) {
+          const linkedIds = JSON.parse(parentProfile.linked_student_ids);
+          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
             const allStudents = await base44.entities.Student.list();
-            return allStudents.filter(s => studentIds.includes(s.id));
+            return allStudents.filter(s => linkedIds.includes(s.id));
           }
         } catch (e) {}
       }
-      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
+      
+      // Fallback: find students with parent_id matching this parent
+      const allStudents = await base44.entities.Student.list();
+      return allStudents.filter(s => s.parent_id === parentProfile.id);
     },
     enabled: !!parentProfile?.id,
   });
