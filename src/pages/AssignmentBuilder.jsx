@@ -29,6 +29,9 @@ import RubricBuilder from '../components/assignments/RubricBuilder';
 export default function AssignmentBuilder() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const urlParams = new URLSearchParams(window.location.search);
+  const assignmentId = urlParams.get('id');
+  const [assignmentLoaded, setAssignmentLoaded] = useState(false);
 
   const [assignmentData, setAssignmentData] = useState({
     title: '',
@@ -86,14 +89,78 @@ export default function AssignmentBuilder() {
     queryFn: () => base44.entities.Rubric.list(),
   });
 
+  const { data: existingAssignment } = useQuery({
+    queryKey: ['assignment', assignmentId],
+    queryFn: async () => {
+      if (!assignmentId) return null;
+      return await base44.entities.Assignment.get(assignmentId);
+    },
+    enabled: !!assignmentId,
+  });
+
+  const { data: existingQuestions = [] } = useQuery({
+    queryKey: ['assignment-questions', assignmentId],
+    queryFn: async () => {
+      if (!assignmentId) return [];
+      const assignmentQuestions = await base44.entities.AssignmentQuestion.filter({ assignment_id: assignmentId }, 'order');
+      const questionsWithData = [];
+      for (const aq of assignmentQuestions) {
+        if (aq.question_bank_id) {
+          const qData = await base44.entities.QuestionBank.get(aq.question_bank_id);
+          questionsWithData.push(qData);
+        }
+      }
+      return questionsWithData;
+    },
+    enabled: !!assignmentId,
+  });
+
+  useEffect(() => {
+    if (existingAssignment && !assignmentLoaded) {
+      setAssignmentData({
+        ...assignmentData,
+        ...existingAssignment,
+        due_date: existingAssignment.due_date || '',
+      });
+      setAssignmentLoaded(true);
+    }
+  }, [existingAssignment]);
+
+  useEffect(() => {
+    if (existingQuestions.length > 0 && !assignmentLoaded) {
+      setSelectedQuestions(existingQuestions);
+      setAssignmentLoaded(true);
+    }
+  }, [existingQuestions]);
+
   const createAssignmentMutation = useMutation({
     mutationFn: async (data) => {
       const selectedArm = classArms.find(c => c.id === data.class_id);
-      const assignment = await base44.entities.Assignment.create({
-        ...data,
-        class_name: selectedArm ? `Grade ${selectedArm.grade_level} - ${selectedArm.arm_name}` : '',
-        teacher_id: teacherProfile?.id,
-      });
+      
+      let assignment;
+      if (assignmentId) {
+        // Update existing assignment
+        await base44.entities.Assignment.update(assignmentId, {
+          ...data,
+          class_name: selectedArm ? `Grade ${selectedArm.grade_level} - ${selectedArm.arm_name}` : '',
+          teacher_id: teacherProfile?.id,
+        });
+        
+        // Delete existing assignment questions
+        const oldQuestions = await base44.entities.AssignmentQuestion.filter({ assignment_id: assignmentId });
+        for (const q of oldQuestions) {
+          await base44.entities.AssignmentQuestion.delete(q.id);
+        }
+        
+        assignment = { id: assignmentId };
+      } else {
+        // Create new assignment
+        assignment = await base44.entities.Assignment.create({
+          ...data,
+          class_name: selectedArm ? `Grade ${selectedArm.grade_level} - ${selectedArm.arm_name}` : '',
+          teacher_id: teacherProfile?.id,
+        });
+      }
 
       for (let i = 0; i < selectedQuestions.length; i++) {
         const q = selectedQuestions[i];
@@ -133,7 +200,7 @@ export default function AssignmentBuilder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
-      toast.success('Assignment published successfully!');
+      toast.success(assignmentId ? 'Assignment updated successfully!' : 'Assignment published successfully!');
       navigate(createPageUrl('TeacherAssignmentManager'));
     },
   });
@@ -296,9 +363,13 @@ Return as JSON array with this exact structure:
               <Map className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Assignment Builder</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                {assignmentId ? 'Edit Assignment' : 'Assignment Builder'}
+              </h1>
               <div className="flex items-center gap-2">
-                <Badge className="bg-red-100 text-red-700 text-xs">Draft</Badge>
+                <Badge className={assignmentData.status === 'Published' ? 'bg-green-100 text-green-700 text-xs' : 'bg-red-100 text-red-700 text-xs'}>
+                  {assignmentData.status || 'Draft'}
+                </Badge>
                 <span className="text-sm text-gray-500">{assignmentData.title || 'Untitled Assignment'}</span>
               </div>
             </div>
