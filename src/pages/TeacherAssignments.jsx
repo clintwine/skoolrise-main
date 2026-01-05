@@ -16,6 +16,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoader';
 import AssignmentDetailSheet from '../components/AssignmentDetailSheet';
 import { useNavigate } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { createPageUrl } from '../utils';
 
 export default function TeacherAssignments() {
   const [isFormOpen, setIsFormOpen] = useState(false);
