@@ -446,7 +446,30 @@ Return as JSON array with this exact structure:
               </div>
 
               <div>
-                <Label>Class</Label>
+                <Label>Subject *</Label>
+                <select
+                  value={assignmentData.subject_id}
+                  onChange={(e) => {
+                    const subject = subjects.find(s => s.id === e.target.value);
+                    setAssignmentData({ 
+                      ...assignmentData, 
+                      subject_id: e.target.value,
+                      subject_name: subject?.subject_name || ''
+                    });
+                  }}
+                  className="w-full p-2 border rounded-lg mt-1"
+                >
+                  <option value="">Select subject...</option>
+                  {subjects.map(subject => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.subject_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label>Class *</Label>
                 <select
                   value={assignmentData.class_id}
                   onChange={(e) => setAssignmentData({ ...assignmentData, class_id: e.target.value })}
