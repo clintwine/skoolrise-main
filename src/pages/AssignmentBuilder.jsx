@@ -15,7 +15,7 @@ import {
   Plus, Save, CheckCircle, Sparkles, 
   GripVertical, X, BookOpen, ChevronLeft, Map,
   ClipboardList, HelpCircle, FolderKanban, FileText,
-  FlaskConical, Video, Search, Loader2
+  FlaskConical, Video, Search, Loader2, AlertCircle
 } from 'lucide-react';
 import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
