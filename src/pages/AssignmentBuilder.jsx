@@ -223,6 +223,10 @@ export default function AssignmentBuilder() {
       );
       navigate(createPageUrl('TeacherAssignmentManager'));
     },
+    onError: (error) => {
+      console.error('Assignment mutation error:', error);
+      toast.error('Failed to save assignment: ' + (error.message || 'Unknown error'));
+    },
   });
 
   const handleSaveDraft = () => {
@@ -418,12 +422,38 @@ Return as JSON array with this exact structure:
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handleSaveDraft} disabled={createAssignmentMutation.isPending}>
-            <Save className="w-4 h-4 mr-2" />
+          <Button 
+            type="button"
+            variant="outline" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSaveDraft();
+            }} 
+            disabled={createAssignmentMutation.isPending}
+          >
+            {createAssignmentMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
             Save Draft
           </Button>
-          <Button onClick={handlePublish} disabled={createAssignmentMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
-            <CheckCircle className="w-4 h-4 mr-2" />
+          <Button 
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handlePublish();
+            }} 
+            disabled={createAssignmentMutation.isPending} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {createAssignmentMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <CheckCircle className="w-4 h-4 mr-2" />
+            )}
             Publish Assignment
           </Button>
         </div>
