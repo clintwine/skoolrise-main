@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,13 @@ import { toast } from 'sonner';
 export default function ProfileEditDialog({ open, onOpenChange, profile, role }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({});
+
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
 
   useEffect(() => {
     if (profile) {
@@ -114,6 +121,21 @@ export default function ProfileEditDialog({ open, onOpenChange, profile, role })
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div>
+                <Label>Grade Level</Label>
+                <Select value={formData.grade_level || ''} onValueChange={(v) => setFormData({ ...formData, grade_level: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grade level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueGradeLevels.map((grade) => (
+                      <SelectItem key={grade} value={grade}>
+                        {grade}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Medical Conditions</Label>
