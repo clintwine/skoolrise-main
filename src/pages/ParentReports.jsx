@@ -294,12 +294,14 @@ export default function ParentReports() {
                       )}
                     </div>
                     <div className="flex flex-col gap-2 ml-4">
-                      <Link to={createPageUrl(`ReportCardView?id=${report.id}`)}>
-                        <Button variant="outline" size="sm">
-                          <FileText className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.location.href = createPageUrl(`ReportCardView?id=${report.id}`)}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        View
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
