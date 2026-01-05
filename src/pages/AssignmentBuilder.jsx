@@ -205,9 +205,15 @@ export default function AssignmentBuilder() {
 
       return assignment;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
-      toast.success(assignmentId ? 'Assignment updated successfully!' : 'Assignment published successfully!');
+      const isDraft = variables.status === 'Draft';
+      toast.success(assignmentId 
+        ? 'Assignment updated successfully!' 
+        : isDraft 
+          ? 'Assignment saved as draft!' 
+          : 'Assignment published successfully!'
+      );
       navigate(createPageUrl('TeacherAssignmentManager'));
     },
   });
