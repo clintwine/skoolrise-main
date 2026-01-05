@@ -228,14 +228,16 @@ export default function ExamCommandCenter() {
                           size="sm"
                           onClick={() => navigate(createPageUrl(`ExamCreator?id=${exam.id}`))}
                           className="rounded-xl hover:scale-105 transition-transform"
+                          title="Edit Exam"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => navigate(createPageUrl(`ExamResults?exam_id=${exam.id}`))}
+                          onClick={() => navigate(createPageUrl(`ExamCreator?id=${exam.id}&view=true`))}
                           className="rounded-xl hover:scale-105 transition-transform"
+                          title="View Exam"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>

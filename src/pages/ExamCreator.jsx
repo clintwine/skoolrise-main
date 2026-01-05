@@ -31,10 +31,14 @@ import { toast } from 'sonner';
 export default function ExamCreator() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const urlParams = new URLSearchParams(window.location.search);
+  const examId = urlParams.get('id');
+  const viewOnly = urlParams.get('view') === 'true';
   
   // View mode: 'setup' | 'builder' | 'review'
   const [viewMode, setViewMode] = useState('setup');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [examLoaded, setExamLoaded] = useState(false);
   
   const [examData, setExamData] = useState({
     title: '',
@@ -89,6 +93,54 @@ export default function ExamCreator() {
     queryKey: ['questions'],
     queryFn: () => base44.entities.QuestionBank.list(),
   });
+
+  const { data: existingExam } = useQuery({
+    queryKey: ['exam', examId],
+    queryFn: async () => {
+      if (!examId) return null;
+      return await base44.entities.Exam.get(examId);
+    },
+    enabled: !!examId,
+  });
+
+  const { data: existingQuestions = [] } = useQuery({
+    queryKey: ['exam-questions', examId],
+    queryFn: async () => {
+      if (!examId) return [];
+      return await base44.entities.ExamQuestion.filter({ exam_id: examId }, 'order');
+    },
+    enabled: !!examId,
+  });
+
+  useEffect(() => {
+    if (existingExam && !examLoaded) {
+      setExamData({
+        ...examData,
+        ...existingExam,
+        start_date: existingExam.start_date || '',
+        end_date: existingExam.end_date || '',
+      });
+      setExamLoaded(true);
+    }
+  }, [existingExam]);
+
+  useEffect(() => {
+    if (existingQuestions.length > 0 && !examLoaded) {
+      const loadedQuestions = existingQuestions.map((q, idx) => ({
+        id: q.id,
+        question_text: q.question_text,
+        question_type: q.question_type,
+        options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options || ['', '', '', ''],
+        correct_answer: q.correct_answer,
+        points: q.points,
+        difficulty: q.difficulty,
+        explanation: q.explanation,
+        status: 'complete',
+      }));
+      setQuestions(loadedQuestions);
+      setExamData(prev => ({ ...prev, total_questions: loadedQuestions.length }));
+    }
+  }, [existingQuestions]);
 
   // Initialize questions array when entering builder mode
   useEffect(() => {
@@ -290,13 +342,34 @@ Return a JSON array of questions with the following structure:
       const selectedClass = classArms.find(c => c.id === data.class_id);
       const validQuestions = questions.filter(q => q.status === 'complete');
       
-      const exam = await base44.entities.Exam.create({
-        ...data,
-        class_name: selectedClass ? `Grade ${selectedClass.grade_level} - ${selectedClass.arm_name}` : '',
-        teacher_id: selectedClass?.class_teacher_id,
-        total_points: validQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
-        status: 'Published',
-      });
+      let exam;
+      if (examId) {
+        // Update existing exam
+        await base44.entities.Exam.update(examId, {
+          ...data,
+          class_name: selectedClass ? `Grade ${selectedClass.grade_level} - ${selectedClass.arm_name}` : '',
+          teacher_id: selectedClass?.class_teacher_id,
+          total_points: validQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
+          status: 'Published',
+        });
+        
+        // Delete existing questions
+        const oldQuestions = await base44.entities.ExamQuestion.filter({ exam_id: examId });
+        for (const q of oldQuestions) {
+          await base44.entities.ExamQuestion.delete(q.id);
+        }
+        
+        exam = { id: examId };
+      } else {
+        // Create new exam
+        exam = await base44.entities.Exam.create({
+          ...data,
+          class_name: selectedClass ? `Grade ${selectedClass.grade_level} - ${selectedClass.arm_name}` : '',
+          teacher_id: selectedClass?.class_teacher_id,
+          total_points: validQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
+          status: 'Published',
+        });
+      }
 
       for (let i = 0; i < validQuestions.length; i++) {
         const q = validQuestions[i];
@@ -318,7 +391,7 @@ Return a JSON array of questions with the following structure:
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exams'] });
-      toast.success('Exam published successfully!');
+      toast.success(examId ? 'Exam updated successfully!' : 'Exam published successfully!');
       navigate(createPageUrl('ExamCommandCenter'));
     },
   });
@@ -351,10 +424,19 @@ Return a JSON array of questions with the following structure:
 
   // Setup View
   if (viewMode === 'setup') {
+    const isViewMode = viewOnly;
+    
     return (
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Exam</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isViewMode ? 'View Exam' : examId ? 'Edit Exam' : 'Create New Exam'}
+          </h1>
+          {isViewMode && (
+            <Button onClick={() => navigate(createPageUrl('ExamCommandCenter'))} variant="outline">
+              Back to Command Center
+            </Button>
+          )}
         </div>
 
         <Card className="bg-white rounded-xl shadow-md">
@@ -494,19 +576,21 @@ Return a JSON array of questions with the following structure:
             </div>
 
             <div className="flex justify-end pt-4">
-              <Button 
-                onClick={() => {
-                  if (!examData.title || !examData.class_id || !examData.subject) {
-                    toast.error('Please fill in required fields');
-                    return;
-                  }
-                  setViewMode('builder');
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Start Building Questions
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
+              {!viewOnly && (
+                <Button 
+                  onClick={() => {
+                    if (!examData.title || !examData.class_id || !examData.subject) {
+                      toast.error('Please fill in required fields');
+                      return;
+                    }
+                    setViewMode('builder');
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {examId ? 'Continue Editing Questions' : 'Start Building Questions'}
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
