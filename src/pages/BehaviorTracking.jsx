@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +12,6 @@ import { Award, AlertTriangle, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function BehaviorTracking() {
-  const [user, setUser] = useState(null);
-  const [teacherId, setTeacherId] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,30 +22,29 @@ export default function BehaviorTracking() {
   });
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      // Get teacher profile
-      if (currentUser?.teacher_profile_id) {
-        const teacher = await base44.entities.Teacher.get(currentUser.teacher_profile_id);
-        setTeacherId(teacher?.id);
-      } else if (currentUser?.id) {
-        const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
-        setTeacherId(teachers[0]?.id);
-      }
-    };
-    fetchUser();
-  }, []);
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
 
   const { data: allocations = [] } = useQuery({
-    queryKey: ['teacher-allocations', teacherId],
+    queryKey: ['teacher-allocations', teacherProfile?.id],
     queryFn: async () => {
-      if (!teacherId) return [];
-      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherId });
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherProfile.id });
     },
-    enabled: !!teacherId,
+    enabled: !!teacherProfile?.id,
   });
 
   const { data: classes = [] } = useQuery({

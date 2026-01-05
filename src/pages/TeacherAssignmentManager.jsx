@@ -46,8 +46,14 @@ export default function TeacherAssignmentManager() {
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['all-submissions'],
-    queryFn: () => base44.entities.Submission.list('-submitted_date'),
+    queryKey: ['all-submissions', teacherProfile?.id, assignments.map(a => a.id)],
+    queryFn: async () => {
+      if (!teacherProfile?.id || assignments.length === 0) return [];
+      const assignmentIds = assignments.map(a => a.id);
+      const allSubmissions = await base44.entities.Submission.list('-submitted_date');
+      return allSubmissions.filter(s => assignmentIds.includes(s.assignment_id));
+    },
+    enabled: !!teacherProfile?.id && assignments.length > 0,
   });
 
   const activeAssignments = assignments.filter(a => a.status === 'Published');

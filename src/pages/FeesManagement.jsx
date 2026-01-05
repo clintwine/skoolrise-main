@@ -1,202 +1,217 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, DollarSign, Receipt, AlertCircle, Upload, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { DollarSign, TrendingUp, Users, AlertCircle, Plus, FileText, Calendar, Upload } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { format } from 'date-fns';
 import BulkPaymentImport from '../components/fees/BulkPaymentImport';
 import { useCurrency } from '../components/CurrencyProvider';
 
 export default function FeesManagement() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isImportOpen, setIsImportOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
+
+  const { data: user, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Redirect if user is not admin or vendor
+  useEffect(() => {
+    if (!isLoadingUser && user) {
+      const userType = user.user_type || '';
+      const isAdmin = user.role === 'admin' || userType === 'admin';
+      const isVendor = userType === 'vendor';
+      
+      if (!isAdmin && !isVendor) {
+        navigate(createPageUrl('TeacherDashboard'));
+      }
+    }
+  }, [user, isLoadingUser, navigate]);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
     queryFn: () => base44.entities.FeeInvoice.list('-created_date'),
+    enabled: !isLoadingUser && user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'vendor'),
   });
 
-  const filteredInvoices = invoices.filter((invoice) => {
+  const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          invoice.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase());
+                         invoice.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || invoice.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  const statusColors = {
-    Pending: 'bg-yellow-100 text-yellow-800',
-    'Partially Paid': 'bg-blue-100 text-blue-800',
-    Paid: 'bg-green-100 text-green-800',
-    Overdue: 'bg-red-100 text-red-800',
-  };
+  const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+  const totalPaid = invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
+  const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
+  const overdueInvoices = invoices.filter(inv => 
+    inv.status === 'Overdue' || 
+    (inv.status === 'Partially Paid' && inv.due_date && new Date(inv.due_date) < new Date())
+  ).length;
 
-  const { formatAmount } = useCurrency();
-
-  const totalAmount = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
-  const totalPaid = invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0);
-  const totalOutstanding = totalAmount - totalPaid;
-  const overdueCount = invoices.filter(inv => inv.status === 'Overdue').length;
+  if (isLoadingUser) {
+    return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div></div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Fees Management</h1>
-          <p className="text-gray-600 mt-1">Track invoices, payments, and debtors</p>
+          <h1 className="text-4xl font-bold text-text">Fees Management</h1>
+          <p className="text-text-secondary mt-2">Manage student invoices and payments</p>
         </div>
-        <div className="flex gap-2">
-          <Link to={createPageUrl('FeePolicies')}>
-            <Button variant="outline">
-              <FileText className="w-4 h-4 mr-2" />
-              Fee Policies
-            </Button>
-          </Link>
-          <Link to={createPageUrl('InstalmentPlans')}>
-            <Button variant="outline">
-              <DollarSign className="w-4 h-4 mr-2" />
-              Instalment Plans
-            </Button>
-          </Link>
-          <Button onClick={() => setIsImportOpen(true)} variant="outline">
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => navigate(createPageUrl('FeePolicies'))}>
+            <FileText className="w-4 h-4 mr-2" />
+            Fee Policies
+          </Button>
+          <Button variant="outline" onClick={() => navigate(createPageUrl('InstalmentPlans'))}>
+            <Calendar className="w-4 h-4 mr-2" />
+            Instalment Plans
+          </Button>
+          <Button variant="outline" onClick={() => setIsImportOpen(true)}>
             <Upload className="w-4 h-4 mr-2" />
             Bulk Import
           </Button>
-          <Link to={createPageUrl('CreateInvoice')}>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Invoice
-            </Button>
-          </Link>
+          <Button onClick={() => navigate(createPageUrl('CreateInvoice'))} className="bg-accent hover:bg-accent-hover">
+            <Plus className="w-4 h-4 mr-2" />
+            New Invoice
+          </Button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-white shadow-md">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Invoiced</p>
-                <p className="text-2xl font-bold text-gray-900">{formatAmount(totalAmount)}</p>
+                <p className="text-sm font-medium text-blue-700">Total Invoiced</p>
+                <p className="text-3xl font-bold text-blue-900 mt-2">{formatAmount(totalInvoiced)}</p>
               </div>
-              <DollarSign className="w-8 h-8 text-blue-600" />
+              <DollarSign className="w-12 h-12 text-blue-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white shadow-md">
+
+        <Card className="bg-gradient-to-br from-green-50 to-green-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</p>
+                <p className="text-sm font-medium text-green-700">Total Paid</p>
+                <p className="text-3xl font-bold text-green-900 mt-2">{formatAmount(totalPaid)}</p>
               </div>
-              <Receipt className="w-8 h-8 text-green-600" />
+              <TrendingUp className="w-12 h-12 text-green-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white shadow-md">
+
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Outstanding</p>
-                <p className="text-2xl font-bold text-orange-600">{formatAmount(totalOutstanding)}</p>
+                <p className="text-sm font-medium text-orange-700">Outstanding</p>
+                <p className="text-3xl font-bold text-orange-900 mt-2">{formatAmount(totalOutstanding)}</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-orange-600" />
+              <Users className="w-12 h-12 text-orange-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white shadow-md">
+
+        <Card className="bg-gradient-to-br from-red-50 to-red-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-red-600">{overdueCount}</p>
+                <p className="text-sm font-medium text-red-700">Overdue</p>
+                <p className="text-3xl font-bold text-red-900 mt-2">{overdueInvoices}</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-red-600" />
+              <AlertCircle className="w-12 h-12 text-red-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card className="bg-white shadow-md">
-        <CardContent className="p-4">
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                placeholder="Search by student name or invoice number..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border rounded-lg"
-            >
-              <option value="all">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Partially Paid">Partially Paid</option>
-              <option value="Paid">Paid</option>
-              <option value="Overdue">Overdue</option>
-            </select>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <Input
+              placeholder="Search by student name or invoice number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                <SelectItem value="Paid">Paid</SelectItem>
+                <SelectItem value="Overdue">Overdue</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
       {/* Invoices Table */}
-      {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        </div>
-      ) : (
-        <Card className="bg-white shadow-md">
-          <CardContent className="p-0">
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Invoice #</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Student</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Due Date</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Amount</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Paid</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Balance</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Status</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50">
+                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoice_number}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{invoice.student_name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {invoice.invoice_date ? format(new Date(invoice.invoice_date), 'MMM d, yyyy') : '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {invoice.due_date ? format(new Date(invoice.due_date), 'MMM d, yyyy') : '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{formatAmount(invoice.total_amount)}</td>
-                      <td className="px-6 py-4 text-sm text-green-600">{formatAmount(invoice.amount_paid)}</td>
-                      <td className="px-6 py-4 text-sm text-orange-600">{formatAmount(invoice.balance)}</td>
-                      <td className="px-6 py-4">
-                        <Badge className={statusColors[invoice.status]}>
+                      <td className="px-6 py-4 text-sm text-gray-600">{invoice.invoice_date}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{invoice.due_date}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">{formatAmount(invoice.total_amount)}</td>
+                      <td className="px-6 py-4 text-sm text-green-600 font-medium text-right">{formatAmount(invoice.paid_amount)}</td>
+                      <td className="px-6 py-4 text-sm text-orange-600 font-medium text-right">{formatAmount(invoice.balance)}</td>
+                      <td className="px-6 py-4 text-center">
+                        <Badge className={`${
+                          invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                          invoice.status === 'Partially Paid' ? 'bg-blue-100 text-blue-800' :
+                          invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
                           {invoice.status}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4">
-                        <Link to={createPageUrl('InvoiceDetail') + `?id=${invoice.id}`}>
+                      <td className="px-6 py-4 text-center">
+                        <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
                           <Button variant="outline" size="sm">View</Button>
                         </Link>
                       </td>
@@ -205,16 +220,15 @@ export default function FeesManagement() {
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       <BulkPaymentImport
         open={isImportOpen}
-        onOpenChange={setIsImportOpen}
-        onImportComplete={() => {
-          queryClient.invalidateQueries({ queryKey: ['invoices'] });
-          setIsImportOpen(false);
+        onClose={() => setIsImportOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries(['invoices']);
         }}
       />
     </div>
