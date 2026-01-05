@@ -18,6 +18,30 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+function GradeLevelSelect({ value, onChange }) {
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select grade level" />
+      </SelectTrigger>
+      <SelectContent>
+        {uniqueGradeLevels.map((grade) => (
+          <SelectItem key={grade} value={grade}>
+            {grade}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export default function UserProfile() {
   const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState(null);
@@ -593,9 +617,9 @@ export default function UserProfile() {
                               </div>
                               <div>
                                 <Label>Grade Level</Label>
-                                <Input
+                                <GradeLevelSelect
                                   value={formData.grade_level || ''}
-                                  onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
+                                  onChange={(v) => setFormData({ ...formData, grade_level: v })}
                                 />
                               </div>
                               <div className="col-span-2">

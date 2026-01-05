@@ -92,6 +92,8 @@ export default function BulkImportDialog({
     }
 
     setImporting(true);
+    toast.info('Import started. This may take a moment...');
+    
     try {
       const created = await base44.entities[entityName].bulkCreate(validRows);
       setImportResults({
@@ -99,9 +101,17 @@ export default function BulkImportDialog({
         failed: validationResults.length - created.length,
         total: validationResults.length
       });
+      toast.success(`Successfully imported ${created.length} of ${validationResults.length} records`);
       onImportComplete?.();
     } catch (error) {
-      alert('Error importing data: ' + error.message);
+      const errorMsg = error.message || 'Unknown error occurred';
+      toast.error(`Import failed: ${errorMsg}`);
+      setImportResults({
+        success: 0,
+        failed: validationResults.length,
+        total: validationResults.length,
+        error: errorMsg
+      });
     } finally {
       setImporting(false);
     }
@@ -260,7 +270,7 @@ export default function BulkImportDialog({
 
           {/* Import Results */}
           {importResults && (
-            <Card>
+            <Card className={importResults.error ? 'border-red-200' : 'border-green-200'}>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Import Complete</h3>
                 <div className="space-y-2 text-sm">
@@ -269,6 +279,12 @@ export default function BulkImportDialog({
                     <p><span className="font-semibold text-red-600">{importResults.failed}</span> records failed</p>
                   )}
                   <p>Total processed: {importResults.total}</p>
+                  {importResults.error && (
+                    <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                      <p className="font-semibold text-red-800 mb-1">Error Details:</p>
+                      <p className="text-red-700">{importResults.error}</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

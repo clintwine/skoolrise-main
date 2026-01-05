@@ -75,9 +75,9 @@ export default function ExamCreator() {
   const [questionBankOpen, setQuestionBankOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
   });
 
   const { data: subjects = [] } = useQuery({
@@ -287,13 +287,13 @@ Return a JSON array of questions with the following structure:
 
   const createExamMutation = useMutation({
     mutationFn: async (data) => {
-      const selectedClass = classes.find(c => c.id === data.class_id);
+      const selectedClass = classArms.find(c => c.id === data.class_id);
       const validQuestions = questions.filter(q => q.status === 'complete');
       
       const exam = await base44.entities.Exam.create({
         ...data,
-        class_name: selectedClass?.class_name,
-        teacher_id: selectedClass?.teacher_id,
+        class_name: selectedClass ? `Grade ${selectedClass.grade_level} - ${selectedClass.arm_name}` : '',
+        teacher_id: selectedClass?.class_teacher_id,
         total_points: validQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
         status: 'Published',
       });
@@ -380,8 +380,10 @@ Return a JSON array of questions with the following structure:
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.map(cls => (
-                      <SelectItem key={cls.id} value={cls.id}>{cls.class_name}</SelectItem>
+                    {classArms.map(arm => (
+                      <SelectItem key={arm.id} value={arm.id}>
+                        Grade {arm.grade_level} - {arm.arm_name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

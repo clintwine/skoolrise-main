@@ -143,6 +143,10 @@ export default function AssignmentBuilder() {
       toast.error('Please fill in title and class');
       return;
     }
+    if (!teacherProfile?.id) {
+      toast.error('Teacher profile not loaded. Please refresh the page.');
+      return;
+    }
     createAssignmentMutation.mutate({ ...assignmentData, status: 'Draft' });
   };
 
