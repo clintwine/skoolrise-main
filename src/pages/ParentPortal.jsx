@@ -67,28 +67,41 @@ export default function ParentPortal() {
   const parentProfile = parents[0];
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids],
+    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
     queryFn: async () => {
-      if (!parentProfile?.id) return [];
+      const allStudents = await base44.entities.Student.list();
+      let foundStudents = [];
       
-      // Try linked_student_ids first
-      if (parentProfile.linked_student_ids) {
+      // 1. Try linked_student_ids from parent profile
+      if (parentProfile?.linked_student_ids) {
         try {
           const linkedIds = JSON.parse(parentProfile.linked_student_ids);
           if (Array.isArray(linkedIds) && linkedIds.length > 0) {
-            const allStudents = await base44.entities.Student.list();
-            return allStudents.filter(s => linkedIds.includes(s.id));
+            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
+            if (foundStudents.length > 0) return foundStudents;
           }
         } catch (e) {
           console.error('Error parsing linked_student_ids:', e);
         }
       }
       
-      // Fallback: find students with parent_id matching this parent
-      const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => s.parent_id === parentProfile.id);
+      // 2. Find students with parent_id matching this parent
+      if (parentProfile?.id) {
+        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
+        if (foundStudents.length > 0) return foundStudents;
+      }
+      
+      // 3. Find students where parent_email matches current user's email
+      if (user?.email) {
+        foundStudents = allStudents.filter(s => 
+          s.parent_email?.toLowerCase() === user.email.toLowerCase()
+        );
+        if (foundStudents.length > 0) return foundStudents;
+      }
+      
+      return [];
     },
-    enabled: !!parentProfile?.id,
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
