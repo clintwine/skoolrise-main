@@ -89,6 +89,11 @@ export default function AssignmentBuilder() {
     queryFn: () => base44.entities.Rubric.list(),
   });
 
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.filter({ status: 'Active' }),
+  });
+
   const { data: existingAssignment } = useQuery({
     queryKey: ['assignment', assignmentId],
     queryFn: async () => {
