@@ -549,7 +549,8 @@ export default function Layout({ children, currentPageName }) {
           userRole={getUserRole()} 
           currentPageName={currentPageName} 
         />
-        </div>
-        </CurrencyProvider>
-        );
-        }
+      </div>
+    </div>
+    </CurrencyProvider>
+  );
+}
