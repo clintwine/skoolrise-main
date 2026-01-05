@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,23 +25,22 @@ export default function FeesManagement() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Redirect if user is not admin or vendor
-  useEffect(() => {
-    if (!isLoadingUser && user) {
-      const userType = user.user_type || '';
-      const isAdmin = user.role === 'admin' || userType === 'admin';
-      const isVendor = userType === 'vendor';
-      
-      if (!isAdmin && !isVendor) {
-        navigate(createPageUrl('TeacherDashboard'));
-      }
-    }
-  }, [user, isLoadingUser, navigate]);
+  // Check authorization
+  const userType = user?.user_type || '';
+  const isAdmin = user?.role === 'admin' || userType === 'admin';
+  const isVendor = userType === 'vendor';
+  const isAuthorized = isAdmin || isVendor;
+
+  // Redirect unauthorized users
+  if (!isLoadingUser && user && !isAuthorized) {
+    navigate(createPageUrl('TeacherDashboard'));
+    return null;
+  }
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
     queryFn: () => base44.entities.FeeInvoice.list('-created_date'),
-    enabled: !isLoadingUser && user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'vendor'),
+    enabled: !isLoadingUser && isAuthorized,
   });
 
   const filteredInvoices = invoices.filter(invoice => {
