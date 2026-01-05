@@ -13,7 +13,7 @@ import jsPDF from 'jspdf';
 
 export default function ParentReports() {
   const [user, setUser] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
 
   useEffect(() => {
@@ -25,24 +25,68 @@ export default function ParentReports() {
   }, []);
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents', user?.id],
+    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
     queryFn: async () => {
       if (!user?.id) return [];
-      return await base44.entities.Parent.filter({ user_id: user.id });
+      
+      if (user.parent_profile_id) {
+        const parent = await base44.entities.Parent.get(user.parent_profile_id);
+        if (parent) return [parent];
+      }
+      
+      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
+      if (byUserId.length > 0) return byUserId;
+      
+      const allParents = await base44.entities.Parent.list();
+      const allStudents = await base44.entities.Student.list();
+      
+      const matchedStudents = allStudents.filter(s => 
+        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
+      );
+      
+      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
+        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
+        if (parentById) return [parentById];
+      }
+
+      return [];
     },
     enabled: !!user?.id,
   });
 
   const parentProfile = parents[0];
 
-  // Only fetch students linked to this parent
   const { data: students = [] } = useQuery({
-    queryKey: ['parent-linked-students', parentProfile?.id],
+    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
     queryFn: async () => {
-      if (!parentProfile?.id) return [];
-      return await base44.entities.Student.filter({ parent_id: parentProfile.id });
+      const allStudents = await base44.entities.Student.list();
+      let foundStudents = [];
+      
+      if (parentProfile?.linked_student_ids) {
+        try {
+          const linkedIds = JSON.parse(parentProfile.linked_student_ids);
+          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
+            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
+            if (foundStudents.length > 0) return foundStudents;
+          }
+        } catch (e) {}
+      }
+      
+      if (parentProfile?.id) {
+        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
+        if (foundStudents.length > 0) return foundStudents;
+      }
+      
+      if (user?.email) {
+        foundStudents = allStudents.filter(s => 
+          s.parent_email?.toLowerCase() === user.email.toLowerCase()
+        );
+        if (foundStudents.length > 0) return foundStudents;
+      }
+
+      return [];
     },
-    enabled: !!parentProfile?.id,
+    enabled: !!user?.id,
   });
 
   const { data: sessions = [] } = useQuery({
@@ -51,12 +95,11 @@ export default function ParentReports() {
   });
 
   useEffect(() => {
-    if (students.length > 0 && !selectedStudent) {
-      setSelectedStudent(students[0].id);
+    if (students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id);
     }
-  }, [students, selectedStudent]);
+  }, [students, selectedStudentId]);
 
-  // Auto-select most recent session
   useEffect(() => {
     if (sessions.length > 0 && !selectedSession) {
       const currentSession = sessions.find(s => s.is_current) || sessions[0];
@@ -65,25 +108,25 @@ export default function ParentReports() {
   }, [sessions, selectedSession]);
 
   const { data: reportCards = [] } = useQuery({
-    queryKey: ['report-cards', selectedStudent, selectedSession],
+    queryKey: ['report-cards', selectedStudentId, selectedSession],
     queryFn: async () => {
-      if (!selectedStudent) return [];
-      const filter = { student_id: selectedStudent };
+      if (!selectedStudentId) return [];
+      const filter = { student_id: selectedStudentId };
       if (selectedSession) {
         filter.session_id = selectedSession;
       }
       return await base44.entities.ReportCard.filter(filter, '-created_date');
     },
-    enabled: !!selectedStudent,
+    enabled: !!selectedStudentId,
   });
 
   const { data: examResults = [] } = useQuery({
-    queryKey: ['exam-results', selectedStudent],
+    queryKey: ['exam-results', selectedStudentId],
     queryFn: async () => {
-      if (!selectedStudent) return [];
-      return await base44.entities.ExamResult.filter({ student_id: selectedStudent, published: true });
+      if (!selectedStudentId) return [];
+      return await base44.entities.ExamResult.filter({ student_id: selectedStudentId, published: true });
     },
-    enabled: !!selectedStudent,
+    enabled: !!selectedStudentId,
   });
 
   const generatePDF = (report) => {
@@ -124,19 +167,22 @@ export default function ParentReports() {
     window.open(whatsappUrl, '_blank');
   };
 
-  if (!user) {
+  if (!user || students.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Academic Reports</h1>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No students linked to your account</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const student = students.find(s => s.id === selectedStudent);
+  const student = students.find(s => s.id === selectedStudentId);
   const currentSession = sessions.find(s => s.id === selectedSession);
-
-  // Get most recent report card
-  const mostRecentReport = reportCards[0];
 
   return (
     <div className="space-y-6">
@@ -148,7 +194,7 @@ export default function ParentReports() {
       <div className="flex flex-wrap gap-4">
         <div>
           <Label className="text-xs text-gray-500">Select Student</Label>
-          <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+          <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
             <SelectTrigger className="w-64 mt-1">
               <SelectValue placeholder="Select student" />
             </SelectTrigger>

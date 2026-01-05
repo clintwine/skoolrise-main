@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays, TrendingUp } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, startOfDay, endOfDay, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 export default function ParentAttendance() {
   const [user, setUser] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
-  const [dateRangeMode, setDateRangeMode] = useState('month'); // 'month' | 'custom' | 'year'
+  const [dateRangeMode, setDateRangeMode] = useState('month');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -27,60 +27,85 @@ export default function ParentAttendance() {
   }, []);
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents', user?.id, user?.parent_profile_id],
+    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
     queryFn: async () => {
       if (!user?.id) return [];
+      
       if (user.parent_profile_id) {
         const parent = await base44.entities.Parent.get(user.parent_profile_id);
-        return parent ? [parent] : [];
+        if (parent) return [parent];
       }
-      return await base44.entities.Parent.filter({ user_id: user.id });
+      
+      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
+      if (byUserId.length > 0) return byUserId;
+      
+      const allParents = await base44.entities.Parent.list();
+      const allStudents = await base44.entities.Student.list();
+      
+      const matchedStudents = allStudents.filter(s => 
+        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
+      );
+      
+      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
+        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
+        if (parentById) return [parentById];
+      }
+
+      return [];
     },
     enabled: !!user?.id,
   });
 
   const parentProfile = parents[0];
 
-  // Fetch students linked to this parent via linked_student_ids or parent_id
   const { data: students = [] } = useQuery({
-    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids],
+    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
     queryFn: async () => {
-      if (!parentProfile?.id) return [];
+      const allStudents = await base44.entities.Student.list();
+      let foundStudents = [];
       
-      // Try linked_student_ids first
-      if (parentProfile.linked_student_ids) {
+      if (parentProfile?.linked_student_ids) {
         try {
           const linkedIds = JSON.parse(parentProfile.linked_student_ids);
           if (Array.isArray(linkedIds) && linkedIds.length > 0) {
-            const allStudents = await base44.entities.Student.list();
-            return allStudents.filter(s => linkedIds.includes(s.id));
+            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
+            if (foundStudents.length > 0) return foundStudents;
           }
         } catch (e) {}
       }
       
-      // Fallback: find students with parent_id matching this parent
-      const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => s.parent_id === parentProfile.id);
+      if (parentProfile?.id) {
+        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
+        if (foundStudents.length > 0) return foundStudents;
+      }
+      
+      if (user?.email) {
+        foundStudents = allStudents.filter(s => 
+          s.parent_email?.toLowerCase() === user.email.toLowerCase()
+        );
+        if (foundStudents.length > 0) return foundStudents;
+      }
+
+      return [];
     },
-    enabled: !!parentProfile?.id,
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
-    if (students.length > 0 && !selectedStudent) {
-      setSelectedStudent(students[0].id);
+    if (students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id);
     }
-  }, [students, selectedStudent]);
+  }, [students, selectedStudentId]);
 
   const { data: allAttendance = [] } = useQuery({
-    queryKey: ['attendance', selectedStudent],
+    queryKey: ['attendance', selectedStudentId],
     queryFn: async () => {
-      if (!selectedStudent) return [];
-      return await base44.entities.Attendance.filter({ student_id: selectedStudent });
+      if (!selectedStudentId) return [];
+      return await base44.entities.Attendance.filter({ student_id: selectedStudentId });
     },
-    enabled: !!selectedStudent,
+    enabled: !!selectedStudentId,
   });
 
-  // Filter attendance based on selected date range
   const attendance = React.useMemo(() => {
     if (dateRangeMode === 'month') {
       return allAttendance.filter(a => a.date?.startsWith(selectedMonth));
@@ -98,15 +123,7 @@ export default function ParentAttendance() {
     return allAttendance;
   }, [allAttendance, dateRangeMode, selectedMonth, selectedYear, startDate, endDate]);
 
-  if (!user) {
-    return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-      </div>
-    );
-  }
-
-  if (students.length === 0) {
+  if (!user || students.length === 0) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-gray-900">Attendance Records</h1>
@@ -161,7 +178,7 @@ export default function ParentAttendance() {
           <div className="flex flex-wrap gap-4 items-end">
             <div>
               <Label className="text-xs text-gray-500">Select Student</Label>
-              <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                 <SelectTrigger className="w-64 mt-1">
                   <SelectValue placeholder="Select student" />
                 </SelectTrigger>
@@ -297,7 +314,6 @@ export default function ParentAttendance() {
         </Card>
       </div>
 
-      {/* Year Summary Stats */}
       {dateRangeMode === 'year' && (
         <Card className="bg-white shadow-md">
           <CardHeader>

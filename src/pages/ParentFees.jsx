@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DollarSign, CreditCard, Download, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -11,7 +13,7 @@ import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ParentFees() {
   const [user, setUser] = useState(null);
-  const [studentIds, setStudentIds] = useState([]);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('paystack');
   const queryClient = useQueryClient();
@@ -21,46 +23,101 @@ export default function ParentFees() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.parent_of_student_ids) {
-        setStudentIds(currentUser.parent_of_student_ids.split(',').map(id => id.trim()));
-      }
     };
     fetchUser();
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', studentIds],
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
+      if (!user?.id) return [];
+      
+      if (user.parent_profile_id) {
+        const parent = await base44.entities.Parent.get(user.parent_profile_id);
+        if (parent) return [parent];
+      }
+      
+      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
+      if (byUserId.length > 0) return byUserId;
+      
+      const allParents = await base44.entities.Parent.list();
       const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => studentIds.includes(s.id));
+      
+      const matchedStudents = allStudents.filter(s => 
+        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
+      );
+      
+      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
+        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
+        if (parentById) return [parentById];
+      }
+
+      return [];
     },
-    enabled: studentIds.length > 0,
+    enabled: !!user?.id,
   });
 
-  const { data: invoices = [] } = useQuery({
-    queryKey: ['parent-invoices', studentIds],
+  const parentProfile = parents[0];
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allInvoices = await base44.entities.FeeInvoice.list('-created_date');
-      return allInvoices.filter(inv => studentIds.includes(inv.student_id));
+      const allStudents = await base44.entities.Student.list();
+      let foundStudents = [];
+      
+      if (parentProfile?.linked_student_ids) {
+        try {
+          const linkedIds = JSON.parse(parentProfile.linked_student_ids);
+          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
+            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
+            if (foundStudents.length > 0) return foundStudents;
+          }
+        } catch (e) {}
+      }
+      
+      if (parentProfile?.id) {
+        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
+        if (foundStudents.length > 0) return foundStudents;
+      }
+      
+      if (user?.email) {
+        foundStudents = allStudents.filter(s => 
+          s.parent_email?.toLowerCase() === user.email.toLowerCase()
+        );
+        if (foundStudents.length > 0) return foundStudents;
+      }
+
+      return [];
     },
-    enabled: studentIds.length > 0,
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id);
+    }
+  }, [students, selectedStudentId]);
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['parent-invoices', selectedStudentId],
+    queryFn: async () => {
+      if (!selectedStudentId) return [];
+      return await base44.entities.FeeInvoice.filter({ student_id: selectedStudentId }, '-created_date');
+    },
+    enabled: !!selectedStudentId,
   });
 
   const { data: payments = [] } = useQuery({
-    queryKey: ['parent-payments', studentIds],
+    queryKey: ['parent-payments', selectedStudentId],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
-      const allPayments = await base44.entities.Payment.list('-payment_date');
-      return allPayments.filter(pay => studentIds.includes(pay.student_id));
+      if (!selectedStudentId) return [];
+      return await base44.entities.Payment.filter({ student_id: selectedStudentId }, '-payment_date');
     },
-    enabled: studentIds.length > 0,
+    enabled: !!selectedStudentId,
   });
 
   const paymentMutation = useMutation({
     mutationFn: async ({ invoiceId, amount, method }) => {
-      // Create payment record
       const payment = await base44.entities.Payment.create({
         invoice_id: invoiceId,
         student_id: selectedInvoice.student_id,
@@ -72,7 +129,6 @@ export default function ParentFees() {
         reference: `PAY-${Date.now()}`,
       });
 
-      // Update invoice
       const newBalance = selectedInvoice.balance - amount;
       await base44.entities.FeeInvoice.update(invoiceId, {
         amount_paid: selectedInvoice.amount_paid + amount,
@@ -95,21 +151,17 @@ export default function ParentFees() {
 
     const amount = selectedInvoice.balance;
     
-    // Simulate payment gateway integration
     if (method === 'paystack') {
-      // In production: integrate Paystack
       alert(`Redirecting to Paystack to pay ${formatAmount(amount)}...`);
       setTimeout(() => {
         paymentMutation.mutate({ invoiceId: selectedInvoice.id, amount, method: 'Paystack' });
       }, 1500);
     } else if (method === 'stripe') {
-      // In production: integrate Stripe
       alert(`Redirecting to Stripe to pay ${formatAmount(amount)}...`);
       setTimeout(() => {
         paymentMutation.mutate({ invoiceId: selectedInvoice.id, amount, method: 'Stripe' });
       }, 1500);
     } else if (method === 'flutterwave') {
-      // In production: integrate Flutterwave
       alert(`Redirecting to Flutterwave to pay ${formatAmount(amount)}...`);
       setTimeout(() => {
         paymentMutation.mutate({ invoiceId: selectedInvoice.id, amount, method: 'Flutterwave' });
@@ -127,10 +179,16 @@ export default function ParentFees() {
   const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
   const totalPaid = invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0);
 
-  if (!user) {
+  if (!user || students.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Fee Management</h1>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No students linked to your account</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -140,6 +198,22 @@ export default function ParentFees() {
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Fee Management</h1>
         <p className="text-gray-600 mt-1">View invoices and make payments</p>
+      </div>
+
+      <div className="mb-4">
+        <Label htmlFor="select-student" className="text-xs text-gray-500">Select Student</Label>
+        <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+          <SelectTrigger id="select-student" className="w-full md:w-[200px]">
+            <SelectValue placeholder="Select a student" />
+          </SelectTrigger>
+          <SelectContent>
+            {students.map((student) => (
+              <SelectItem key={student.id} value={student.id}>
+                {student.first_name} {student.last_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -259,7 +333,6 @@ export default function ParentFees() {
         </CardContent>
       </Card>
 
-      {/* Payment Dialog */}
       <Dialog open={!!selectedInvoice} onOpenChange={() => setSelectedInvoice(null)}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>

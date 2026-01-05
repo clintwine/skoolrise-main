@@ -3,40 +3,101 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Award, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Calendar, Award, CheckCircle, Clock, AlertCircle, ClipboardList } from 'lucide-react';
 import { format, startOfWeek, addDays } from 'date-fns';
 
 export default function ParentHomework() {
   const [user, setUser] = useState(null);
-  const [studentIds, setStudentIds] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.parent_of_student_ids) {
-        const ids = currentUser.parent_of_student_ids.split(',').map(id => id.trim());
-        setStudentIds(ids);
-        setSelectedStudent(ids[0]);
-      }
     };
     fetchUser();
   }, []);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-students', studentIds],
+  const { data: parents = [] } = useQuery({
+    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
     queryFn: async () => {
-      if (studentIds.length === 0) return [];
+      if (!user?.id) return [];
+      
+      if (user.parent_profile_id) {
+        const parent = await base44.entities.Parent.get(user.parent_profile_id);
+        if (parent) return [parent];
+      }
+      
+      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
+      if (byUserId.length > 0) return byUserId;
+      
+      const allParents = await base44.entities.Parent.list();
       const allStudents = await base44.entities.Student.list();
-      return allStudents.filter(s => studentIds.includes(s.id));
+      
+      const matchedStudents = allStudents.filter(s => 
+        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
+      );
+      
+      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
+        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
+        if (parentById) return [parentById];
+      }
+
+      return [];
     },
-    enabled: studentIds.length > 0,
+    enabled: !!user?.id,
   });
 
+  const parentProfile = parents[0];
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
+    queryFn: async () => {
+      const allStudents = await base44.entities.Student.list();
+      let foundStudents = [];
+      
+      if (parentProfile?.linked_student_ids) {
+        try {
+          const linkedIds = JSON.parse(parentProfile.linked_student_ids);
+          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
+            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
+            if (foundStudents.length > 0) return foundStudents;
+          }
+        } catch (e) {}
+      }
+      
+      if (parentProfile?.id) {
+        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
+        if (foundStudents.length > 0) return foundStudents;
+      }
+      
+      if (user?.email) {
+        foundStudents = allStudents.filter(s => 
+          s.parent_email?.toLowerCase() === user.email.toLowerCase()
+        );
+        if (foundStudents.length > 0) return foundStudents;
+      }
+
+      return [];
+    },
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id);
+    }
+  }, [students, selectedStudentId]);
+
   const { data: enrollments = [] } = useQuery({
-    queryKey: ['enrollments'],
-    queryFn: () => base44.entities.Enrollment.list(),
+    queryKey: ['enrollments', selectedStudentId],
+    queryFn: async () => {
+      if (!selectedStudentId) return [];
+      return await base44.entities.Enrollment.filter({ student_id: selectedStudentId });
+    },
+    enabled: !!selectedStudentId,
   });
 
   const { data: allAssignments = [] } = useQuery({
@@ -44,21 +105,16 @@ export default function ParentHomework() {
     queryFn: () => base44.entities.Assignment.list('-due_date'),
   });
 
-  // Filter assignments to only show those for student's enrolled classes
-  const studentClassIds = enrollments
-    .filter(e => studentIds.includes(e.student_id))
-    .map(e => e.class_id);
-  
+  const studentClassIds = enrollments.map(e => e.class_id);
   const assignments = allAssignments.filter(a => studentClassIds.includes(a.class_id));
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['student-submissions', selectedStudent],
+    queryKey: ['student-submissions', selectedStudentId],
     queryFn: async () => {
-      if (!selectedStudent) return [];
-      const allSubmissions = await base44.entities.Submission.list();
-      return allSubmissions.filter(s => s.student_id === selectedStudent);
+      if (!selectedStudentId) return [];
+      return await base44.entities.Submission.filter({ student_id: selectedStudentId });
     },
-    enabled: !!selectedStudent,
+    enabled: !!selectedStudentId,
   });
 
   const getSubmissionStatus = (assignmentId) => {
@@ -78,7 +134,6 @@ export default function ParentHomework() {
       }, 0) / completedAssignments.length).toFixed(1)
     : 0;
 
-  // Calendar view
   const weekStart = startOfWeek(new Date());
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -89,8 +144,18 @@ export default function ParentHomework() {
     });
   };
 
-  if (!user) {
-    return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div></div>;
+  if (!user || students.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Homework & Assignments</h1>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No students linked to your account</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -100,21 +165,21 @@ export default function ParentHomework() {
         <p className="text-gray-600 mt-1">Track your child's assignments and progress</p>
       </div>
 
-      {students.length > 1 && (
-        <Card>
-          <CardContent className="p-4">
-            <select
-              value={selectedStudent}
-              onChange={(e) => setSelectedStudent(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg"
-            >
-              {students.map(s => (
-                <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
-              ))}
-            </select>
-          </CardContent>
-        </Card>
-      )}
+      <div className="mb-4">
+        <Label htmlFor="select-student" className="text-xs text-gray-500">Select Student</Label>
+        <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+          <SelectTrigger id="select-student" className="w-full md:w-[200px]">
+            <SelectValue placeholder="Select a student" />
+          </SelectTrigger>
+          <SelectContent>
+            {students.map((student) => (
+              <SelectItem key={student.id} value={student.id}>
+                {student.first_name} {student.last_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
