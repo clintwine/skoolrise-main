@@ -162,7 +162,7 @@ export default function AssignmentBuilder() {
         await base44.entities.Assignment.update(assignmentId, {
           ...data,
           class_name: selectedArm ? `Grade ${selectedArm.grade_level} - ${selectedArm.arm_name}` : '',
-          teacher_id: teacherProfile?.id,
+          teacher_id: teacherProfile?.id || null,
         });
         
         // Delete existing assignment questions
@@ -177,7 +177,7 @@ export default function AssignmentBuilder() {
         assignment = await base44.entities.Assignment.create({
           ...data,
           class_name: selectedArm ? `Grade ${selectedArm.grade_level} - ${selectedArm.arm_name}` : '',
-          teacher_id: teacherProfile?.id,
+          teacher_id: teacherProfile?.id || null,
         });
       }
 
@@ -243,7 +243,7 @@ export default function AssignmentBuilder() {
   const handleSaveDraft = () => {
     console.log('🔵 handleSaveDraft called');
     console.log('📋 assignmentData:', assignmentData);
-    console.log('👨‍🏫 teacherProfile:', teacherProfile);
+    console.log('👤 user:', user);
     
     if (!assignmentData.title) {
       console.log('❌ Validation failed: No title');
@@ -260,11 +260,18 @@ export default function AssignmentBuilder() {
       toast.error('Please select a subject');
       return;
     }
-    if (!teacherProfile?.id) {
-      console.log('❌ Validation failed: No teacherProfile.id');
-      toast.error('Teacher profile not loaded. Please refresh the page.');
+    
+    // Check user permissions - allow admin and teacher only
+    const userType = user?.user_type || '';
+    const isAdmin = user?.role === 'admin' || userType === 'admin';
+    const isTeacher = userType === 'teacher';
+    
+    if (!isAdmin && !isTeacher) {
+      console.log('❌ Validation failed: User not authorized');
+      toast.error('You do not have permission to create assignments');
       return;
     }
+    
     const dataToSave = { ...assignmentData, status: 'Draft' };
     console.log('✅ All validations passed. Calling mutate with:', dataToSave);
     console.log('📊 createAssignmentMutation state:', { 
@@ -280,7 +287,7 @@ export default function AssignmentBuilder() {
     console.log('🟢 handlePublish called');
     console.log('📋 assignmentData:', assignmentData);
     console.log('❓ selectedQuestions:', selectedQuestions);
-    console.log('👨‍🏫 teacherProfile:', teacherProfile);
+    console.log('👤 user:', user);
     
     if (!assignmentData.title) {
       console.log('❌ Validation failed: No title');
@@ -307,11 +314,18 @@ export default function AssignmentBuilder() {
       toast.error('Please add at least one question');
       return;
     }
-    if (!teacherProfile?.id) {
-      console.log('❌ Validation failed: No teacherProfile.id');
-      toast.error('Teacher profile not loaded. Please refresh the page.');
+    
+    // Check user permissions - allow admin and teacher only
+    const userType = user?.user_type || '';
+    const isAdmin = user?.role === 'admin' || userType === 'admin';
+    const isTeacher = userType === 'teacher';
+    
+    if (!isAdmin && !isTeacher) {
+      console.log('❌ Validation failed: User not authorized');
+      toast.error('You do not have permission to publish assignments');
       return;
     }
+    
     const dataToPublish = { ...assignmentData, status: 'Published' };
     console.log('✅ All validations passed. Calling mutate with:', dataToPublish);
     console.log('📊 createAssignmentMutation state:', { 
