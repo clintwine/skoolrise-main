@@ -19,6 +19,7 @@ import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
 import ClassroomResources from './pages/ClassroomResources';
+import ClubsManagement from './pages/ClubsManagement';
 import ConferenceScheduling from './pages/ConferenceScheduling';
 import ContactLists from './pages/ContactLists';
 import Contacts from './pages/Contacts';
@@ -48,6 +49,7 @@ import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
 import MyClasses from './pages/MyClasses';
 import NotificationsSettings from './pages/NotificationsSettings';
+import ParentActivities from './pages/ParentActivities';
 import ParentAssignmentView from './pages/ParentAssignmentView';
 import ParentAttendance from './pages/ParentAttendance';
 import ParentBehavior from './pages/ParentBehavior';
@@ -59,6 +61,7 @@ import ParentLinkingRequests from './pages/ParentLinkingRequests';
 import ParentManagement from './pages/ParentManagement';
 import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
+import ParentSchoolShop from './pages/ParentSchoolShop';
 import ParentStudentView from './pages/ParentStudentView';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProctoringAnalytics from './pages/ProctoringAnalytics';
@@ -75,6 +78,7 @@ import SalaryManagement from './pages/SalaryManagement';
 import ScannerSettings from './pages/ScannerSettings';
 import ScheduledReports from './pages/ScheduledReports';
 import SchoolSettings from './pages/SchoolSettings';
+import SchoolShopManagement from './pages/SchoolShopManagement';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
 import SettingsHub from './pages/SettingsHub';
@@ -98,17 +102,13 @@ import TeacherSchedule from './pages/TeacherSchedule';
 import TeacherTests from './pages/TeacherTests';
 import TermsOfService from './pages/TermsOfService';
 import TimetableManagement from './pages/TimetableManagement';
+import TripsManagement from './pages/TripsManagement';
 import UnifiedAttendance from './pages/UnifiedAttendance';
 import UserManagement from './pages/UserManagement';
 import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ParentSchoolShop from './pages/ParentSchoolShop';
-import ParentActivities from './pages/ParentActivities';
-import SchoolShopManagement from './pages/SchoolShopManagement';
-import TripsManagement from './pages/TripsManagement';
-import ClubsManagement from './pages/ClubsManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -134,6 +134,7 @@ export const PAGES = {
     "BookshopManager": BookshopManager,
     "BookshopReports": BookshopReports,
     "ClassroomResources": ClassroomResources,
+    "ClubsManagement": ClubsManagement,
     "ConferenceScheduling": ConferenceScheduling,
     "ContactLists": ContactLists,
     "Contacts": Contacts,
@@ -163,6 +164,7 @@ export const PAGES = {
     "MessagingCenter": MessagingCenter,
     "MyClasses": MyClasses,
     "NotificationsSettings": NotificationsSettings,
+    "ParentActivities": ParentActivities,
     "ParentAssignmentView": ParentAssignmentView,
     "ParentAttendance": ParentAttendance,
     "ParentBehavior": ParentBehavior,
@@ -174,6 +176,7 @@ export const PAGES = {
     "ParentManagement": ParentManagement,
     "ParentPortal": ParentPortal,
     "ParentReports": ParentReports,
+    "ParentSchoolShop": ParentSchoolShop,
     "ParentStudentView": ParentStudentView,
     "PrivacyPolicy": PrivacyPolicy,
     "ProctoringAnalytics": ProctoringAnalytics,
@@ -190,6 +193,7 @@ export const PAGES = {
     "ScannerSettings": ScannerSettings,
     "ScheduledReports": ScheduledReports,
     "SchoolSettings": SchoolSettings,
+    "SchoolShopManagement": SchoolShopManagement,
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
     "SettingsHub": SettingsHub,
@@ -213,17 +217,13 @@ export const PAGES = {
     "TeacherTests": TeacherTests,
     "TermsOfService": TermsOfService,
     "TimetableManagement": TimetableManagement,
+    "TripsManagement": TripsManagement,
     "UnifiedAttendance": UnifiedAttendance,
     "UserManagement": UserManagement,
     "UserProfile": UserProfile,
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ParentSchoolShop": ParentSchoolShop,
-    "ParentActivities": ParentActivities,
-    "SchoolShopManagement": SchoolShopManagement,
-    "TripsManagement": TripsManagement,
-    "ClubsManagement": ClubsManagement,
 }
 
 export const pagesConfig = {
