@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap, Link2 } from 'lucide-react';
+import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap, Link2, Upload } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import StudentForm from '../components/students/StudentForm';
 import StudentDetails from '../components/students/StudentDetails';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function StudentRecords() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +33,7 @@ export default function StudentRecords() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isLinkParentOpen, setIsLinkParentOpen] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState('');
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: students = [], isLoading } = useQuery({
@@ -142,16 +144,21 @@ export default function StudentRecords() {
           <h1 className="text-3xl font-bold text-gray-900">Student Records</h1>
           <p className="text-gray-600 mt-1">Manage student information and profiles</p>
         </div>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => setSelectedStudent(null)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Student
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button onClick={() => setBulkImportOpen(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => setSelectedStudent(null)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Student
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white z-50">
             <DialogHeader>
               <DialogTitle>
@@ -369,6 +376,34 @@ export default function StudentRecords() {
           )}
         </DialogContent>
       </Dialog>
+        </div>
+      </div>
+
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        entityName="Student"
+        entitySchema={{
+          type: "object",
+          properties: {
+            first_name: { type: "string" },
+            last_name: { type: "string" },
+            student_id_number: { type: "string" },
+            grade_level: { type: "string" },
+            date_of_birth: { type: "string", format: "date" },
+            gender: { type: "string" },
+            admission_date: { type: "string", format: "date" },
+            address: { type: "string" },
+            phone: { type: "string" },
+            parent_email: { type: "string", format: "email" },
+            parent_phone: { type: "string" },
+          },
+          required: ["first_name", "last_name", "student_id_number", "grade_level"]
+        }}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['students'] });
+        }}
+      />
     </div>
   );
 }

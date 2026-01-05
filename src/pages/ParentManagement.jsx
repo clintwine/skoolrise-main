@@ -5,17 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Users, Plus, Mail, Phone, Search } from 'lucide-react';
+import { Users, Plus, Mail, Phone, Search, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import BulkImportDialog from '../components/admin/BulkImportDialog';
 
 export default function ParentManagement() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -93,10 +95,16 @@ export default function ParentManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Parent Management</h1>
           <p className="text-gray-600 mt-1">Manage parent profiles and student linkages</p>
         </div>
-        <Button onClick={() => setAddDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Parent
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setBulkImportOpen(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button onClick={() => setAddDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Parent
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-white shadow-md rounded-xl">
@@ -242,6 +250,25 @@ export default function ParentManagement() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        entityName="Parent"
+        entitySchema={{
+          type: "object",
+          properties: {
+            first_name: { type: "string" },
+            last_name: { type: "string" },
+            phone: { type: "string" },
+            address: { type: "string" },
+          },
+          required: ["first_name", "last_name", "phone"]
+        }}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['parents'] });
+        }}
+      />
     </div>
   );
 }
