@@ -125,6 +125,7 @@ export default function AssignmentBuilder() {
 
   useEffect(() => {
     if (existingAssignment && !assignmentLoaded) {
+      console.log('📝 Loading existing assignment:', existingAssignment);
       setAssignmentData(prev => ({
         ...prev,
         ...existingAssignment,
@@ -555,8 +556,9 @@ Return as JSON array with this exact structure:
               </div>
 
               <div>
-                <Label>Assignment Title</Label>
+                <Label htmlFor="title-input">Assignment Title *</Label>
                 <Input
+                  id="title-input"
                   value={assignmentData.title}
                   onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
                   placeholder="e.g. Chapter 5 Review Questions"
@@ -565,11 +567,13 @@ Return as JSON array with this exact structure:
               </div>
 
               <div>
-                <Label>Subject *</Label>
+                <Label htmlFor="subject-select">Subject *</Label>
                 <select
+                  id="subject-select"
                   value={assignmentData.subject_id}
                   onChange={(e) => {
                     const subject = subjects.find(s => s.id === e.target.value);
+                    console.log('📚 Subject selected:', subject);
                     setAssignmentData({ 
                       ...assignmentData, 
                       subject_id: e.target.value,
@@ -588,8 +592,9 @@ Return as JSON array with this exact structure:
               </div>
 
               <div>
-                <Label>Class *</Label>
+                <Label htmlFor="class-select">Class *</Label>
                 <select
+                  id="class-select"
                   value={assignmentData.class_id}
                   onChange={(e) => setAssignmentData({ ...assignmentData, class_id: e.target.value })}
                   className="w-full p-2 border rounded-lg mt-1"
@@ -620,13 +625,15 @@ Return as JSON array with this exact structure:
 
             <TabsContent value="settings" className="p-4 space-y-4">
               <div>
-                <Label>Due Date</Label>
+                <Label htmlFor="due-date-input">Due Date *</Label>
                 <Input
+                  id="due-date-input"
                   type="datetime-local"
                   value={assignmentData.due_date}
                   onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
                   className="mt-1"
                 />
+                <p className="text-xs text-gray-500 mt-1">Required to publish assignment</p>
               </div>
 
               <LatePolicyConfig
@@ -693,7 +700,11 @@ Return as JSON array with this exact structure:
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI Generate
               </Button>
-              <Button variant="outline" onClick={() => setQuestionBankOpen(true)}>
+              <Button variant="outline" onClick={() => {
+                console.log('🏦 Add from Bank clicked');
+                console.log('📚 questionBank:', questionBank);
+                setQuestionBankOpen(true);
+              }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add from Bank
               </Button>
@@ -817,6 +828,59 @@ Return as JSON array with this exact structure:
                 Done
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Generate Dialog */}
+      {/* Question Bank Dialog */}
+      <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
+        <DialogContent className="bg-white max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Questions from Bank</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {questionBank.length === 0 ? (
+              <div className="text-center py-12">
+                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No questions in the question bank yet.</p>
+                <p className="text-sm text-gray-400 mt-2">Create questions to add them to your bank.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {questionBank.map((q) => {
+                  const alreadyAdded = selectedQuestions.some(sq => sq.id === q.id);
+                  return (
+                    <Card key={q.id} className={`${alreadyAdded ? 'bg-gray-50 opacity-60' : 'hover:shadow-md'} transition-all`}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{q.question_text}</p>
+                            <div className="flex gap-2 mt-2 flex-wrap">
+                              <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
+                              <Badge className="bg-blue-100 text-blue-800 text-xs">{q.points} pts</Badge>
+                              {q.difficulty && <Badge variant="outline" className="text-xs">{q.difficulty}</Badge>}
+                              {q.subject && <Badge className="bg-purple-100 text-purple-800 text-xs">{q.subject}</Badge>}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            disabled={alreadyAdded}
+                            onClick={() => {
+                              setSelectedQuestions([...selectedQuestions, q]);
+                              toast.success('Question added');
+                            }}
+                            className={alreadyAdded ? '' : 'bg-blue-600 hover:bg-blue-700'}
+                          >
+                            {alreadyAdded ? 'Added' : 'Add'}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
