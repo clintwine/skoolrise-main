@@ -175,6 +175,7 @@ export default function StudentRecords() {
             />
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Search */}
