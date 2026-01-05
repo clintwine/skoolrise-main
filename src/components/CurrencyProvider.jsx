@@ -36,6 +36,13 @@ export function CurrencyProvider({ children }) {
   const currency = school?.currency || 'USD';
   const currencyData = CURRENCIES[currency] || CURRENCIES.USD;
 
+  // Debug logging
+  console.log('🔍 CurrencyProvider Debug:');
+  console.log('  - School data:', school);
+  console.log('  - school?.currency:', school?.currency);
+  console.log('  - Resolved currency:', currency);
+  console.log('  - Symbol:', currencyData.symbol);
+
   const formatAmount = React.useCallback((amount) => {
     const num = parseFloat(amount) || 0;
     return `${currencyData.symbol}${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
