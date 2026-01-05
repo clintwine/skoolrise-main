@@ -248,17 +248,26 @@ export default function AssignmentBuilder() {
     
     if (!assignmentData.title) {
       console.log('❌ Validation failed: No title');
-      toast.error('Please fill in the assignment title');
+      toast.error('Missing Assignment Title', {
+        description: 'Please enter a title for your assignment in the Details tab.',
+        duration: 5000,
+      });
       return;
     }
     if (!assignmentData.class_id) {
       console.log('❌ Validation failed: No class_id');
-      toast.error('Please select a class');
+      toast.error('No Class Selected', {
+        description: 'Please select a class from the Details tab before saving.',
+        duration: 5000,
+      });
       return;
     }
     if (!assignmentData.subject_id) {
       console.log('❌ Validation failed: No subject_id');
-      toast.error('Please select a subject');
+      toast.error('No Subject Selected', {
+        description: 'Please select a subject from the Details tab before saving.',
+        duration: 5000,
+      });
       return;
     }
     
@@ -269,7 +278,10 @@ export default function AssignmentBuilder() {
     
     if (!isAdmin && !isTeacher) {
       console.log('❌ Validation failed: User not authorized');
-      toast.error('You do not have permission to create assignments');
+      toast.error('Permission Denied', {
+        description: 'Only teachers and administrators can create assignments. Please contact your admin.',
+        duration: 5000,
+      });
       return;
     }
     
@@ -292,27 +304,42 @@ export default function AssignmentBuilder() {
     
     if (!assignmentData.title) {
       console.log('❌ Validation failed: No title');
-      toast.error('Please fill in the assignment title');
+      toast.error('Missing Assignment Title', {
+        description: 'Please enter a title for your assignment in the Details tab.',
+        duration: 5000,
+      });
       return;
     }
     if (!assignmentData.class_id) {
       console.log('❌ Validation failed: No class_id');
-      toast.error('Please select a class');
+      toast.error('No Class Selected', {
+        description: 'Please select a class from the Details tab before publishing.',
+        duration: 5000,
+      });
       return;
     }
     if (!assignmentData.subject_id) {
       console.log('❌ Validation failed: No subject_id');
-      toast.error('Please select a subject');
+      toast.error('No Subject Selected', {
+        description: 'Please select a subject from the Details tab before publishing.',
+        duration: 5000,
+      });
       return;
     }
     if (!assignmentData.due_date) {
       console.log('❌ Validation failed: No due_date');
-      toast.error('Please set a due date');
+      toast.error('No Due Date Set', {
+        description: 'Please set a due date in the Settings tab. Go to Settings → Due Date to select when this assignment is due.',
+        duration: 6000,
+      });
       return;
     }
     if (selectedQuestions.length === 0) {
       console.log('❌ Validation failed: No questions');
-      toast.error('Please add at least one question');
+      toast.error('No Questions Added', {
+        description: 'Please add at least one question to this assignment before publishing.',
+        duration: 5000,
+      });
       return;
     }
     
@@ -323,7 +350,10 @@ export default function AssignmentBuilder() {
     
     if (!isAdmin && !isTeacher) {
       console.log('❌ Validation failed: User not authorized');
-      toast.error('You do not have permission to publish assignments');
+      toast.error('Permission Denied', {
+        description: 'Only teachers and administrators can publish assignments. Please contact your admin.',
+        duration: 5000,
+      });
       return;
     }
     
@@ -339,13 +369,18 @@ export default function AssignmentBuilder() {
   };
 
   const handleCreateNewQuestion = (questionData) => {
+    // Auto-tag with current assignment's subject and grade
+    const selectedClass = classArms.find(c => c.id === assignmentData.class_id);
     const newQuestion = {
       ...questionData,
       id: `temp_${Date.now()}`,
+      subject: assignmentData.subject_name || questionData.subject,
+      class_level: selectedClass?.grade_level || questionData.class_level,
     };
+    console.log('➕ Creating new question with tags:', { subject: newQuestion.subject, class_level: newQuestion.class_level });
     setSelectedQuestions([...selectedQuestions, newQuestion]);
     setCreateQuestionOpen(false);
-    toast.success('Question added');
+    toast.success('Question added with subject and grade tags');
   };
 
   const totalPoints = selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
@@ -429,6 +464,8 @@ Return as JSON array with this exact structure:
       });
 
       if (response.questions && response.questions.length > 0) {
+        // Auto-tag with current assignment's subject and grade
+        const selectedClass = classArms.find(c => c.id === assignmentData.class_id);
         const newQuestions = response.questions.map((q, idx) => ({
           id: `temp_ai_${Date.now()}_${idx}`,
           question_text: q.question_text,
@@ -438,10 +475,13 @@ Return as JSON array with this exact structure:
           difficulty: q.difficulty || 'Medium',
           points: q.points || 2,
           explanation: q.explanation || '',
+          subject: assignmentData.subject_name || '',
+          class_level: selectedClass?.grade_level || '',
         }));
 
+        console.log('🤖 AI generated questions with tags:', newQuestions[0]);
         setSelectedQuestions([...selectedQuestions, ...newQuestions]);
-        toast.success(`Generated ${newQuestions.length} questions!`);
+        toast.success(`Generated ${newQuestions.length} questions with subject and grade tags!`);
         setAiGenerateOpen(false);
         setAiPrompt('');
         setAiSourceFile(null);
@@ -703,6 +743,24 @@ Return as JSON array with this exact structure:
               <Button variant="outline" onClick={() => {
                 console.log('🏦 Add from Bank clicked');
                 console.log('📚 questionBank:', questionBank);
+                console.log('📋 assignmentData:', assignmentData);
+
+                if (!assignmentData.class_id) {
+                  toast.error('Please select a class first', {
+                    description: 'You need to select a class before adding questions from the bank. Questions are filtered by grade level.',
+                    duration: 5000,
+                  });
+                  return;
+                }
+
+                if (!assignmentData.subject_name) {
+                  toast.error('Please select a subject first', {
+                    description: 'You need to select a subject before adding questions from the bank. Questions are filtered by subject.',
+                    duration: 5000,
+                  });
+                  return;
+                }
+
                 setQuestionBankOpen(true);
               }}>
                 <Plus className="w-4 h-4 mr-2" />
