@@ -379,6 +379,66 @@ export default function StudentRecords() {
         </div>
       </div>
 
+      {/* Link Parent Dialog */}
+      <Dialog open={isLinkParentOpen} onOpenChange={setIsLinkParentOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Link Parent to {selectedStudent?.first_name} {selectedStudent?.last_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Select Parent</Label>
+              <Select value={selectedParentId} onValueChange={setSelectedParentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a parent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parents.map(parent => (
+                    <SelectItem key={parent.id} value={parent.id}>
+                      {parent.first_name} {parent.last_name} ({parent.phone})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedStudent?.parent_id && (
+              <p className="text-sm text-yellow-700 bg-yellow-50 p-2 rounded">
+                This student already has a linked parent. Linking a new parent will replace the existing one.
+              </p>
+            )}
+            <Button 
+              onClick={() => linkParentMutation.mutate({ studentId: selectedStudent?.id, parentId: selectedParentId })}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+              disabled={!selectedParentId || linkParentMutation.isPending}
+            >
+              {linkParentMutation.isPending ? 'Linking...' : 'Link Parent'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Student Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white z-50">
+          <DialogHeader>
+            <DialogTitle>Student Details</DialogTitle>
+          </DialogHeader>
+          {selectedStudent && (
+            <StudentDetails
+              student={selectedStudent}
+              onEdit={() => {
+                setIsDetailsOpen(false);
+                setIsFormOpen(true);
+              }}
+              onClose={() => {
+                setIsDetailsOpen(false);
+                setSelectedStudent(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <BulkImportDialog
         open={bulkImportOpen}
         onOpenChange={setBulkImportOpen}
