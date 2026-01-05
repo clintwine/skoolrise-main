@@ -59,6 +59,7 @@ export default function AssignmentBuilder() {
   const [questionCount, setQuestionCount] = useState(5);
   const [aiSourceFile, setAiSourceFile] = useState(null);
   const [aiSourceFileUrl, setAiSourceFileUrl] = useState('');
+  const [instructionsDialogOpen, setInstructionsDialogOpen] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
@@ -124,21 +125,27 @@ export default function AssignmentBuilder() {
 
   useEffect(() => {
     if (existingAssignment && !assignmentLoaded) {
-      setAssignmentData({
-        ...assignmentData,
+      setAssignmentData(prev => ({
+        ...prev,
         ...existingAssignment,
         due_date: existingAssignment.due_date || '',
-      });
-      setAssignmentLoaded(true);
+        subject_id: existingAssignment.subject_id || '',
+        subject_name: existingAssignment.subject_name || '',
+      }));
     }
-  }, [existingAssignment]);
+  }, [existingAssignment, assignmentLoaded]);
 
   useEffect(() => {
     if (existingQuestions.length > 0 && !assignmentLoaded) {
       setSelectedQuestions(existingQuestions);
+    }
+  }, [existingQuestions, assignmentLoaded]);
+
+  useEffect(() => {
+    if (existingAssignment && existingQuestions && !assignmentLoaded) {
       setAssignmentLoaded(true);
     }
-  }, [existingQuestions]);
+  }, [existingAssignment, existingQuestions, assignmentLoaded]);
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (data) => {
@@ -219,24 +226,41 @@ export default function AssignmentBuilder() {
   });
 
   const handleSaveDraft = () => {
-    if (!assignmentData.title || !assignmentData.class_id) {
-      toast.error('Please fill in title and class');
+    if (!assignmentData.title) {
+      toast.error('Please fill in the assignment title');
+      return;
+    }
+    if (!assignmentData.class_id) {
+      toast.error('Please select a class');
+      return;
+    }
+    if (!assignmentData.subject_id) {
+      toast.error('Please select a subject');
       return;
     }
     if (!teacherProfile?.id) {
       toast.error('Teacher profile not loaded. Please refresh the page.');
       return;
     }
-    createAssignmentMutation.mutate({ ...assignmentData, status: 'Draft' });
+    const dataToSave = { ...assignmentData, status: 'Draft' };
+    createAssignmentMutation.mutate(dataToSave);
   };
 
   const handlePublish = () => {
-    if (!assignmentData.title || !assignmentData.class_id || !assignmentData.due_date) {
-      toast.error('Please fill in all required fields (title, class, due date)');
+    if (!assignmentData.title) {
+      toast.error('Please fill in the assignment title');
+      return;
+    }
+    if (!assignmentData.class_id) {
+      toast.error('Please select a class');
       return;
     }
     if (!assignmentData.subject_id) {
       toast.error('Please select a subject');
+      return;
+    }
+    if (!assignmentData.due_date) {
+      toast.error('Please set a due date');
       return;
     }
     if (selectedQuestions.length === 0) {
@@ -247,7 +271,8 @@ export default function AssignmentBuilder() {
       toast.error('Teacher profile not loaded. Please refresh the page.');
       return;
     }
-    createAssignmentMutation.mutate({ ...assignmentData, status: 'Published' });
+    const dataToPublish = { ...assignmentData, status: 'Published' };
+    createAssignmentMutation.mutate(dataToPublish);
   };
 
   const handleCreateNewQuestion = (questionData) => {
@@ -492,12 +517,16 @@ Return as JSON array with this exact structure:
 
               <div>
                 <Label>Instructions (Optional)</Label>
-                <ReactQuill
-                  value={assignmentData.instructions}
-                  onChange={(value) => setAssignmentData({ ...assignmentData, instructions: value })}
-                  className="mt-1 bg-white"
-                  placeholder="Enter instructions for students..."
-                />
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-1 justify-start text-left"
+                  onClick={() => setInstructionsDialogOpen(true)}
+                >
+                  {assignmentData.instructions && assignmentData.instructions !== '<p><br></p>' 
+                    ? <span className="truncate">Edit instructions...</span>
+                    : <span className="text-gray-500">Add instructions for students...</span>
+                  }
+                </Button>
               </div>
             </TabsContent>
 
@@ -681,6 +710,28 @@ Return as JSON array with this exact structure:
           setAssignmentData({ ...assignmentData, rubric_id: rubric.id });
         }}
       />
+
+      {/* Instructions Dialog */}
+      <Dialog open={instructionsDialogOpen} onOpenChange={setInstructionsDialogOpen}>
+        <DialogContent className="bg-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assignment Instructions</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <ReactQuill
+              value={assignmentData.instructions}
+              onChange={(value) => setAssignmentData({ ...assignmentData, instructions: value })}
+              className="bg-white min-h-[200px]"
+              placeholder="Enter instructions for students..."
+            />
+            <div className="flex justify-end">
+              <Button onClick={() => setInstructionsDialogOpen(false)}>
+                Done
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Generate Dialog */}
       <Dialog open={aiGenerateOpen} onOpenChange={setAiGenerateOpen}>
