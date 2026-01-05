@@ -37,6 +37,8 @@ export default function AssignmentBuilder() {
     title: '',
     instructions: '',
     class_id: '',
+    subject_id: '',
+    subject_name: '',
     due_date: '',
     max_points: 100,
     type: 'Homework',
