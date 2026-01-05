@@ -7,6 +7,7 @@ import CommandPalette from './components/CommandPalette';
 import NoRoleScreen from './components/NoRoleScreen';
 import MobileBottomNav from './components/MobileBottomNav';
 import OfflineIndicator from './components/OfflineIndicator';
+import { CurrencyProvider } from './components/CurrencyProvider';
 import {
   GraduationCap,
   Users,
@@ -401,16 +402,17 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Offline Indicator */}
-      <OfflineIndicator />
+    <CurrencyProvider>
+      <div className="min-h-screen bg-background">
+        {/* Offline Indicator */}
+        <OfflineIndicator />
 
-      {/* Command Palette */}
-      <CommandPalette 
-        isOpen={commandPaletteOpen} 
-        onClose={() => setCommandPaletteOpen(false)}
-        userRole={getUserRole()}
-      />
+        {/* Command Palette */}
+        <CommandPalette 
+          isOpen={commandPaletteOpen} 
+          onClose={() => setCommandPaletteOpen(false)}
+          userRole={getUserRole()}
+        />
 
       {/* Header */}
       <header className="bg-white sticky top-0 z-40 shadow-sm border-b border-gray-200">
@@ -548,6 +550,6 @@ export default function Layout({ children, currentPageName }) {
           currentPageName={currentPageName} 
         />
         </div>
-        </div>
+        </CurrencyProvider>
         );
-}
+        }
