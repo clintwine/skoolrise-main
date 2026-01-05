@@ -840,47 +840,86 @@ Return as JSON array with this exact structure:
             <DialogTitle>Add Questions from Bank</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {questionBank.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No questions in the question bank yet.</p>
-                <p className="text-sm text-gray-400 mt-2">Create questions to add them to your bank.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {questionBank.map((q) => {
-                  const alreadyAdded = selectedQuestions.some(sq => sq.id === q.id);
-                  return (
-                    <Card key={q.id} className={`${alreadyAdded ? 'bg-gray-50 opacity-60' : 'hover:shadow-md'} transition-all`}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{q.question_text}</p>
-                            <div className="flex gap-2 mt-2 flex-wrap">
-                              <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
-                              <Badge className="bg-blue-100 text-blue-800 text-xs">{q.points} pts</Badge>
-                              {q.difficulty && <Badge variant="outline" className="text-xs">{q.difficulty}</Badge>}
-                              {q.subject && <Badge className="bg-purple-100 text-purple-800 text-xs">{q.subject}</Badge>}
+            {(() => {
+              // Get the selected class grade level
+              const selectedClass = classArms.find(c => c.id === assignmentData.class_id);
+              const selectedGrade = selectedClass?.grade_level;
+              const selectedSubject = assignmentData.subject_name;
+
+              console.log('🔍 Filtering questions for:', { selectedGrade, selectedSubject });
+
+              // Filter questions by grade and subject
+              const filteredQuestions = questionBank.filter(q => {
+                const matchesGrade = !selectedGrade || q.class_level === selectedGrade;
+                const matchesSubject = !selectedSubject || q.subject === selectedSubject;
+                return matchesGrade && matchesSubject;
+              });
+
+              console.log('📊 Filtered questions:', filteredQuestions.length, 'out of', questionBank.length);
+
+              if (!assignmentData.class_id || !assignmentData.subject_name) {
+                return (
+                  <div className="text-center py-12">
+                    <AlertCircle className="w-16 h-16 text-orange-300 mx-auto mb-4" />
+                    <p className="text-gray-700 font-medium mb-2">Please select a class and subject first</p>
+                    <p className="text-sm text-gray-500">Questions are filtered by grade level and subject</p>
+                  </div>
+                );
+              }
+
+              if (filteredQuestions.length === 0) {
+                return (
+                  <div className="text-center py-12">
+                    <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-700 font-medium mb-2">No matching questions found</p>
+                    <p className="text-sm text-gray-500">No questions for Grade {selectedGrade} - {selectedSubject}</p>
+                    <p className="text-sm text-gray-400 mt-2">Create questions to add them to your bank.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div>
+                  <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                    <p className="text-sm text-blue-800">
+                      Showing questions for <span className="font-semibold">Grade {selectedGrade}</span> - <span className="font-semibold">{selectedSubject}</span>
+                    </p>
+                  </div>
+                  <div className="grid gap-3">
+                    {filteredQuestions.map((q) => {
+                      const alreadyAdded = selectedQuestions.some(sq => sq.id === q.id);
+                      return (
+                        <Card key={q.id} className={`${alreadyAdded ? 'bg-gray-50 opacity-60' : 'hover:shadow-md'} transition-all`}>
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">{q.question_text}</p>
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
+                                  <Badge className="bg-blue-100 text-blue-800 text-xs">{q.points} pts</Badge>
+                                  {q.difficulty && <Badge variant="outline" className="text-xs">{q.difficulty}</Badge>}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                disabled={alreadyAdded}
+                                onClick={() => {
+                                  setSelectedQuestions([...selectedQuestions, q]);
+                                  toast.success('Question added');
+                                }}
+                                className={alreadyAdded ? '' : 'bg-blue-600 hover:bg-blue-700'}
+                              >
+                                {alreadyAdded ? 'Added' : 'Add'}
+                              </Button>
                             </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            disabled={alreadyAdded}
-                            onClick={() => {
-                              setSelectedQuestions([...selectedQuestions, q]);
-                              toast.success('Question added');
-                            }}
-                            className={alreadyAdded ? '' : 'bg-blue-600 hover:bg-blue-700'}
-                          >
-                            {alreadyAdded ? 'Added' : 'Add'}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </DialogContent>
       </Dialog>
