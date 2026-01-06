@@ -303,7 +303,7 @@ export default function ParentHomework() {
                   <h4 className="font-semibold">{a.title}</h4>
                   <p className="text-sm text-gray-600">{a.class_name}</p>
                   <p className="text-sm text-red-600 mt-1">
-                    Was due: {format(new Date(a.due_date), 'MMM d, yyyy')}
+                    Was due: {safeFormat(a.due_date, 'MMM d, yyyy')}
                   </p>
                 </div>
               ))}
