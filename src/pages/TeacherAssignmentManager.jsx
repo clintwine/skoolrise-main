@@ -191,7 +191,7 @@ export default function TeacherAssignmentManager() {
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                             <span className="text-gray-700 font-medium">
-                              Due: {format(dueDate, 'MMM dd, yyyy h:mm a')}
+                              Due: {safeFormat(dueDate, 'MMM dd, yyyy h:mm a')}
                             </span>
                           </div>
                           <div className="text-gray-700">
