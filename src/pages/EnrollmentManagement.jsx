@@ -109,7 +109,8 @@ export default function EnrollmentManagement() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         students={students}
-        classes={classes}
+        classArms={classArms}
+        subjects={subjects}
         onSubmit={handleSubmit}
       />
 
@@ -365,12 +366,14 @@ function BulkEnrollmentImportDialog({ open, onOpenChange, onImportComplete }) {
   );
 }
 
-function EnrollmentFormDialog({ open, onOpenChange, students, classes, onSubmit }) {
+function EnrollmentFormDialog({ open, onOpenChange, students, classArms, subjects, onSubmit }) {
   const [formData, setFormData] = React.useState({
     student_id: '',
     student_name: '',
     class_id: '',
     class_name: '',
+    subject_id: '',
+    subject_name: '',
     enrollment_date: new Date().toISOString().split('T')[0],
     status: 'Enrolled',
   });
@@ -380,15 +383,22 @@ function EnrollmentFormDialog({ open, onOpenChange, students, classes, onSubmit 
     setFormData({ ...formData, student_id: studentId, student_name: student ? `${student.first_name} ${student.last_name}` : '' });
   };
 
-  const handleClassChange = (classId) => {
-    const cls = classes.find(c => c.id === classId);
-    setFormData({ ...formData, class_id: classId, class_name: cls ? cls.class_name : '' });
+  const handleClassChange = (classArmId) => {
+    const arm = classArms.find(c => c.id === classArmId);
+    setFormData({ ...formData, class_id: classArmId, class_name: arm ? `${arm.grade_level} - ${arm.arm_name}` : '' });
+  };
+
+  const handleSubjectChange = (subjectId) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    setFormData({ ...formData, subject_id: subjectId, subject_name: subject ? subject.subject_name : '' });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
   };
+
+  const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -409,13 +419,33 @@ function EnrollmentFormDialog({ open, onOpenChange, students, classes, onSubmit 
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium">Class *</label>
+            <label className="text-sm font-medium">Class (Grade Level) *</label>
             <Select value={formData.class_id} onValueChange={handleClassChange} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.class_name}</SelectItem>)}
+                {classArms.map(c => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.grade_level} - {c.arm_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Subject (Optional - for special subjects)</label>
+            <Select value={formData.subject_id} onValueChange={handleSubjectChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select subject (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>None</SelectItem>
+                {subjects.map(s => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.subject_name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
