@@ -331,7 +331,7 @@ export default function ParentHomework() {
                       <div className="flex items-center gap-4 mt-2 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          <span>Due: {format(new Date(a.due_date), 'MMM d')}</span>
+                          <span>Due: {safeFormat(a.due_date, 'MMM d')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Award className="w-4 h-4" />
