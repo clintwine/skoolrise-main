@@ -101,7 +101,12 @@ export default function UserProfile() {
           profile = students[0];
         }
         if (profile?.parent_id) {
-          linkedParent = await base44.entities.Parent.get(profile.parent_id);
+          try {
+            linkedParent = await base44.entities.Parent.get(profile.parent_id);
+          } catch (error) {
+            console.error('Failed to fetch linked parent:', error);
+            linkedParent = null;
+          }
         }
         if (profile) {
           attendance = await base44.entities.Attendance.filter({ student_id: profile.id });

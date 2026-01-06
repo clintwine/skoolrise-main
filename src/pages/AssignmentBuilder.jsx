@@ -543,6 +543,13 @@ Return as JSON array with this exact structure:
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              if (!assignmentData.due_date) {
+                toast.error('Due Date Required', {
+                  description: 'Please set a due date before publishing. You can set it in the details section below.',
+                  duration: 5000,
+                });
+                return;
+              }
               handlePublish();
             }} 
             disabled={createAssignmentMutation.isPending} 
@@ -561,13 +568,8 @@ Return as JSON array with this exact structure:
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
         {/* Left Sidebar - Details & Settings */}
         <div className="w-80 flex flex-col gap-4 overflow-y-auto">
-          <Tabs defaultValue="details" className="bg-white rounded-xl shadow-sm border">
-            <TabsList className="grid w-full grid-cols-2 p-1">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details" className="p-4 space-y-4">
+          <Card className="bg-white rounded-xl shadow-sm border">
+            <CardContent className="p-4 space-y-4">
               <div>
                 <Label className="text-xs uppercase text-gray-500">TYPE</Label>
                 <div className="grid grid-cols-4 gap-2 mt-2">
@@ -593,6 +595,18 @@ Return as JSON array with this exact structure:
                     );
                   })}
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="due-date-input-top">Due Date *</Label>
+                <Input
+                  id="due-date-input-top"
+                  type="datetime-local"
+                  value={assignmentData.due_date}
+                  onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Required to publish assignment</p>
               </div>
 
               <div>
@@ -649,6 +663,18 @@ Return as JSON array with this exact structure:
               </div>
 
               <div>
+                <Label htmlFor="due-date-input">Due Date *</Label>
+                <Input
+                  id="due-date-input"
+                  type="datetime-local"
+                  value={assignmentData.due_date}
+                  onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Required to publish assignment</p>
+              </div>
+
+              <div>
                 <Label>Instructions (Optional)</Label>
                 <Button 
                   variant="outline" 
@@ -660,20 +686,6 @@ Return as JSON array with this exact structure:
                     : <span className="text-gray-500">Add instructions for students...</span>
                   }
                 </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="settings" className="p-4 space-y-4">
-              <div>
-                <Label htmlFor="due-date-input">Due Date *</Label>
-                <Input
-                  id="due-date-input"
-                  type="datetime-local"
-                  value={assignmentData.due_date}
-                  onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
-                  className="mt-1"
-                />
-                <p className="text-xs text-gray-500 mt-1">Required to publish assignment</p>
               </div>
 
               <LatePolicyConfig
@@ -717,9 +729,9 @@ Return as JSON array with this exact structure:
                   </Button>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+              </CardContent>
+              </Card>
+              </div>
 
         {/* Main Canvas */}
         <div className="flex-1 flex flex-col gap-4 overflow-hidden">
