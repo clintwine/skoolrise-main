@@ -9,23 +9,32 @@ export default function MyClasses() {
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
   });
+  console.log('🟢 MyClasses - User:', user);
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
+      const result = await base44.entities.Teacher.filter({ user_id: user.id });
+      console.log('🟢 MyClasses - Teachers:', result);
+      return result;
     },
     enabled: !!user?.id,
   });
 
   const teacherProfile = teachers[0];
+  console.log('🟢 MyClasses - Teacher Profile:', teacherProfile);
 
   const { data: allocations = [] } = useQuery({
     queryKey: ['teacher-allocations', teacherProfile?.id],
     queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherProfile.id });
+      if (!teacherProfile?.id) {
+        console.log('🟢 MyClasses - No teacher ID, skipping allocations fetch');
+        return [];
+      }
+      const result = await base44.entities.SubjectAllocation.filter({ teacher_id: teacherProfile.id });
+      console.log('🟢 MyClasses - Subject Allocations:', result);
+      return result;
     },
     enabled: !!teacherProfile?.id,
   });
@@ -33,10 +42,17 @@ export default function MyClasses() {
   const { data: classes = [] } = useQuery({
     queryKey: ['teacher-classes', allocations],
     queryFn: async () => {
-      if (allocations.length === 0) return [];
+      if (allocations.length === 0) {
+        console.log('🟢 MyClasses - No allocations, skipping classes fetch');
+        return [];
+      }
       const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
+      console.log('🟢 MyClasses - Class Arm IDs from allocations:', classArmIds);
       const allClassArms = await base44.entities.ClassArm.list();
-      return allClassArms.filter(ca => classArmIds.includes(ca.id));
+      console.log('🟢 MyClasses - All Class Arms:', allClassArms);
+      const filtered = allClassArms.filter(ca => classArmIds.includes(ca.id));
+      console.log('🟢 MyClasses - Filtered Classes:', filtered);
+      return filtered;
     },
     enabled: allocations.length > 0,
   });

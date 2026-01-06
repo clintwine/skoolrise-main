@@ -20,23 +20,32 @@ export default function TeacherSchedule() {
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
   });
+  console.log('🔵 TeacherSchedule - User:', user);
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      return await base44.entities.Teacher.filter({ user_id: user.id });
+      const result = await base44.entities.Teacher.filter({ user_id: user.id });
+      console.log('🔵 TeacherSchedule - Teachers:', result);
+      return result;
     },
     enabled: !!user?.id,
   });
 
   const teacherProfile = teachers[0];
+  console.log('🔵 TeacherSchedule - Teacher Profile:', teacherProfile);
 
   const { data: timetable = [] } = useQuery({
     queryKey: ['teacher-timetable', teacherProfile?.id],
     queryFn: async () => {
-      if (!teacherProfile?.id) return [];
-      return await base44.entities.Timetable.filter({ teacher_id: teacherProfile.id });
+      if (!teacherProfile?.id) {
+        console.log('🔵 TeacherSchedule - No teacher ID, skipping timetable fetch');
+        return [];
+      }
+      const result = await base44.entities.Timetable.filter({ teacher_id: teacherProfile.id });
+      console.log('🔵 TeacherSchedule - Timetable data:', result);
+      return result;
     },
     enabled: !!teacherProfile?.id,
   });
