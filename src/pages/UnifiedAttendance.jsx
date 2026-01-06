@@ -284,7 +284,7 @@ export default function UnifiedAttendance() {
                       .map((record) => (
                         <tr key={record.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm text-gray-700">
-                            {record.time_recorded && format(new Date(record.time_recorded), 'HH:mm')}
+                            {safeFormat(record.time_recorded, 'HH:mm')}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">{record.student_name}</td>
                           <td className="px-4 py-3">
