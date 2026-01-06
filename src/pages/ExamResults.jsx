@@ -105,6 +105,24 @@ export default function ExamResults() {
   const stats = calculateStats();
   const publishedCount = results.filter(r => r.published).length;
 
+  if (!examId) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Exam Results</h1>
+          <p className="text-gray-600 mt-1">View and manage exam results</p>
+        </div>
+        <Card className="bg-white rounded-xl shadow-md">
+          <CardContent className="p-16 text-center">
+            <Download className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Exam Selected</h3>
+            <p className="text-gray-600">Please select an exam from the Exam Management or Exam Command Center page to view results.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!exam) {
     return (
       <div className="flex items-center justify-center min-h-screen">

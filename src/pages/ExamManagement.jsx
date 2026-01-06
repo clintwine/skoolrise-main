@@ -14,10 +14,30 @@ export default function ExamManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const { data: exams = [], isLoading } = useQuery({
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
+  const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
+
+  const { data: allExams = [], isLoading } = useQuery({
     queryKey: ['exams'],
     queryFn: () => base44.entities.Exam.list('-created_date'),
   });
+
+  // Filter exams: admins see all, teachers see only their own
+  const exams = isAdmin ? allExams : allExams.filter(e => e.created_by === user?.email || e.teacher_id === teacherProfile?.id);
 
   const { data: attempts = [] } = useQuery({
     queryKey: ['exam-attempts'],

@@ -86,6 +86,24 @@ export default function ExamAttemptReview() {
     window.location.reload();
   };
 
+  if (!attemptId) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Exam Attempt Review</h1>
+          <p className="text-gray-600 mt-1">Review and grade student responses</p>
+        </div>
+        <Card className="bg-white rounded-xl shadow-md">
+          <CardContent className="p-16 text-center">
+            <Eye className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Exam Attempt Selected</h3>
+            <p className="text-gray-600">Please select an exam attempt from the Exam Results or Grade Exam page to review.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!attempt || !exam) {
     return (
       <div className="text-center py-12">
