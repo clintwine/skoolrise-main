@@ -6,7 +6,31 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Calendar, Award, CheckCircle, Clock, AlertCircle, ClipboardList } from 'lucide-react';
-import { format, startOfWeek, addDays } from 'date-fns';
+import { format, startOfWeek, addDays, isValid } from 'date-fns';
+
+// Safe date formatting helper
+const safeFormat = (dateValue, formatString) => {
+  if (!dateValue) return '-';
+  try {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    if (!date || !isValid(date)) return '-';
+    return format(date, formatString);
+  } catch {
+    return '-';
+  }
+};
+
+// Safe date parsing helper
+const safeParseDate = (dateValue) => {
+  if (!dateValue) return null;
+  try {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    if (!date || !isValid(date)) return null;
+    return date;
+  } catch {
+    return null;
+  }
+};
 
 export default function ParentHomework() {
   const [user, setUser] = useState(null);
