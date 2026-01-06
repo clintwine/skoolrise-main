@@ -456,7 +456,12 @@ export default function ImprovedStudentRecords() {
               if (selectedStudent) {
                 await base44.entities.Student.update(selectedStudent.id, data);
               } else {
-                await base44.entities.Student.create(data);
+                // Generate a unique user_id for new students
+                const newStudentData = {
+                  ...data,
+                  user_id: `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                };
+                await base44.entities.Student.create(newStudentData);
               }
               queryClient.invalidateQueries(['students']);
               setIsFormOpen(false);
