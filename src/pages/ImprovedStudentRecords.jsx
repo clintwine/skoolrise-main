@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Search, UserCircle, Mail, Phone, Calendar, GraduationCap, Users, Award, ClipboardList, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+// import { format } from 'date-fns'; // Removed - not used
 import { toast } from 'sonner';
 import StudentForm from '../components/students/StudentForm';
 
