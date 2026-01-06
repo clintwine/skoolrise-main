@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+function GradeLevelSelect({ value, onChange }) {
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select grade level" />
+      </SelectTrigger>
+      <SelectContent>
+        {uniqueGradeLevels.map((grade) => (
+          <SelectItem key={grade} value={grade}>
+            {grade}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 export default function StudentForm({ student, onSubmit, onCancel }) {
   const [formData, setFormData] = useState(
@@ -136,12 +161,9 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
           </div>
           <div>
             <Label htmlFor="grade_level">Grade Level *</Label>
-            <Input
-              id="grade_level"
+            <GradeLevelSelect
               value={formData.grade_level}
-              onChange={(e) => handleChange('grade_level', e.target.value)}
-              required
-              placeholder="e.g., 10, Grade 10"
+              onChange={(value) => handleChange('grade_level', value)}
             />
           </div>
         </div>
