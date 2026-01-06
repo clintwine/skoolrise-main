@@ -37,8 +37,9 @@ export default function AttendanceTaking() {
   console.log('🟡 AttendanceTaking - Teacher Profile:', teacherProfile);
 
   const { data: allocations = [] } = useQuery({
-    queryKey: ['teacher-allocations', teacherProfile?.id],
+    queryKey: ['teacher-allocations', teacherProfile?.id, isAdmin],
     queryFn: async () => {
+      if (isAdmin) return []; // Admins don't need allocations
       if (!teacherProfile?.id) {
         console.log('🟡 AttendanceTaking - No teacher ID, skipping allocations fetch');
         return [];
@@ -47,25 +48,31 @@ export default function AttendanceTaking() {
       console.log('🟡 AttendanceTaking - Subject Allocations:', result);
       return result;
     },
-    enabled: !!teacherProfile?.id,
+    enabled: !isAdmin && !!teacherProfile?.id,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', allocations],
+    queryKey: ['teacher-classes', allocations, isAdmin],
     queryFn: async () => {
+      const allClassArms = await base44.entities.ClassArm.list();
+      console.log('🟡 AttendanceTaking - All Class Arms:', allClassArms);
+      
+      // Admins see all classes
+      if (isAdmin) {
+        return allClassArms;
+      }
+      
       if (allocations.length === 0) {
         console.log('🟡 AttendanceTaking - No allocations, skipping classes fetch');
         return [];
       }
       const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
       console.log('🟡 AttendanceTaking - Class Arm IDs from allocations:', classArmIds);
-      const allClassArms = await base44.entities.ClassArm.list();
-      console.log('🟡 AttendanceTaking - All Class Arms:', allClassArms);
       const filtered = allClassArms.filter(ca => classArmIds.includes(ca.id));
       console.log('🟡 AttendanceTaking - Filtered Classes:', filtered);
       return filtered;
     },
-    enabled: allocations.length > 0,
+    enabled: isAdmin || allocations.length > 0,
   });
 
   const { data: students = [] } = useQuery({
