@@ -149,7 +149,7 @@ export default function UserManagement() {
       return;
     }
 
-    await handleUserTypeConversion(oldUserType, editingUserType, profiles);
+    await handleUserTypeConversion(oldUserType, editingUserType);
   };
 
   const handleUserTypeConversion = async (oldUserType, newUserType) => {
