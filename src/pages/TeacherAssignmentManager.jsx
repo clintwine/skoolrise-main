@@ -239,7 +239,7 @@ export default function TeacherAssignmentManager() {
                         <h3 className="text-lg sm:text-xl font-bold text-gray-900">{assignment.title}</h3>
                         <p className="text-sm sm:text-base text-gray-600 mt-1">Submitted by: {submission.student_name}</p>
                         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                          {format(new Date(submission.submitted_date), 'MMM dd, yyyy h:mm a')}
+                          {safeFormat(submission.submitted_date, 'MMM dd, yyyy h:mm a')}
                         </p>
                         {submission.is_late && (
                           <Badge className="bg-red-100 text-red-700 mt-2 text-xs">Late Submission</Badge>
