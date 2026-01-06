@@ -68,27 +68,28 @@ function ClassArmSelect({ value, onChange }) {
 // Helper to safely format date for input fields
 const formatDateForInput = (dateValue) => {
   if (!dateValue) return '';
-  if (dateValue === 'Invalid Date') return '';
   try {
-    // Handle various date formats
-    let date;
+    // Handle string type
     if (typeof dateValue === 'string') {
       // If it's already in YYYY-MM-DD format, return as is
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
         return dateValue;
       }
       // Check for empty or invalid strings
-      if (!dateValue.trim() || dateValue === 'null' || dateValue === 'undefined') {
+      const trimmed = dateValue.trim();
+      if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === 'Invalid Date') {
         return '';
       }
-      date = new Date(dateValue);
-    } else if (dateValue instanceof Date) {
-      date = dateValue;
-    } else {
-      return '';
+      const date = new Date(trimmed);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().split('T')[0];
     }
-    if (!date || isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
+    // Handle Date object
+    if (dateValue instanceof Date) {
+      if (isNaN(dateValue.getTime())) return '';
+      return dateValue.toISOString().split('T')[0];
+    }
+    return '';
   } catch {
     return '';
   }
