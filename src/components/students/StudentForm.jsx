@@ -69,7 +69,17 @@ function ClassArmSelect({ value, onChange }) {
 const formatDateForInput = (dateValue) => {
   if (!dateValue) return '';
   try {
-    const date = new Date(dateValue);
+    // Handle various date formats
+    let date;
+    if (typeof dateValue === 'string') {
+      // If it's already in YYYY-MM-DD format, return as is
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return dateValue;
+      }
+      date = new Date(dateValue);
+    } else {
+      date = new Date(dateValue);
+    }
     if (isNaN(date.getTime())) return '';
     return date.toISOString().split('T')[0];
   } catch {
@@ -92,7 +102,7 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
       student_id_number: '',
       date_of_birth: '',
       gender: 'Male',
-      admission_date: new Date().toISOString().split('T')[0],
+      admission_date: formatDateForInput(new Date()),
       grade_level: '',
       status: 'Active',
       address: '',
