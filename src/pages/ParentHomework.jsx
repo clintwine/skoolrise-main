@@ -166,8 +166,9 @@ export default function ParentHomework() {
 
   const getAssignmentsForDay = (day) => {
     return assignments.filter(a => {
-      const dueDate = new Date(a.due_date);
-      return format(dueDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
+      const dueDate = safeParseDate(a.due_date);
+      if (!dueDate) return false;
+      return safeFormat(dueDate, 'yyyy-MM-dd') === safeFormat(day, 'yyyy-MM-dd');
     });
   };
 
