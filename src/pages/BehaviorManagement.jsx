@@ -48,6 +48,11 @@ export default function BehaviorManagement() {
     queryFn: () => base44.entities.Class.list(),
   });
 
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
   const { data: thresholds = [] } = useQuery({
     queryKey: ['behavior-thresholds'],
     queryFn: () => base44.entities.BehaviorThreshold.list(),
@@ -315,9 +320,9 @@ export default function BehaviorManagement() {
                     <SelectValue placeholder="Select class (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.map((cls) => (
-                      <SelectItem key={cls.id} value={cls.id}>
-                        {cls.class_name}
+                    {classArms.map((arm) => (
+                      <SelectItem key={arm.id} value={arm.id}>
+                        {arm.grade_level} - {arm.arm_name}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -20,9 +20,9 @@ export default function BehaviorAnalytics() {
     queryFn: () => base44.entities.Student.list(),
   });
 
-  const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
   });
 
   const filteredBehaviors = selectedClass === 'all' 
@@ -103,7 +103,11 @@ export default function BehaviorAnalytics() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classes</SelectItem>
-            {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.class_name}</SelectItem>)}
+            {classArms.map(c => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.grade_level} - {c.arm_name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
