@@ -84,83 +84,26 @@ export default function UserManagement() {
     mutationFn: ({ userId, data }) => base44.entities.User.update(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User updated successfully');
+    },
+  });
+
+  const convertUserTypeMutation = useMutation({
+    mutationFn: async ({ userId, oldUserType, newUserType }) => {
+      const response = await base44.functions.invoke('convertUserType', {
+        userId,
+        oldUserType,
+        newUserType,
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries();
+      toast.success(data.message || 'User type converted successfully');
       setEditDialogOpen(false);
       setShowConflictDialog(false);
     },
-  });
-
-  const archiveProfileMutation = useMutation({
-    mutationFn: async ({ profileType, profileId }) => {
-      if (profileType === 'student') {
-        return await base44.entities.Student.update(profileId, { status: 'Inactive' });
-      } else if (profileType === 'teacher') {
-        return await base44.entities.Teacher.update(profileId, { status: 'Inactive' });
-      } else if (profileType === 'parent') {
-        // Parent entity doesn't have status, so we leave it as is
-        return Promise.resolve();
-      } else if (profileType === 'vendor') {
-        return await base44.entities.Vendor.update(profileId, { status: 'Inactive' });
-      }
-    },
-  });
-
-  const reactivateProfileMutation = useMutation({
-    mutationFn: async ({ profileType, profileId }) => {
-      if (profileType === 'student') {
-        return await base44.entities.Student.update(profileId, { status: 'Active' });
-      } else if (profileType === 'teacher') {
-        return await base44.entities.Teacher.update(profileId, { status: 'Active' });
-      } else if (profileType === 'vendor') {
-        return await base44.entities.Vendor.update(profileId, { status: 'Active' });
-      }
-      return Promise.resolve();
-    },
-  });
-
-  const createProfileMutation = useMutation({
-    mutationFn: async ({ userType, userData }) => {
-      const nameParts = (userData.full_name || '').split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      if (userType === 'student') {
-        return await base44.entities.Student.create({
-          user_id: userData.id,
-          first_name: firstName,
-          last_name: lastName,
-          student_id_number: `STU-${Date.now()}`,
-          grade_level: 'Unassigned',
-          status: 'Active',
-        });
-      } else if (userType === 'teacher') {
-        return await base44.entities.Teacher.create({
-          user_id: userData.id,
-          first_name: firstName,
-          last_name: lastName,
-          staff_id: `TCH-${Date.now()}`,
-          status: 'Active',
-        });
-      } else if (userType === 'parent') {
-        return await base44.entities.Parent.create({
-          user_id: userData.id,
-          first_name: firstName,
-          last_name: lastName,
-          phone: '',
-        });
-      } else if (userType === 'vendor') {
-        return await base44.entities.Vendor.create({
-          user_id: userData.id,
-          business_name: userData.full_name || 'New Vendor',
-          contact_person: userData.full_name || '',
-          phone: '',
-          category: 'Distributor',
-          status: 'Active',
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries();
+    onError: (error) => {
+      toast.error('Failed to convert user type: ' + (error.response?.data?.error || error.message));
     },
   });
 
@@ -209,65 +152,17 @@ export default function UserManagement() {
     await handleUserTypeConversion(oldUserType, editingUserType, profiles);
   };
 
-  const handleUserTypeConversion = async (oldUserType, newUserType, profiles) => {
-    try {
-      // Step 1: Archive old profile if it exists and is different from new type
-      if (oldUserType && oldUserType !== newUserType && oldUserType !== 'admin') {
-        const oldProfile = profiles[oldUserType];
-        if (oldProfile && oldProfile.status && oldProfile.status !== 'Inactive') {
-          await archiveProfileMutation.mutateAsync({
-            profileType: oldUserType,
-            profileId: oldProfile.id,
-          });
-          toast.success(`Previous ${oldUserType} profile archived`);
-        }
-      }
-
-      // Step 2: Check if new profile exists
-      const newProfile = profiles[newUserType];
-      
-      if (newProfile) {
-        // Profile exists - check if it needs reactivation
-        const isInactive = newProfile.status === 'Inactive' || newProfile.status === 'Archived';
-        if (isInactive && newUserType !== 'parent') {
-          await reactivateProfileMutation.mutateAsync({
-            profileType: newUserType,
-            profileId: newProfile.id,
-          });
-          toast.success(`${newUserType} profile reactivated`);
-        }
-      } else if (newUserType !== 'admin') {
-        // Profile doesn't exist - create it
-        await createProfileMutation.mutateAsync({
-          userType: newUserType,
-          userData: editingUser,
-        });
-        toast.success(`${newUserType} profile created`);
-      }
-
-      // Step 3: Update user record with new type and role
-      const updateData = { user_type: newUserType };
-      if (newUserType === 'admin') {
-        updateData.role = 'admin';
-      } else {
-        updateData.role = 'user';
-      }
-
-      await updateUserMutation.mutateAsync({
-        userId: editingUser.id,
-        data: updateData
-      });
-
-    } catch (error) {
-      console.error('Error during user type conversion:', error);
-      toast.error('Failed to convert user type: ' + error.message);
-    }
+  const handleUserTypeConversion = async (oldUserType, newUserType) => {
+    await convertUserTypeMutation.mutateAsync({
+      userId: editingUser.id,
+      oldUserType,
+      newUserType,
+    });
   };
 
   const handleConfirmChange = async () => {
-    const profiles = findExistingProfiles(editingUser);
     const oldUserType = editingUser.user_type;
-    await handleUserTypeConversion(oldUserType, editingUserType, profiles);
+    await handleUserTypeConversion(oldUserType, editingUserType);
   };
 
   const handleGenerateCode = async (user) => {
