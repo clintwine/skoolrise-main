@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brain, Loader, Download, Calendar } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 export default function AILessonPlanner() {
   const [generating, setGenerating] = useState(false);
@@ -19,9 +22,21 @@ export default function AILessonPlanner() {
     curriculum_standards: ''
   });
 
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.filter({ status: 'Active' }),
+  });
+
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
+
   const handleGenerate = async () => {
     if (!formData.subject || !formData.topic) {
-      alert('Please fill in at least subject and topic');
+      toast.error('Please fill in at least subject and topic');
       return;
     }
 
@@ -70,7 +85,7 @@ Format your response as a structured JSON object.`,
 
       setLessonPlan(response);
     } catch (error) {
-      alert('Error generating lesson plan: ' + error.message);
+      toast.error('Error generating lesson plan: ' + error.message);
     } finally {
       setGenerating(false);
     }
@@ -160,11 +175,18 @@ ${lessonPlan.homework}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Subject *</Label>
-              <Input
-                value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                placeholder="e.g., Mathematics, English, Science"
-              />
+              <Select value={formData.subject} onValueChange={(v) => setFormData({ ...formData, subject: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map((subject) => (
+                    <SelectItem key={subject.id} value={subject.subject_name}>
+                      {subject.subject_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Topic *</Label>
@@ -176,11 +198,18 @@ ${lessonPlan.homework}
             </div>
             <div>
               <Label>Grade Level</Label>
-              <Input
-                value={formData.grade_level}
-                onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
-                placeholder="e.g., Grade 7, Year 10"
-              />
+              <Select value={formData.grade_level} onValueChange={(v) => setFormData({ ...formData, grade_level: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select grade level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueGradeLevels.map((grade) => (
+                    <SelectItem key={grade} value={grade}>
+                      {grade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Duration</Label>
