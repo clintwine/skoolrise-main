@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Camera } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 export default function GradeExam() {
   const urlParams = new URLSearchParams(window.location.search);

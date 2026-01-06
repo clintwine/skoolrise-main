@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap, Link2, Upload } from 'lucide-react';
+import { Plus, Search, UserCircle, Mail, Phone, Calendar, MapPin, GraduationCap, Link2, Upload, Eye } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -234,83 +234,94 @@ export default function StudentRecords() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredStudents.map((student) => (
-                    <tr 
-                      key={student.id} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => window.location.href = `/userprofile?id=${student.user_id}&role=student`}
-                    >
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-3">
-                          {student.photo_url ? (
-                            <img
-                              src={student.photo_url}
-                              alt={student.first_name}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <UserCircle className="w-6 h-6 text-blue-600" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium text-text">{student.first_name} {student.last_name}</p>
+                {filteredStudents.map((student) => (
+                  <tr 
+                    key={student.id} 
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-3">
+                        {student.photo_url ? (
+                          <img
+                            src={student.photo_url}
+                            alt={student.first_name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <UserCircle className="w-6 h-6 text-blue-600" />
                           </div>
+                        )}
+                        <div>
+                          <p className="font-medium text-text">{student.first_name} {student.last_name}</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-3 text-sm font-medium text-text">{student.student_id_number}</td>
-                      <td className="px-6 py-3 text-sm text-text">{student.grade_level}</td>
-                      <td className="px-6 py-3">
-                        <div className="text-sm text-text-secondary space-y-1">
-                          {student.phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              <span>{student.phone}</span>
-                            </div>
-                          )}
-                          {student.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              <span className="truncate max-w-[150px]">{student.email}</span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3">
-                        <Badge className={statusColors[student.status] || statusColors.Active}>
-                          {student.status}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStudent(student);
-                              setIsLinkParentOpen(true);
-                            }}
-                          >
-                            <Link2 className="w-4 h-4 mr-1" />
-                            Link Parent
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStudent(student);
-                              setIsFormOpen(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 text-sm font-medium text-text">{student.student_id_number}</td>
+                    <td className="px-6 py-3 text-sm text-text">{student.grade_level}</td>
+                    <td className="px-6 py-3">
+                      <div className="text-sm text-text-secondary space-y-1">
+                        {student.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            <span>{student.phone}</span>
+                          </div>
+                        )}
+                        {student.email && (
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-3 h-3" />
+                            <span className="truncate max-w-[150px]">{student.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3">
+                      <Badge className={statusColors[student.status] || statusColors.Active}>
+                        {student.status}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setIsDetailsOpen(true);
+                          }}
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStudent(student);
+                            setIsLinkParentOpen(true);
+                          }}
+                        >
+                          <Link2 className="w-4 h-4 mr-1" />
+                          Link Parent
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStudent(student);
+                            setIsFormOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
                 </tbody>
               </table>
             </div>
