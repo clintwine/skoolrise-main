@@ -26,8 +26,15 @@ export default function TeacherSchedule() {
     queryKey: ['teachers', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      console.log('🔵 TeacherSchedule - Querying Teachers with user_id:', user.id);
       const result = await base44.entities.Teacher.filter({ user_id: user.id });
-      console.log('🔵 TeacherSchedule - Teachers:', result);
+      console.log('🔵 TeacherSchedule - Teachers found:', result);
+      
+      // Also check all teachers to see what user_ids exist
+      const allTeachers = await base44.entities.Teacher.list();
+      console.log('🔵 TeacherSchedule - ALL Teachers in system:', allTeachers);
+      console.log('🔵 TeacherSchedule - ALL Teacher user_ids:', allTeachers.map(t => ({ id: t.id, user_id: t.user_id, name: `${t.first_name} ${t.last_name}` })));
+      
       return result;
     },
     enabled: !!user?.id,
