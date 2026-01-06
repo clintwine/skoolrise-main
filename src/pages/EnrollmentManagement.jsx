@@ -31,6 +31,16 @@ export default function EnrollmentManagement() {
     queryFn: () => base44.entities.Class.list(),
   });
 
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  const { data: subjects = [] } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => base44.entities.Subject.list(),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Enrollment.create(data),
     onSuccess: () => {
