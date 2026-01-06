@@ -126,18 +126,27 @@ export default function AssignmentBuilder() {
   useEffect(() => {
     if (existingAssignment && !assignmentLoaded) {
       console.log('📝 Loading existing assignment:', existingAssignment);
+      
+      // Find subject_id from subject_name if only subject_name exists
+      let subjectId = existingAssignment.subject_id || '';
+      if (!subjectId && existingAssignment.subject_name && subjects.length > 0) {
+        const foundSubject = subjects.find(s => s.subject_name === existingAssignment.subject_name);
+        subjectId = foundSubject?.id || '';
+      }
+      
       setAssignmentData(prev => ({
         ...prev,
         ...existingAssignment,
         due_date: existingAssignment.due_date || '',
-        subject_id: existingAssignment.subject_id || '',
+        subject_id: subjectId,
         subject_name: existingAssignment.subject_name || '',
       }));
     }
-  }, [existingAssignment, assignmentLoaded]);
+  }, [existingAssignment, assignmentLoaded, subjects]);
 
   useEffect(() => {
     if (existingQuestions.length > 0 && !assignmentLoaded) {
+      console.log('📚 Loading existing questions:', existingQuestions);
       setSelectedQuestions(existingQuestions);
     }
   }, [existingQuestions, assignmentLoaded]);
@@ -656,7 +665,7 @@ Return as JSON array with this exact structure:
                   <option value="">Select class...</option>
                   {classArms.map(arm => (
                     <option key={arm.id} value={arm.id}>
-                      Grade {arm.grade_level} - {arm.arm_name}
+                      {arm.grade_level} - {arm.arm_name}
                     </option>
                   ))}
                 </select>
