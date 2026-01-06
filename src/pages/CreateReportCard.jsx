@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Plus, Trash2, Save, Sparkles } from 'lucide-react';
+import { FileText, Plus, Trash2, Save, Sparkles, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 export default function CreateReportCard() {
   const [selectedStudent, setSelectedStudent] = useState('');
@@ -64,11 +65,13 @@ export default function CreateReportCard() {
     queryFn: () => base44.entities.Subject.list(),
   });
 
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ReportCard.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-cards'] });
-      alert('Report card created successfully!');
+      setSuccessDialogOpen(true);
       resetForm();
     },
   });
@@ -105,7 +108,20 @@ export default function CreateReportCard() {
     const newGrades = [...grades];
     newGrades[index][field] = value;
     
-    // Auto-calculate grade and remarks when score changes
+    // Auto-calculate total score when CA or Exam score changes
+    if (field === 'ca_score' || field === 'exam_score') {
+      const caScore = parseFloat(field === 'ca_score' ? value : newGrades[index].ca_score) || 0;
+      const examScore = parseFloat(field === 'exam_score' ? value : newGrades[index].exam_score) || 0;
+      const totalScore = caScore + examScore;
+      newGrades[index].score = totalScore;
+      
+      // Auto-calculate grade and remarks based on total
+      const { grade, remarks } = calculateGradeFromScore(totalScore);
+      newGrades[index].grade = grade;
+      newGrades[index].remarks = remarks;
+    }
+    
+    // Auto-calculate grade and remarks when score changes directly
     if (field === 'score' && value) {
       const { grade, remarks } = calculateGradeFromScore(parseFloat(value));
       newGrades[index].grade = grade;
@@ -134,7 +150,13 @@ export default function CreateReportCard() {
 
   const handleSubmit = () => {
     if (!selectedStudent || !selectedTerm || !selectedSession || grades.length === 0) {
-      alert('Please fill in all required fields and add at least one grade');
+      toast.error('Please fill in all required fields and add at least one grade');
+      return;
+    }
+
+    // Validate position if provided
+    if (formData.position && formData.position.trim() !== '' && isNaN(Number(formData.position))) {
+      toast.error('Position must be a valid number');
       return;
     }
 
@@ -152,7 +174,7 @@ export default function CreateReportCard() {
       grades: JSON.stringify(grades),
       teacher_comment: formData.teacher_comment,
       principal_comment: formData.principal_comment,
-      position: formData.position,
+      position: formData.position && formData.position.trim() !== '' ? Number(formData.position) : null,
       total_score: formData.total_score,
       average_score: formData.average_score,
       status: 'Published',
@@ -261,7 +283,7 @@ export default function CreateReportCard() {
         <CardContent>
           <div className="space-y-4">
             {grades.map((grade, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div key={index} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
                   <Label>Subject</Label>
                   <Select value={grade.subject} onValueChange={(value) => updateGrade(index, 'subject', value)}>
@@ -278,14 +300,34 @@ export default function CreateReportCard() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Score</Label>
+                  <Label>CA Score</Label>
+                  <Input
+                    type="number"
+                    value={grade.ca_score || ''}
+                    onChange={(e) => updateGrade(index, 'ca_score', e.target.value)}
+                    placeholder="0-40"
+                    min="0"
+                    max="40"
+                  />
+                </div>
+                <div>
+                  <Label>Exam Score</Label>
+                  <Input
+                    type="number"
+                    value={grade.exam_score || ''}
+                    onChange={(e) => updateGrade(index, 'exam_score', e.target.value)}
+                    placeholder="0-60"
+                    min="0"
+                    max="60"
+                  />
+                </div>
+                <div>
+                  <Label>Total Score</Label>
                   <Input
                     type="number"
                     value={grade.score}
-                    onChange={(e) => updateGrade(index, 'score', e.target.value)}
-                    placeholder="0-100"
-                    min="0"
-                    max="100"
+                    disabled
+                    className="bg-gray-100"
                   />
                 </div>
                 <div>
@@ -397,9 +439,29 @@ export default function CreateReportCard() {
           toast.success('Grades imported successfully');
         }}
       />
-    </div>
-  );
-}
+
+      {/* Success Dialog */}
+      <Dialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              Report Card Created Successfully
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-gray-600">The report card has been created and published successfully.</p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setSuccessDialogOpen(false)} className="bg-blue-600 hover:bg-blue-700">
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      </div>
+      );
+      }
 
 function AutoFillGradesDialog({ open, onOpenChange, studentId, onGradesImported }) {
   const { data: submissions = [] } = useQuery({
