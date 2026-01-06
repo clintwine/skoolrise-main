@@ -101,24 +101,30 @@ export default function CreateReportCard() {
   };
 
   const addGrade = () => {
-    setGrades([...grades, { subject: '', score: '', grade: '', remarks: '' }]);
+    setGrades([...grades, { subject: '', ca_scores: [{ label: 'CA1', score: '' }], exam_score: '', score: '', grade: '', remarks: '' }]);
   };
 
   const updateGrade = (index, field, value) => {
     const newGrades = [...grades];
     newGrades[index][field] = value;
     
-    // Auto-calculate total score when CA or Exam score changes
-    if (field === 'ca_score' || field === 'exam_score') {
-      const caScore = parseFloat(field === 'ca_score' ? value : newGrades[index].ca_score) || 0;
-      const examScore = parseFloat(field === 'exam_score' ? value : newGrades[index].exam_score) || 0;
-      const totalScore = caScore + examScore;
+    // Recalculate total from all CA scores + exam score
+    const recalculateTotal = () => {
+      const caScores = newGrades[index].ca_scores || [];
+      const totalCA = caScores.reduce((sum, ca) => sum + (parseFloat(ca.score) || 0), 0);
+      const examScore = parseFloat(newGrades[index].exam_score) || 0;
+      const totalScore = totalCA + examScore;
       newGrades[index].score = totalScore;
       
       // Auto-calculate grade and remarks based on total
       const { grade, remarks } = calculateGradeFromScore(totalScore);
       newGrades[index].grade = grade;
       newGrades[index].remarks = remarks;
+    };
+    
+    // Auto-calculate total score when Exam score changes
+    if (field === 'exam_score') {
+      recalculateTotal();
     }
     
     // Auto-calculate grade and remarks when score changes directly
@@ -127,6 +133,60 @@ export default function CreateReportCard() {
       newGrades[index].grade = grade;
       newGrades[index].remarks = remarks;
     }
+    
+    setGrades(newGrades);
+    calculateTotals(newGrades);
+  };
+
+  const updateCAScore = (gradeIndex, caIndex, value) => {
+    const newGrades = [...grades];
+    if (!newGrades[gradeIndex].ca_scores) {
+      newGrades[gradeIndex].ca_scores = [{ label: 'CA1', score: '' }];
+    }
+    newGrades[gradeIndex].ca_scores[caIndex].score = value;
+    
+    // Recalculate total
+    const totalCA = newGrades[gradeIndex].ca_scores.reduce((sum, ca) => sum + (parseFloat(ca.score) || 0), 0);
+    const examScore = parseFloat(newGrades[gradeIndex].exam_score) || 0;
+    const totalScore = totalCA + examScore;
+    newGrades[gradeIndex].score = totalScore;
+    
+    const { grade, remarks } = calculateGradeFromScore(totalScore);
+    newGrades[gradeIndex].grade = grade;
+    newGrades[gradeIndex].remarks = remarks;
+    
+    setGrades(newGrades);
+    calculateTotals(newGrades);
+  };
+
+  const addCAScore = (gradeIndex) => {
+    const newGrades = [...grades];
+    if (!newGrades[gradeIndex].ca_scores) {
+      newGrades[gradeIndex].ca_scores = [];
+    }
+    const caCount = newGrades[gradeIndex].ca_scores.length;
+    newGrades[gradeIndex].ca_scores.push({ label: `CA${caCount + 1}`, score: '' });
+    setGrades(newGrades);
+  };
+
+  const removeCAScore = (gradeIndex, caIndex) => {
+    const newGrades = [...grades];
+    newGrades[gradeIndex].ca_scores.splice(caIndex, 1);
+    // Rename remaining CAs
+    newGrades[gradeIndex].ca_scores = newGrades[gradeIndex].ca_scores.map((ca, idx) => ({
+      ...ca,
+      label: `CA${idx + 1}`
+    }));
+    
+    // Recalculate total
+    const totalCA = newGrades[gradeIndex].ca_scores.reduce((sum, ca) => sum + (parseFloat(ca.score) || 0), 0);
+    const examScore = parseFloat(newGrades[gradeIndex].exam_score) || 0;
+    const totalScore = totalCA + examScore;
+    newGrades[gradeIndex].score = totalScore;
+    
+    const { grade, remarks } = calculateGradeFromScore(totalScore);
+    newGrades[gradeIndex].grade = grade;
+    newGrades[gradeIndex].remarks = remarks;
     
     setGrades(newGrades);
     calculateTotals(newGrades);
@@ -283,80 +343,114 @@ export default function CreateReportCard() {
         <CardContent>
           <div className="space-y-4">
             {grades.map((grade, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <Label>Subject</Label>
-                  <Select value={grade.subject} onValueChange={(value) => updateGrade(index, 'subject', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjects.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.subject_name}>
-                          {subject.subject_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                  <div>
+                    <Label>Subject</Label>
+                    <Select value={grade.subject} onValueChange={(value) => updateGrade(index, 'subject', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects.map((subject) => (
+                          <SelectItem key={subject.id} value={subject.subject_name}>
+                            {subject.subject_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Exam Score</Label>
+                    <Input
+                      type="number"
+                      value={grade.exam_score || ''}
+                      onChange={(e) => updateGrade(index, 'exam_score', e.target.value)}
+                      placeholder="0-60"
+                      min="0"
+                      max="60"
+                    />
+                  </div>
+                  <div>
+                    <Label>Total Score</Label>
+                    <Input
+                      type="number"
+                      value={grade.score}
+                      disabled
+                      className="bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <Label>Grade</Label>
+                    <Select value={grade.grade} onValueChange={(value) => updateGrade(index, 'grade', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="B">B</SelectItem>
+                        <SelectItem value="C">C</SelectItem>
+                        <SelectItem value="D">D</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Remarks</Label>
+                    <Input
+                      value={grade.remarks}
+                      onChange={(e) => updateGrade(index, 'remarks', e.target.value)}
+                      placeholder="e.g., Excellent"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button variant="outline" size="sm" onClick={() => removeGrade(index)}>
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <Label>CA Score</Label>
-                  <Input
-                    type="number"
-                    value={grade.ca_score || ''}
-                    onChange={(e) => updateGrade(index, 'ca_score', e.target.value)}
-                    placeholder="0-40"
-                    min="0"
-                    max="40"
-                  />
-                </div>
-                <div>
-                  <Label>Exam Score</Label>
-                  <Input
-                    type="number"
-                    value={grade.exam_score || ''}
-                    onChange={(e) => updateGrade(index, 'exam_score', e.target.value)}
-                    placeholder="0-60"
-                    min="0"
-                    max="60"
-                  />
-                </div>
-                <div>
-                  <Label>Total Score</Label>
-                  <Input
-                    type="number"
-                    value={grade.score}
-                    disabled
-                    className="bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <Label>Grade</Label>
-                  <Select value={grade.grade} onValueChange={(value) => updateGrade(index, 'grade', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A">A</SelectItem>
-                      <SelectItem value="B">B</SelectItem>
-                      <SelectItem value="C">C</SelectItem>
-                      <SelectItem value="D">D</SelectItem>
-                      <SelectItem value="F">F</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Remarks</Label>
-                  <Input
-                    value={grade.remarks}
-                    onChange={(e) => updateGrade(index, 'remarks', e.target.value)}
-                    placeholder="e.g., Excellent"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button variant="outline" size="sm" onClick={() => removeGrade(index)}>
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
+                
+                {/* CA Scores Section */}
+                <div className="border-t pt-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm text-gray-600">Continuous Assessment (CA) Scores</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => addCAScore(index)}
+                      className="text-xs h-7"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add CA
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(grade.ca_scores || [{ label: 'CA1', score: '' }]).map((ca, caIndex) => (
+                      <div key={caIndex} className="flex items-center gap-1 bg-white p-2 rounded border">
+                        <span className="text-xs font-medium text-gray-600 w-8">{ca.label}</span>
+                        <Input
+                          type="number"
+                          value={ca.score}
+                          onChange={(e) => updateCAScore(index, caIndex, e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          className="w-16 h-8 text-sm"
+                        />
+                        {(grade.ca_scores?.length || 1) > 1 && (
+                          <Button 
+                            type="button"
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => removeCAScore(index, caIndex)}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            ×
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

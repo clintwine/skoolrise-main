@@ -37,6 +37,34 @@ function GradeLevelSelect({ value, onChange }) {
   );
 }
 
+function ClassArmSelect({ value, onChange }) {
+  const { data: classArms = [] } = useQuery({
+    queryKey: ['class-arms'],
+    queryFn: () => base44.entities.ClassArm.list(),
+  });
+
+  return (
+    <Select 
+      value={value} 
+      onValueChange={(v) => {
+        const arm = classArms.find(a => a.id === v);
+        onChange(v, arm?.grade_level || '');
+      }}
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Select class arm" />
+      </SelectTrigger>
+      <SelectContent>
+        {classArms.map((arm) => (
+          <SelectItem key={arm.id} value={arm.id}>
+            Grade {arm.grade_level} - {arm.arm_name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export default function StudentForm({ student, onSubmit, onCancel }) {
   const [formData, setFormData] = useState(
     student || {
@@ -160,10 +188,13 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
             </Select>
           </div>
           <div>
-            <Label htmlFor="grade_level">Grade Level *</Label>
-            <GradeLevelSelect
-              value={formData.grade_level}
-              onChange={(value) => handleChange('grade_level', value)}
+            <Label htmlFor="class_arm">Class Arm *</Label>
+            <ClassArmSelect
+              value={formData.class_arm_id}
+              onChange={(value, gradeLevel) => {
+                handleChange('class_arm_id', value);
+                handleChange('grade_level', gradeLevel);
+              }}
             />
           </div>
         </div>
