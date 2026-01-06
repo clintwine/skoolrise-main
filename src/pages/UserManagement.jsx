@@ -90,6 +90,34 @@ export default function UserManagement() {
     },
   });
 
+  const archiveProfileMutation = useMutation({
+    mutationFn: async ({ profileType, profileId }) => {
+      if (profileType === 'student') {
+        return await base44.entities.Student.update(profileId, { status: 'Inactive' });
+      } else if (profileType === 'teacher') {
+        return await base44.entities.Teacher.update(profileId, { status: 'Inactive' });
+      } else if (profileType === 'parent') {
+        // Parent entity doesn't have status, so we leave it as is
+        return Promise.resolve();
+      } else if (profileType === 'vendor') {
+        return await base44.entities.Vendor.update(profileId, { status: 'Inactive' });
+      }
+    },
+  });
+
+  const reactivateProfileMutation = useMutation({
+    mutationFn: async ({ profileType, profileId }) => {
+      if (profileType === 'student') {
+        return await base44.entities.Student.update(profileId, { status: 'Active' });
+      } else if (profileType === 'teacher') {
+        return await base44.entities.Teacher.update(profileId, { status: 'Active' });
+      } else if (profileType === 'vendor') {
+        return await base44.entities.Vendor.update(profileId, { status: 'Active' });
+      }
+      return Promise.resolve();
+    },
+  });
+
   const createProfileMutation = useMutation({
     mutationFn: async ({ userType, userData }) => {
       const nameParts = (userData.full_name || '').split(' ');
@@ -168,58 +196,78 @@ export default function UserManagement() {
     }
 
     const profiles = findExistingProfiles(editingUser);
+    const oldUserType = editingUser.user_type;
     const hasOtherProfile = Object.entries(profiles).some(([key, val]) => 
       val && key !== editingUserType
     );
 
-    if (hasOtherProfile && editingUser.user_type !== editingUserType) {
+    if (hasOtherProfile && oldUserType !== editingUserType) {
       setShowConflictDialog(true);
       return;
     }
 
-    // CRITICAL: Set role based on user_type - admin gets 'admin' role, others get 'user' role
-    const updateData = { user_type: editingUserType };
-    if (editingUserType === 'admin') {
-      updateData.role = 'admin';
-    } else {
-      // When switching away from admin, reset role to 'user'
-      updateData.role = 'user';
-    }
+    await handleUserTypeConversion(oldUserType, editingUserType, profiles);
+  };
 
-    await updateUserMutation.mutateAsync({
-      userId: editingUser.id,
-      data: updateData
-    });
+  const handleUserTypeConversion = async (oldUserType, newUserType, profiles) => {
+    try {
+      // Step 1: Archive old profile if it exists and is different from new type
+      if (oldUserType && oldUserType !== newUserType && oldUserType !== 'admin') {
+        const oldProfile = profiles[oldUserType];
+        if (oldProfile && oldProfile.status && oldProfile.status !== 'Inactive') {
+          await archiveProfileMutation.mutateAsync({
+            profileType: oldUserType,
+            profileId: oldProfile.id,
+          });
+          toast.success(`Previous ${oldUserType} profile archived`);
+        }
+      }
 
-    if (!profiles[editingUserType]) {
-      await createProfileMutation.mutateAsync({
-        userType: editingUserType,
-        userData: editingUser,
+      // Step 2: Check if new profile exists
+      const newProfile = profiles[newUserType];
+      
+      if (newProfile) {
+        // Profile exists - check if it needs reactivation
+        const isInactive = newProfile.status === 'Inactive' || newProfile.status === 'Archived';
+        if (isInactive && newUserType !== 'parent') {
+          await reactivateProfileMutation.mutateAsync({
+            profileType: newUserType,
+            profileId: newProfile.id,
+          });
+          toast.success(`${newUserType} profile reactivated`);
+        }
+      } else if (newUserType !== 'admin') {
+        // Profile doesn't exist - create it
+        await createProfileMutation.mutateAsync({
+          userType: newUserType,
+          userData: editingUser,
+        });
+        toast.success(`${newUserType} profile created`);
+      }
+
+      // Step 3: Update user record with new type and role
+      const updateData = { user_type: newUserType };
+      if (newUserType === 'admin') {
+        updateData.role = 'admin';
+      } else {
+        updateData.role = 'user';
+      }
+
+      await updateUserMutation.mutateAsync({
+        userId: editingUser.id,
+        data: updateData
       });
+
+    } catch (error) {
+      console.error('Error during user type conversion:', error);
+      toast.error('Failed to convert user type: ' + error.message);
     }
   };
 
   const handleConfirmChange = async () => {
-    // CRITICAL: Set role based on user_type - admin gets 'admin' role, others get 'user' role
-    const updateData = { user_type: editingUserType };
-    if (editingUserType === 'admin') {
-      updateData.role = 'admin';
-    } else {
-      updateData.role = 'user';
-    }
-
-    await updateUserMutation.mutateAsync({
-      userId: editingUser.id,
-      data: updateData
-    });
-
     const profiles = findExistingProfiles(editingUser);
-    if (!profiles[editingUserType]) {
-      await createProfileMutation.mutateAsync({
-        userType: editingUserType,
-        userData: editingUser,
-      });
-    }
+    const oldUserType = editingUser.user_type;
+    await handleUserTypeConversion(oldUserType, editingUserType, profiles);
   };
 
   const handleGenerateCode = async (user) => {
