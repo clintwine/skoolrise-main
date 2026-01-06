@@ -18,6 +18,8 @@ export default function AttendanceTaking() {
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
   });
+
+  const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
   console.log('🟡 AttendanceTaking - User:', user);
 
   const { data: teachers = [] } = useQuery({

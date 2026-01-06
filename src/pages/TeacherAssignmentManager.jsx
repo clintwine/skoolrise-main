@@ -36,13 +36,19 @@ export default function TeacherAssignmentManager() {
 
   const teacherProfile = teachers[0];
 
+  const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments', teacherProfile?.id],
+    queryKey: ['teacher-assignments', teacherProfile?.id, isAdmin],
     queryFn: async () => {
+      // Admins see all assignments, teachers see only their own
+      if (isAdmin) {
+        return await base44.entities.Assignment.list('-created_date');
+      }
       if (!teacherProfile?.id) return [];
       return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date');
     },
-    enabled: !!teacherProfile?.id,
+    enabled: isAdmin || !!teacherProfile?.id,
   });
 
   const { data: submissions = [] } = useQuery({
