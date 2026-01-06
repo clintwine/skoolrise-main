@@ -229,16 +229,22 @@ export default function UserManagement() {
   }
 
   const getLinkedProfiles = (user) => {
+    // Only show the profile for the CURRENT user_type to avoid confusion
     const profiles = [];
-    const teacher = teachers.find(t => t.user_id === user.id);
-    const student = students.find(s => s.user_id === user.id);
-    const parent = parents.find(p => p.user_id === user.id);
-    const vendor = vendors.find(v => v.user_id === user.id);
     
-    if (teacher) profiles.push({ type: 'teacher', name: `${teacher.first_name} ${teacher.last_name}` });
-    if (student) profiles.push({ type: 'student', name: `${student.first_name} ${student.last_name}` });
-    if (parent) profiles.push({ type: 'parent', name: `${parent.first_name} ${parent.last_name}` });
-    if (vendor) profiles.push({ type: 'vendor', name: vendor.business_name });
+    if (user.user_type === 'teacher') {
+      const teacher = teachers.find(t => t.user_id === user.id);
+      if (teacher) profiles.push({ type: 'teacher', name: `${teacher.first_name} ${teacher.last_name}` });
+    } else if (user.user_type === 'student') {
+      const student = students.find(s => s.user_id === user.id);
+      if (student) profiles.push({ type: 'student', name: `${student.first_name} ${student.last_name}` });
+    } else if (user.user_type === 'parent') {
+      const parent = parents.find(p => p.user_id === user.id);
+      if (parent) profiles.push({ type: 'parent', name: `${parent.first_name} ${parent.last_name}` });
+    } else if (user.user_type === 'vendor') {
+      const vendor = vendors.find(v => v.user_id === user.id);
+      if (vendor) profiles.push({ type: 'vendor', name: vendor.business_name });
+    }
     
     return profiles;
   };
