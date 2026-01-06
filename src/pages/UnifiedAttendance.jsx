@@ -138,7 +138,7 @@ export default function UnifiedAttendance() {
   };
 
   const periods = timetable.filter(t => 
-    t.day_of_week === format(new Date(selectedDate), 'EEEE')
+    t.day_of_week === safeFormat(selectedDate, 'EEEE')
   ).sort((a, b) => (a.period_number || 0) - (b.period_number || 0));
 
   return (
