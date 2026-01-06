@@ -177,7 +177,6 @@ export default function Layout({ children, currentPageName }) {
         id: 'school-setup',
         groupName: 'SCHOOL SETUP',
         items: [
-          { name: 'User Management', icon: Users, path: 'UserManagement' },
           { name: 'Academics', icon: GraduationCap, path: 'AcademicsHub' },
           { name: 'Teachers', icon: UserCircle, path: 'TeacherManagement' },
           { name: 'Timetables', icon: Calendar, path: 'TimetableManagement' },
@@ -213,6 +212,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'CBT / EXAMINATIONS',
         items: [
           { name: 'Exam Command Center', icon: FileText, path: 'ExamCommandCenter' },
+          { name: 'Exam Management', icon: ClipboardList, path: 'ExamManagement' },
           { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
         ]
       },
@@ -269,14 +269,15 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'REPORTS & ANALYTICS',
         items: [
           { name: 'Reports', icon: TrendingUp, path: 'Reports' },
+          { name: 'Scheduled Reports', icon: Calendar, path: 'ScheduledReports' },
         ]
       },
       {
         id: 'settings',
         groupName: 'SYSTEM',
         items: [
+          { name: 'User Management', icon: Users, path: 'UserManagement' },
           { name: 'Settings Hub', icon: Settings, path: 'SettingsHub' },
-          { name: 'Scheduled Reports', icon: Calendar, path: 'ScheduledReports' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
         ]

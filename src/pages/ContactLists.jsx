@@ -192,7 +192,7 @@ function ContactListFormDialog({ open, onOpenChange, list, students, teachers, o
     } else if (formData.contact_type === 'Parents') {
       contacts = students.filter(s => s.parent_email).map(s => ({
         id: s.id,
-        name: `${s.parent_name} (Parent of ${s.first_name} ${s.last_name})`,
+        name: `${s.parent_name || `Parent of ${s.first_name} ${s.last_name}`} (Parent of ${s.first_name} ${s.last_name})`,
         email: s.parent_email
       }));
     } else if (formData.contact_type === 'Mixed') {
