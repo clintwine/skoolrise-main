@@ -169,8 +169,8 @@ export default function TeacherAssignmentManager() {
           <div className="grid gap-3 sm:gap-4">
             {activeAssignments.map((assignment) => {
               const stats = getSubmissionStats(assignment.id);
-              const dueDate = new Date(assignment.due_date);
-              const isOverdue = dueDate < new Date();
+              const dueDate = assignment.due_date ? new Date(assignment.due_date) : null;
+              const isOverdue = dueDate && isValid(dueDate) && dueDate < new Date();
               return (
                 <Card 
                   key={assignment.id} 
