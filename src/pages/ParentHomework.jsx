@@ -145,7 +145,10 @@ export default function ParentHomework() {
     return submissions.find(s => s.assignment_id === assignmentId);
   };
 
-  const isOverdue = (dueDate) => new Date(dueDate) < new Date();
+  const isOverdue = (dueDate) => {
+    const date = safeParseDate(dueDate);
+    return date ? date < new Date() : false;
+  };
   
   const pendingAssignments = assignments.filter(a => !getSubmissionStatus(a.id) && !isOverdue(a.due_date));
   const overdueAssignments = assignments.filter(a => !getSubmissionStatus(a.id) && isOverdue(a.due_date));
