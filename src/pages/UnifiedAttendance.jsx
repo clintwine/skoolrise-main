@@ -516,7 +516,7 @@ export default function UnifiedAttendance() {
                             {student.first_name} {student.last_name}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-700">
-                            {arrivalRecord?.time_recorded ? format(new Date(arrivalRecord.time_recorded), 'HH:mm') : '-'}
+                            {safeFormat(arrivalRecord?.time_recorded, 'HH:mm')}
                           </td>
                           <td className="px-4 py-3">
                             {classRecord && (
