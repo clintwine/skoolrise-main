@@ -65,9 +65,28 @@ function ClassArmSelect({ value, onChange }) {
   );
 }
 
+// Helper to safely format date for input fields
+const formatDateForInput = (dateValue) => {
+  if (!dateValue) return '';
+  try {
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+  } catch {
+    return '';
+  }
+};
+
 export default function StudentForm({ student, onSubmit, onCancel }) {
-  const [formData, setFormData] = useState(
-    student || {
+  const [formData, setFormData] = useState(() => {
+    if (student) {
+      return {
+        ...student,
+        date_of_birth: formatDateForInput(student.date_of_birth),
+        admission_date: formatDateForInput(student.admission_date),
+      };
+    }
+    return {
       first_name: '',
       last_name: '',
       student_id_number: '',
@@ -86,8 +105,8 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
       send_status: '',
       photo_url: '',
       notes: '',
-    }
-  );
+    };
+  });
 
   const [photoFile, setPhotoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
