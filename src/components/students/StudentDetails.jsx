@@ -1,159 +1,191 @@
 import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   UserCircle,
-  Mail,
-  Phone,
-  MapPin,
+  GraduationCap,
   Calendar,
-  Users,
-  AlertCircle,
-  FileText,
-  Edit,
+  Award,
+  ClipboardList,
 } from 'lucide-react';
-import { format } from 'date-fns';
 
 export default function StudentDetails({ student, onEdit, onClose }) {
   const statusColors = {
-    Active: 'bg-green-100 text-green-800',
+    Active: 'bg-green-500 text-white',
     Inactive: 'bg-gray-100 text-gray-800',
     Suspended: 'bg-red-100 text-red-800',
     Graduated: 'bg-blue-100 text-blue-800',
     Withdrawn: 'bg-orange-100 text-orange-800',
   };
 
-  const InfoRow = ({ icon: Icon, label, value }) => {
-    if (!value) return null;
-    return (
-      <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-        <Icon className="w-5 h-5 text-gray-600 mt-0.5" />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{label}</p>
-          <p className="text-gray-900">{value}</p>
-        </div>
-      </div>
-    );
+  const { data: enrollments = [] } = useQuery({
+    queryKey: ['student-enrollments', student?.id],
+    queryFn: () => base44.entities.Enrollment.filter({ student_id: student?.id }),
+    enabled: !!student?.id,
+  });
+
+  const { data: attendance = [] } = useQuery({
+    queryKey: ['student-attendance', student?.id],
+    queryFn: () => base44.entities.Attendance.filter({ student_id: student?.id }),
+    enabled: !!student?.id,
+  });
+
+  const { data: behavior = [] } = useQuery({
+    queryKey: ['student-behavior', student?.id],
+    queryFn: () => base44.entities.Behavior.filter({ student_id: student?.id }),
+    enabled: !!student?.id,
+  });
+
+  const { data: reportCards = [] } = useQuery({
+    queryKey: ['student-reports', student?.id],
+    queryFn: () => base44.entities.ReportCard.filter({ student_id: student?.id }),
+    enabled: !!student?.id,
+  });
+
+  // Calculate stats
+  const presentCount = attendance.filter(a => a.status === 'Present').length;
+  const attendanceRate = attendance.length > 0 
+    ? ((presentCount / attendance.length) * 100).toFixed(0) 
+    : 100;
+  
+  const behaviorPoints = behavior.reduce((sum, b) => sum + (b.points || 0), 0);
+  
+  const avgGrade = reportCards.length > 0
+    ? (reportCards.reduce((sum, r) => sum + (r.average_score || 0), 0) / reportCards.length).toFixed(0)
+    : 0;
+
+  const getInitials = () => {
+    return `${student?.first_name?.charAt(0) || ''}${student?.last_name?.charAt(0) || ''}`.toUpperCase();
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start gap-4">
-        {student.photo_url ? (
+      <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+        {student?.photo_url ? (
           <img
             src={student.photo_url}
             alt={`${student.first_name} ${student.last_name}`}
-            className="w-20 h-20 rounded-full object-cover"
+            className="w-16 h-16 rounded-full object-cover"
           />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
-            <UserCircle className="w-12 h-12 text-blue-600" />
+          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+            <UserCircle className="w-10 h-10 text-blue-600" />
           </div>
         )}
         <div className="flex-1">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {student.first_name} {student.last_name}
-              </h2>
-              <p className="text-gray-600">Student ID: {student.student_id_number || student.student_id}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge className={statusColors[student.status]}>
-                  {student.status}
-                </Badge>
-                <Badge variant="outline">Grade {student.grade_level}</Badge>
-              </div>
+          <h2 className="text-xl font-bold text-gray-900">
+            {student?.first_name} {student?.last_name}
+          </h2>
+          <p className="text-gray-600 text-sm">ID: {student?.student_id_number}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge className={statusColors[student?.status]}>
+              {student?.status}
+            </Badge>
+            <Badge variant="outline">Grade {student?.grade_level}</Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card className="bg-white border shadow-sm">
+          <CardContent className="p-4 text-center">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-blue-100 flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-blue-600" />
             </div>
-          </div>
-        </div>
+            <p className="text-2xl font-bold text-gray-900">{enrollments.length}</p>
+            <p className="text-sm text-gray-500">Classes</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white border shadow-sm">
+          <CardContent className="p-4 text-center">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-green-100 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{attendanceRate}%</p>
+            <p className="text-sm text-gray-500">Attendance</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white border shadow-sm">
+          <CardContent className="p-4 text-center">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-purple-100 flex items-center justify-center">
+              <Award className="w-5 h-5 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{behaviorPoints}</p>
+            <p className="text-sm text-gray-500">Behavior Pts</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white border shadow-sm">
+          <CardContent className="p-4 text-center">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-orange-100 flex items-center justify-center">
+              <ClipboardList className="w-5 h-5 text-orange-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{avgGrade}%</p>
+            <p className="text-sm text-gray-500">Avg Grade</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Personal Information */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <UserCircle className="w-5 h-5" />
-          Personal Information
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <InfoRow
-            icon={Calendar}
-            label="Date of Birth"
-            value={student.date_of_birth ? format(new Date(student.date_of_birth), 'PPP') : null}
-          />
-          <InfoRow icon={Users} label="Gender" value={student.gender} />
-          <InfoRow
-            icon={Calendar}
-            label="Admission Date"
-            value={student.admission_date ? format(new Date(student.admission_date), 'PPP') : null}
-          />
-        </div>
-      </div>
+      {/* Enrolled Classes */}
+      <Card className="bg-white border shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Enrolled Classes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {enrollments.length === 0 ? (
+            <p className="text-gray-500 text-sm">No class enrollments found</p>
+          ) : (
+            <div className="space-y-2">
+              {enrollments.map((enrollment) => (
+                <div key={enrollment.id} className="p-2 bg-gray-50 rounded-lg flex justify-between items-center">
+                  <span className="font-medium text-sm">{enrollment.class_name}</span>
+                  <Badge variant="outline" className="text-xs">{enrollment.status}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Contact Information */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Mail className="w-5 h-5" />
-          Contact Information
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <InfoRow icon={Mail} label="Email" value={student.email} />
-          <InfoRow icon={Phone} label="Phone" value={student.phone} />
-          <div className="sm:col-span-2">
-            <InfoRow icon={MapPin} label="Address" value={student.address} />
-          </div>
-        </div>
-      </div>
-
-      {/* Parent/Guardian Information */}
-      {(student.parent_name || student.parent_email || student.parent_phone) && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Parent/Guardian Information
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <InfoRow icon={UserCircle} label="Name" value={student.parent_name} />
-            <InfoRow icon={Mail} label="Email" value={student.parent_email} />
-            <InfoRow icon={Phone} label="Phone" value={student.parent_phone} />
-          </div>
-        </div>
-      )}
-
-      {/* Additional Information */}
-      {(student.medical_conditions || student.send_status || student.notes) && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            Additional Information
-          </h3>
-          <div className="space-y-3">
-            {student.medical_conditions && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm font-medium text-red-900 mb-1">Medical Conditions</p>
-                <p className="text-red-800">{student.medical_conditions}</p>
-              </div>
-            )}
-            {student.send_status && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-900 mb-1">SEND Status</p>
-                <p className="text-blue-800">{student.send_status}</p>
-              </div>
-            )}
-            {student.notes && (
-              <InfoRow icon={FileText} label="Notes" value={student.notes} />
-            )}
-          </div>
-        </div>
-      )}
+      {/* Recent Behavior */}
+      <Card className="bg-white border shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Recent Behavior</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {behavior.length === 0 ? (
+            <p className="text-gray-500 text-sm">No behavior records found</p>
+          ) : (
+            <div className="space-y-2">
+              {behavior.slice(0, 5).map((b) => (
+                <div key={b.id} className="p-2 bg-gray-50 rounded-lg flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-sm">{b.type}</p>
+                    <p className="text-xs text-gray-500">{b.description}</p>
+                  </div>
+                  <Badge className={b.points > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                    {b.points > 0 ? '+' : ''}{b.points} pts
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Actions */}
       <div className="flex justify-end gap-3 pt-4 border-t">
         <Button variant="outline" onClick={onClose}>
           Close
         </Button>
-        <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
-          <Edit className="w-4 h-4 mr-2" />
+        <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700 text-white">
           Edit Student
         </Button>
       </div>

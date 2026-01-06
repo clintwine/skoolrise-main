@@ -332,22 +332,25 @@ export default function UnifiedAttendance() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
+                            variant={status === 'Present' ? 'default' : 'outline'}
                             onClick={() => handleMarkAttendance(student.id, 'Present')}
-                            className={status === 'Present' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                            className={status === 'Present' ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : 'border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'}
                           >
                             Present
                           </Button>
                           <Button
                             size="sm"
+                            variant={status === 'Absent' ? 'default' : 'outline'}
                             onClick={() => handleMarkAttendance(student.id, 'Absent')}
-                            className={status === 'Absent' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                            className={status === 'Absent' ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' : 'border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300'}
                           >
                             Absent
                           </Button>
                           <Button
                             size="sm"
+                            variant={status === 'Late' ? 'default' : 'outline'}
                             onClick={() => handleMarkAttendance(student.id, 'Late')}
-                            className={status === 'Late' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                            className={status === 'Late' ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500' : 'border-gray-300 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300'}
                           >
                             Late
                           </Button>
@@ -371,7 +374,7 @@ export default function UnifiedAttendance() {
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label>Select Class Arm</Label>
+                    <Label>Select Class Arm *</Label>
                     <Select value={selectedClass} onValueChange={setSelectedClass}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select class arm" />
@@ -386,7 +389,7 @@ export default function UnifiedAttendance() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Select Subject</Label>
+                    <Label>Select Subject *</Label>
                     <Select value={selectedSubject} onValueChange={setSelectedSubject} disabled={!selectedClass}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select subject" />
@@ -399,12 +402,13 @@ export default function UnifiedAttendance() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Period</Label>
-                    <Select value={selectedPeriod} onValueChange={setSelectedPeriod} disabled={!selectedSubject}>
+                    <Label>Period (Optional)</Label>
+                    <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select period" />
+                        <SelectValue placeholder="Select period (optional)" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">No specific period</SelectItem>
                         {periods.filter(p => p.subject === selectedSubject).map((period) => (
                           <SelectItem key={period.id} value={period.period_number.toString()}>
                             Period {period.period_number}
@@ -416,9 +420,9 @@ export default function UnifiedAttendance() {
                 </div>
               </div>
 
-              {!selectedClass || !selectedSubject || !selectedPeriod ? (
+              {!selectedClass || !selectedSubject ? (
                 <div className="text-center text-gray-500 py-12">
-                  Select Class Arm and Subject to begin
+                  Select Class Arm and Subject to begin taking attendance
                 </div>
               ) : (
                 <div className="space-y-2 mt-6">
@@ -433,22 +437,25 @@ export default function UnifiedAttendance() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
+                            variant={status === 'Present' ? 'default' : 'outline'}
                             onClick={() => handleMarkAttendance(student.id, 'Present')}
-                            className={status === 'Present' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'}
+                            className={status === 'Present' ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : 'border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'}
                           >
                             Present
                           </Button>
                           <Button
                             size="sm"
+                            variant={status === 'Absent' ? 'default' : 'outline'}
                             onClick={() => handleMarkAttendance(student.id, 'Absent')}
-                            className={status === 'Absent' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}
+                            className={status === 'Absent' ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' : 'border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300'}
                           >
                             Absent
                           </Button>
                           <Button
                             size="sm"
+                            variant={status === 'Late' ? 'default' : 'outline'}
                             onClick={() => handleMarkAttendance(student.id, 'Late')}
-                            className={status === 'Late' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700'}
+                            className={status === 'Late' ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500' : 'border-gray-300 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300'}
                           >
                             Late
                           </Button>
