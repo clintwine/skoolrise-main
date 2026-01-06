@@ -12,7 +12,19 @@ import {
   UserCheck, Calendar, CheckCircle, XCircle, Clock, 
   Users, BookOpen, Search, Camera, BarChart3
 } from 'lucide-react';
-import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
+
+// Helper to safely format dates
+const safeFormat = (dateValue, formatString) => {
+  if (!dateValue) return '-';
+  try {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    if (!date || !isValid(date)) return '-';
+    return format(date, formatString);
+  } catch {
+    return '-';
+  }
+};
 import { toast } from 'sonner';
 import Scanner from '../components/Scanner';
 
