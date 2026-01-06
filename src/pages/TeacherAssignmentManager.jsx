@@ -6,7 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, BookOpen, CheckCircle, AlertCircle, Clock, FileText } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
+
+// Helper to safely format dates
+const safeFormat = (dateValue, formatString) => {
+  if (!dateValue) return '-';
+  try {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    if (!date || !isValid(date)) return '-';
+    return format(date, formatString);
+  } catch {
+    return '-';
+  }
+};
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
