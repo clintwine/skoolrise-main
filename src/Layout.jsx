@@ -251,8 +251,9 @@ export default function Layout({ children, currentPageName }) {
           { name: 'School Shop', icon: BookMarked, path: 'SchoolShopManagement' },
           { name: 'School Trips', icon: Users, path: 'TripsManagement' },
           { name: 'Clubs', icon: Award, path: 'ClubsManagement' },
+          { name: 'Activities', icon: ClipboardList, path: 'Activities' },
         ]
-      },
+        },
       {
         id: 'communication',
         groupName: 'COMMUNICATION',
@@ -297,21 +298,28 @@ export default function Layout({ children, currentPageName }) {
           { name: 'My Schedule', icon: Calendar, path: 'TeacherSchedule' },
           { name: 'My Classes', icon: GraduationCap, path: 'MyClasses' },
           { name: 'Attendance', icon: CheckSquare, path: 'AttendanceTaking' },
-          { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
-          { name: 'Tests (CBT)', icon: FileText, path: 'TeacherTests' },
           { name: 'Gradebook', icon: Award, path: 'Gradebook' },
           { name: 'Behavior', icon: Award, path: 'BehaviorTracking' },
           { name: 'Student Progress', icon: TrendingUp, path: 'StudentProgressTracking' },
           { name: 'Resources', icon: BookOpen, path: 'ClassroomResources' },
+          { name: 'AI Lesson Planner', icon: BookMarked, path: 'AILessonPlanner' },
+          { name: 'Event Calendar', icon: Calendar, path: 'EventCalendar' },
         ]
       },
       {
         id: 'cbt-tools',
         groupName: 'CBT & ASSESSMENT',
         items: [
+          { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
+          { name: 'Tests', icon: FileText, path: 'TeacherTests' },
           { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
           { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
-          { name: 'Grade Submissions', icon: Award, path: 'TeacherAssignments' },
+          { name: 'Exam Management', icon: FileText, path: 'ExamManagement' },
+          { name: 'Exam Command Center', icon: BarChart3, path: 'ExamCommandCenter' },
+          { name: 'Exam Analytics', icon: TrendingUp, path: 'DetailedExamAnalytics' },
+          { name: 'Exam Results', icon: Award, path: 'ExamResults' },
+          { name: 'Review Attempts', icon: CheckSquare, path: 'ExamAttemptReview' },
+          { name: 'Grade Exam', icon: Award, path: 'GradeExam' },
         ]
       }
     ];
