@@ -230,12 +230,11 @@ export default function ParentPortal() {
               </CardContent>
             </Card>
           ) : (
-            students.map((student, index) => (
+            students.map((student) => (
               <motion.div
                 key={student.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
               >
                 <Link to={createPageUrl('ParentStudentView')}>
                   <Card className="bg-white shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer">
@@ -277,14 +276,13 @@ export default function ParentPortal() {
       <div>
         <h2 className="text-2xl font-semibold text-text mb-4">Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {dashboardCards.map((card, index) => {
+          {dashboardCards.map((card) => {
             const Icon = card.icon;
             return (
               <motion.div
                 key={card.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
               >
                 <Card 
                   className="bg-white shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
