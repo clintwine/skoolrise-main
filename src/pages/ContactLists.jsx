@@ -190,10 +190,25 @@ function ContactListFormDialog({ open, onOpenChange, list, students, teachers, o
     } else if (formData.contact_type === 'Teachers') {
       contacts = teachers.map(t => ({ ...t, name: `${t.first_name} ${t.last_name}` }));
     } else if (formData.contact_type === 'Parents') {
-      contacts = students.filter(s => s.parent_email).map(s => ({
-        id: s.id,
-        name: `${s.parent_name || `Parent of ${s.first_name} ${s.last_name}`} (Parent of ${s.first_name} ${s.last_name})`,
-        email: s.parent_email
+      // Group by parent email to show only unique parents
+      const parentMap = {};
+      students.filter(s => s.parent_email).forEach(s => {
+        const email = s.parent_email.toLowerCase();
+        if (!parentMap[email]) {
+          parentMap[email] = {
+            id: s.id,
+            parentName: s.parent_name,
+            email: s.parent_email,
+            studentNames: []
+          };
+        }
+        parentMap[email].studentNames.push(`${s.first_name} ${s.last_name}`);
+      });
+      
+      contacts = Object.values(parentMap).map(p => ({
+        id: p.id,
+        name: `${p.parentName || p.studentNames[0]} (Parent of ${p.studentNames[0]})`,
+        email: p.email
       }));
     } else if (formData.contact_type === 'Mixed') {
       contacts = [

@@ -312,7 +312,7 @@ export default function ParentPortal() {
       </div>
 
       {/* Expanded Card Dialogs */}
-      <AnimatePresence>
+      {/* Expanded Card Dialogs - Render one at a time without AnimatePresence */}
         {/* Fees Dialog */}
         <Dialog open={expandedCard === 'fees'} onOpenChange={() => setExpandedCard(null)}>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
@@ -490,7 +490,6 @@ export default function ParentPortal() {
             </div>
           </DialogContent>
         </Dialog>
-      </AnimatePresence>
     </div>
   );
 }

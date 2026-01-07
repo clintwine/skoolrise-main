@@ -136,10 +136,28 @@ export default function ParentConferences() {
     'Phone Call': <Phone className="w-4 h-4" />,
   };
 
-  if (!user || !parentProfile) {
+  if (!user) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (!parentProfile) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Parent-Teacher Conferences</h1>
+          <p className="text-gray-600 mt-1">Book and manage conferences with your child's teachers</p>
+        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No parent profile found for your account</p>
+            <p className="text-sm text-gray-500 mt-2">Please contact the school administration to link your account.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }

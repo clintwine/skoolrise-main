@@ -124,22 +124,29 @@ export default function AssignmentBuilder() {
   });
 
   useEffect(() => {
-    if (existingAssignment && !assignmentLoaded) {
+    if (existingAssignment && subjects.length > 0 && !assignmentLoaded) {
       console.log('📝 Loading existing assignment:', existingAssignment);
-      
+
       // Find subject_id from subject_name if only subject_name exists
       let subjectId = existingAssignment.subject_id || '';
-      if (!subjectId && existingAssignment.subject_name && subjects.length > 0) {
+      if (!subjectId && existingAssignment.subject_name) {
         const foundSubject = subjects.find(s => s.subject_name === existingAssignment.subject_name);
         subjectId = foundSubject?.id || '';
       }
-      
+
+      // Also ensure subject_name is set if subject_id exists
+      let subjectName = existingAssignment.subject_name || '';
+      if (!subjectName && subjectId) {
+        const foundSubject = subjects.find(s => s.id === subjectId);
+        subjectName = foundSubject?.subject_name || '';
+      }
+
       setAssignmentData(prev => ({
         ...prev,
         ...existingAssignment,
         due_date: existingAssignment.due_date || '',
         subject_id: subjectId,
-        subject_name: existingAssignment.subject_name || '',
+        subject_name: subjectName,
       }));
     }
   }, [existingAssignment, assignmentLoaded, subjects]);
@@ -669,18 +676,6 @@ Return as JSON array with this exact structure:
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <Label htmlFor="due-date-input">Due Date *</Label>
-                <Input
-                  id="due-date-input"
-                  type="datetime-local"
-                  value={assignmentData.due_date}
-                  onChange={(e) => setAssignmentData({ ...assignmentData, due_date: e.target.value })}
-                  className="mt-1"
-                />
-                <p className="text-xs text-gray-500 mt-1">Required to publish assignment</p>
               </div>
 
               <div>

@@ -167,12 +167,13 @@ export default function Layout({ children, currentPageName }) {
 
     const adminGroups = [
       {
-        id: 'workspace',
-        groupName: 'WORKSPACE',
-        items: [
-          { name: 'Dashboard', icon: BarChart3, path: 'AdminDashboard' },
-        ]
-      },
+            id: 'workspace',
+            groupName: 'WORKSPACE',
+            items: [
+              { name: 'Dashboard', icon: BarChart3, path: 'AdminDashboard' },
+              { name: 'School Branding', icon: Building2, path: 'SchoolSettings' },
+            ]
+          },
       {
         id: 'school-setup',
         groupName: 'SCHOOL SETUP',
@@ -216,13 +217,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
         ]
       },
-      {
-        id: 'school-settings',
-        groupName: 'SCHOOL BRANDING',
-        items: [
-          { name: 'School Info', icon: Building2, path: 'SchoolSettings' },
-        ]
-      },
+
       {
         id: 'fees',
         groupName: 'FEES & FINANCE',
@@ -308,21 +303,22 @@ export default function Layout({ children, currentPageName }) {
         ]
       },
       {
-        id: 'cbt-tools',
-        groupName: 'CBT & ASSESSMENT',
-        items: [
-          { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
-          { name: 'Tests', icon: FileText, path: 'TeacherTests' },
-          { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
-          { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
-          { name: 'Exam Management', icon: FileText, path: 'ExamManagement' },
-          { name: 'Exam Command Center', icon: BarChart3, path: 'ExamCommandCenter' },
-          { name: 'Exam Analytics', icon: TrendingUp, path: 'DetailedExamAnalytics' },
-          { name: 'Exam Results', icon: Award, path: 'ExamResults' },
-          { name: 'Review Attempts', icon: CheckSquare, path: 'ExamAttemptReview' },
-          { name: 'Grade Exam', icon: Award, path: 'GradeExam' },
-        ]
-      }
+          id: 'cbt-tools',
+          groupName: 'CBT & ASSESSMENT',
+          items: [
+            { name: 'Assignment Manager', icon: ClipboardList, path: 'TeacherAssignmentManager' },
+            { name: 'Assignments', icon: ClipboardList, path: 'TeacherAssignments' },
+            { name: 'Tests', icon: FileText, path: 'TeacherTests' },
+            { name: 'Question Bank', icon: BookOpen, path: 'QuestionBank' },
+            { name: 'Create Exam', icon: Plus, path: 'ExamCreator' },
+            { name: 'Exam Management', icon: FileText, path: 'ExamManagement' },
+            { name: 'Exam Command Center', icon: BarChart3, path: 'ExamCommandCenter' },
+            { name: 'Exam Analytics', icon: TrendingUp, path: 'DetailedExamAnalytics' },
+            { name: 'Exam Results', icon: Award, path: 'ExamResults' },
+            { name: 'Review Attempts', icon: CheckSquare, path: 'ExamAttemptReview' },
+            { name: 'Grade Exam', icon: Award, path: 'GradeExam' },
+          ]
+        }
     ];
 
     const studentGroups = [

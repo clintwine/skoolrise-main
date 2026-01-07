@@ -111,7 +111,9 @@ export default function ParentFees() {
     queryKey: ['parent-payments', selectedStudentId],
     queryFn: async () => {
       if (!selectedStudentId) return [];
-      return await base44.entities.Payment.filter({ student_id: selectedStudentId }, '-payment_date');
+      // Fetch all payments and filter client-side to avoid $in array error
+      const allPayments = await base44.entities.Payment.list('-payment_date');
+      return allPayments.filter(p => p.student_id === selectedStudentId);
     },
     enabled: !!selectedStudentId,
   });

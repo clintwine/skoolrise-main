@@ -84,21 +84,27 @@ export default function UnifiedAttendance() {
 
   const handleMarkAttendance = async (studentId, status) => {
     const student = students.find(s => s.id === studentId);
+    const attendanceType = activeTab.replace('-', '_');
     const existingRecord = attendance.find(a => 
       a.student_id === studentId && 
       a.date === selectedDate &&
-      a.attendance_type === activeTab.replace('-', '_')
+      a.attendance_type === attendanceType &&
+      (attendanceType !== 'subject_period' || (a.subject === selectedSubject && (!selectedPeriod || selectedPeriod === 'none' || a.period_number === parseInt(selectedPeriod))))
     );
 
+    const classArm = classArms.find(c => c.id === selectedClass);
     const attendanceData = {
       student_id: studentId,
       student_name: student ? `${student.first_name} ${student.last_name}` : '',
       class_id: selectedClass,
+      class_arm_id: selectedClass,
+      class_arm_name: classArm ? `Grade ${classArm.grade_level} - ${classArm.arm_name}` : '',
       date: selectedDate,
       status: status,
-      attendance_type: activeTab.replace('-', '_'),
+      type: attendanceType === 'school_arrival' ? 'arrival' : attendanceType === 'class_register' ? 'class' : 'subject',
+      attendance_type: attendanceType,
       subject: selectedSubject || null,
-      period_number: selectedPeriod ? parseInt(selectedPeriod) : null,
+      period_number: selectedPeriod && selectedPeriod !== 'none' ? parseInt(selectedPeriod) : null,
       time_recorded: new Date().toISOString(),
     };
 
@@ -110,10 +116,12 @@ export default function UnifiedAttendance() {
   };
 
   const getStudentStatus = (studentId) => {
+    const attendanceType = activeTab.replace('-', '_');
     const record = attendance.find(a => 
       a.student_id === studentId && 
       a.date === selectedDate &&
-      a.attendance_type === activeTab.replace('-', '_')
+      a.attendance_type === attendanceType &&
+      (attendanceType !== 'subject_period' || (a.subject === selectedSubject && (!selectedPeriod || selectedPeriod === 'none' || a.period_number === parseInt(selectedPeriod))))
     );
     return record?.status || null;
   };
