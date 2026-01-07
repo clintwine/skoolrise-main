@@ -10,7 +10,30 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Brain, Library, Edit, Trash2, Calendar, Video, Award, Bell, Users, CheckCircle, Clock } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isValid } from 'date-fns';
+
+// Helper to safely format dates
+const safeFormat = (dateValue, formatString) => {
+  if (!dateValue) return '-';
+  try {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    if (!date || !isValid(date)) return '-';
+    return format(date, formatString);
+  } catch {
+    return '-';
+  }
+};
+
+const safeFormatDistance = (dateValue) => {
+  if (!dateValue) return '-';
+  try {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    if (!date || !isValid(date)) return '-';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return '-';
+  }
+};
 import { motion } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/SkeletonLoader';
 import AssignmentDetailSheet from '../components/AssignmentDetailSheet';
@@ -346,7 +369,7 @@ export default function TeacherAssignments() {
                           </div>
                           <p className="text-xs text-text-secondary mb-1">{assignment?.title}</p>
                           <p className="text-xs text-text-secondary">
-                            {formatDistanceToNow(new Date(submission.submitted_date), { addSuffix: true })}
+                            {safeFormatDistance(submission.submitted_date)}
                           </p>
                         </div>
                       );
@@ -467,7 +490,7 @@ export default function TeacherAssignments() {
                       <div className="flex items-center gap-4 mt-3 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4 text-text-secondary" />
-                          <span className="text-text-secondary">Due: {format(new Date(assignment.due_date), 'MMM d, yyyy')}</span>
+                          <span className="text-text-secondary">Due: {safeFormat(assignment.due_date, 'MMM d, yyyy')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Award className="w-4 h-4 text-text-secondary" />
