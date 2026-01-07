@@ -213,6 +213,7 @@ export default function AttendanceTaking() {
                       size="sm"
                       variant={attendanceData[student.id] === 'Present' ? 'default' : 'outline'}
                       onClick={() => setAttendanceData({ ...attendanceData, [student.id]: 'Present' })}
+                      className={attendanceData[student.id] === 'Present' ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : 'border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'}
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Present
@@ -221,6 +222,7 @@ export default function AttendanceTaking() {
                       size="sm"
                       variant={attendanceData[student.id] === 'Late' ? 'default' : 'outline'}
                       onClick={() => setAttendanceData({ ...attendanceData, [student.id]: 'Late' })}
+                      className={attendanceData[student.id] === 'Late' ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500' : 'border-gray-300 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300'}
                     >
                       <Clock className="w-4 h-4 mr-1" />
                       Late
@@ -229,6 +231,7 @@ export default function AttendanceTaking() {
                       size="sm"
                       variant={attendanceData[student.id] === 'Absent' ? 'default' : 'outline'}
                       onClick={() => setAttendanceData({ ...attendanceData, [student.id]: 'Absent' })}
+                      className={attendanceData[student.id] === 'Absent' ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' : 'border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300'}
                     >
                       <XCircle className="w-4 h-4 mr-1" />
                       Absent
