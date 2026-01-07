@@ -267,12 +267,12 @@ export default function ParentHomework() {
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map((day, idx) => {
               const dayAssignments = getAssignmentsForDay(day);
-              const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+              const isToday = safeFormat(day, 'yyyy-MM-dd') === safeFormat(new Date(), 'yyyy-MM-dd');
               
               return (
                 <div key={idx} className={`border rounded-lg p-3 ${isToday ? 'bg-blue-50 border-blue-300' : ''}`}>
-                  <p className="text-sm font-semibold text-center mb-2">{format(day, 'EEE')}</p>
-                  <p className="text-xs text-center text-gray-600 mb-3">{format(day, 'MMM d')}</p>
+                  <p className="text-sm font-semibold text-center mb-2">{safeFormat(day, 'EEE')}</p>
+                  <p className="text-xs text-center text-gray-600 mb-3">{safeFormat(day, 'MMM d')}</p>
                   <div className="space-y-2">
                     {dayAssignments.map(a => {
                       const submission = getSubmissionStatus(a.id);
