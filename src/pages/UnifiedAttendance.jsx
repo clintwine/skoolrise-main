@@ -82,9 +82,9 @@ export default function UnifiedAttendance() {
     },
   });
 
-  const handleMarkAttendance = async (studentId, status) => {
+  const handleMarkAttendance = (studentId, status) => {
     const student = students.find(s => s.id === studentId);
-    const attendanceType = activeTab.replace('-', '_');
+    const attendanceType = activeTab.replace(/-/g, '_');
     const existingRecord = attendance.find(a => 
       a.student_id === studentId && 
       a.date === selectedDate &&
@@ -116,7 +116,7 @@ export default function UnifiedAttendance() {
   };
 
   const getStudentStatus = (studentId) => {
-    const attendanceType = activeTab.replace('-', '_');
+    const attendanceType = activeTab.replace(/-/g, '_');
     const record = attendance.find(a => 
       a.student_id === studentId && 
       a.date === selectedDate &&
@@ -126,10 +126,10 @@ export default function UnifiedAttendance() {
     return record?.status || null;
   };
 
-  const presentCount = attendance.filter(a => a.status === 'Present' && a.attendance_type === activeTab.replace('-', '_')).length;
-  const absentCount = attendance.filter(a => a.status === 'Absent' && a.attendance_type === activeTab.replace('-', '_')).length;
-  const lateCount = attendance.filter(a => a.status === 'Late' && a.attendance_type === activeTab.replace('-', '_')).length;
-  const totalRecords = attendance.filter(a => a.attendance_type === activeTab.replace('-', '_')).length;
+  const presentCount = attendance.filter(a => a.status === 'Present' && a.attendance_type === activeTab.replace(/-/g, '_')).length;
+  const absentCount = attendance.filter(a => a.status === 'Absent' && a.attendance_type === activeTab.replace(/-/g, '_')).length;
+  const lateCount = attendance.filter(a => a.status === 'Late' && a.attendance_type === activeTab.replace(/-/g, '_')).length;
+  const totalRecords = attendance.filter(a => a.attendance_type === activeTab.replace(/-/g, '_')).length;
 
   const filteredStudents = students.filter(s => {
     if (!selectedClass) return true;
@@ -559,16 +559,14 @@ export default function UnifiedAttendance() {
       </Tabs>
 
       {/* Scanner Component */}
-      {scannerOpen && (
-        <Scanner
-          open={scannerOpen}
-          onClose={() => setScannerOpen(false)}
-          onScanSuccess={(studentId) => {
-            handleMarkAttendance(studentId, 'Present');
-            setScannerOpen(false);
-          }}
-        />
-      )}
+      <Scanner
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScanSuccess={(studentId) => {
+          handleMarkAttendance(studentId, 'Present');
+          setScannerOpen(false);
+        }}
+      />
     </div>
   );
 }
