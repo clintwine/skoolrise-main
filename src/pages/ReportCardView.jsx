@@ -236,36 +236,68 @@ export default function ReportCardView() {
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Academic Performance</h3>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border p-3 text-left text-sm font-semibold text-gray-700">Subject</th>
-                      <th className="border p-3 text-center text-sm font-semibold text-gray-700">CA Score</th>
-                      <th className="border p-3 text-center text-sm font-semibold text-gray-700">Exam Score</th>
-                      <th className="border p-3 text-center text-sm font-semibold text-gray-700">Total</th>
-                      <th className="border p-3 text-center text-sm font-semibold text-gray-700">Grade</th>
-                      <th className="border p-3 text-left text-sm font-semibold text-gray-700">Remark</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {grades.length > 0 ? grades.map((grade, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="border p-3 text-sm text-gray-900">{grade.subject}</td>
-                        <td className="border p-3 text-center text-sm text-gray-900">{grade.ca_score || '-'}</td>
-                        <td className="border p-3 text-center text-sm text-gray-900">{grade.exam_score || '-'}</td>
-                        <td className="border p-3 text-center text-sm font-semibold text-gray-900">{grade.total || '-'}</td>
-                        <td className="border p-3 text-center">
-                          <Badge className={getGradeColor(grade.grade)}>{grade.grade}</Badge>
-                        </td>
-                        <td className="border p-3 text-sm text-gray-600">{grade.remark || '-'}</td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan={6} className="border p-6 text-center text-gray-500">No grades recorded</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                {(() => {
+                  // Calculate max CA columns needed
+                  const maxCACount = grades.reduce((max, g) => {
+                    const caScores = g.ca_scores || [];
+                    return Math.max(max, caScores.length);
+                  }, 1);
+                  
+                  return (
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border p-3 text-left text-sm font-semibold text-gray-700" rowSpan={maxCACount > 1 ? 1 : 1}>Subject</th>
+                          {maxCACount > 1 ? (
+                            // Multiple CA columns header
+                            Array.from({ length: maxCACount }, (_, i) => (
+                              <th key={i} className="border p-2 text-center text-xs font-semibold text-gray-700 bg-blue-50">CA{i + 1}</th>
+                            ))
+                          ) : (
+                            <th className="border p-3 text-center text-sm font-semibold text-gray-700">CA Score</th>
+                          )}
+                          <th className="border p-3 text-center text-sm font-semibold text-gray-700">Exam Score</th>
+                          <th className="border p-3 text-center text-sm font-semibold text-gray-700">Total</th>
+                          <th className="border p-3 text-center text-sm font-semibold text-gray-700">Grade</th>
+                          <th className="border p-3 text-left text-sm font-semibold text-gray-700">Remark</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {grades.length > 0 ? grades.map((grade, idx) => {
+                          const caScores = grade.ca_scores || [];
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-gray-50">
+                              <td className="border p-3 text-sm text-gray-900">{grade.subject}</td>
+                              {maxCACount > 1 ? (
+                                // Render individual CA score cells
+                                Array.from({ length: maxCACount }, (_, i) => (
+                                  <td key={i} className="border p-2 text-center text-sm text-red-600 font-semibold">
+                                    {caScores[i]?.score || '-'}
+                                  </td>
+                                ))
+                              ) : (
+                                <td className="border p-3 text-center text-sm text-gray-900">
+                                  {caScores.length > 0 ? caScores[0]?.score : (grade.ca_score || '-')}
+                                </td>
+                              )}
+                              <td className="border p-3 text-center text-sm text-gray-900">{grade.exam_score || '-'}</td>
+                              <td className="border p-3 text-center text-sm font-semibold text-gray-900">{grade.score || grade.total || '-'}</td>
+                              <td className="border p-3 text-center">
+                                <Badge className={getGradeColor(grade.grade)}>{grade.grade}</Badge>
+                              </td>
+                              <td className="border p-3 text-sm text-gray-600">{grade.remarks || grade.remark || '-'}</td>
+                            </tr>
+                          );
+                        }) : (
+                          <tr>
+                            <td colSpan={maxCACount + 5} className="border p-6 text-center text-gray-500">No grades recorded</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  );
+                })()}
               </div>
             </div>
 
