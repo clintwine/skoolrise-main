@@ -570,16 +570,25 @@ export default function UnifiedAttendance() {
         onClose={() => setScannerOpen(false)}
         onScanSuccess={(scannedData) => {
           setScannerOpen(false);
-          // Find student by ID or student_id_number
-          const student = students.find(s => 
-            s.id === scannedData || 
-            s.student_id_number === scannedData
-          );
+          // Normalize scanned data - trim whitespace and convert to string
+          const normalizedScan = String(scannedData).trim().toLowerCase();
+          
+          // Find student by ID or student_id_number (flexible matching)
+          const student = students.find(s => {
+            const studentId = String(s.id || '').trim().toLowerCase();
+            const studentIdNumber = String(s.student_id_number || '').trim().toLowerCase();
+            
+            return studentId === normalizedScan || 
+                   studentIdNumber === normalizedScan ||
+                   studentIdNumber.includes(normalizedScan) ||
+                   normalizedScan.includes(studentIdNumber);
+          });
+          
           if (student) {
             setScannedStudent(student);
             setConfirmDialogOpen(true);
           } else {
-            toast.error('Student not found');
+            toast.error(`Student not found for ID: ${scannedData}`);
           }
         }}
       />
