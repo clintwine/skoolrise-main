@@ -27,6 +27,10 @@ const safeFormat = (dateValue, formatString) => {
 };
 import { toast } from 'sonner';
 import Scanner from '../components/Scanner';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { X, Check } from 'lucide-react';
+
+const DEFAULT_AVATAR = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/a351a651d_image.png';
 
 export default function UnifiedAttendance() {
   const queryClient = useQueryClient();
@@ -37,6 +41,8 @@ export default function UnifiedAttendance() {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [scannedStudent, setScannedStudent] = useState(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const { data: classArms = [] } = useQuery({
     queryKey: ['class-arms'],
@@ -562,11 +568,65 @@ export default function UnifiedAttendance() {
       <Scanner
         isOpen={scannerOpen}
         onClose={() => setScannerOpen(false)}
-        onScanSuccess={(studentId) => {
-          handleMarkAttendance(studentId, 'Present');
+        onScanSuccess={(scannedData) => {
           setScannerOpen(false);
+          // Find student by ID or student_id_number
+          const student = students.find(s => 
+            s.id === scannedData || 
+            s.student_id_number === scannedData
+          );
+          if (student) {
+            setScannedStudent(student);
+            setConfirmDialogOpen(true);
+          } else {
+            toast.error('Student not found');
+          }
         }}
       />
+
+      {/* Scan Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="max-w-sm bg-white p-6">
+          {scannedStudent && (
+            <div className="flex flex-col items-center text-center">
+              <img
+                src={scannedStudent.photo_url || DEFAULT_AVATAR}
+                alt={`${scannedStudent.first_name} ${scannedStudent.last_name}`}
+                className="w-28 h-28 rounded-full object-cover border-4 border-green-100 mb-4"
+              />
+              <h3 className="text-xl font-semibold text-gray-900">
+                {scannedStudent.first_name} {scannedStudent.last_name}
+              </h3>
+              <p className="text-gray-500 mb-6">
+                ID: #{scannedStudent.student_id_number}
+              </p>
+              <div className="flex gap-4 w-full">
+                <Button
+                  onClick={() => {
+                    setConfirmDialogOpen(false);
+                    setScannedStudent(null);
+                  }}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-full py-3"
+                >
+                  <X className="w-5 h-5 mr-2" />
+                  No
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleMarkAttendance(scannedStudent.id, 'Present');
+                    setConfirmDialogOpen(false);
+                    setScannedStudent(null);
+                  }}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-full py-3"
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Yes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
