@@ -88,9 +88,9 @@ export default function UnifiedAttendance() {
     },
   });
 
-  const handleMarkAttendance = (studentId, status) => {
+  const handleMarkAttendance = (studentId, status, forceArrival = false) => {
     const student = students.find(s => s.id === studentId);
-    const attendanceType = activeTab.replace(/-/g, '_');
+    const attendanceType = forceArrival ? 'school_arrival' : activeTab.replace(/-/g, '_');
     const existingRecord = attendance.find(a => 
       a.student_id === studentId && 
       a.date === selectedDate &&
@@ -98,13 +98,27 @@ export default function UnifiedAttendance() {
       (attendanceType !== 'subject_period' || (a.subject === selectedSubject && (!selectedPeriod || selectedPeriod === 'none' || a.period_number === parseInt(selectedPeriod))))
     );
 
-    const classArm = classArms.find(c => c.id === selectedClass);
+    // For school arrival, use student's class arm if available
+    let classArmId = selectedClass;
+    let classArmName = '';
+    
+    if (attendanceType === 'school_arrival' && student?.grade_level) {
+      const studentArm = classArms.find(c => c.grade_level === student.grade_level);
+      if (studentArm) {
+        classArmId = studentArm.id;
+        classArmName = `Grade ${studentArm.grade_level} - ${studentArm.arm_name}`;
+      }
+    } else {
+      const classArm = classArms.find(c => c.id === selectedClass);
+      classArmName = classArm ? `Grade ${classArm.grade_level} - ${classArm.arm_name}` : '';
+    }
+
     const attendanceData = {
       student_id: studentId,
       student_name: student ? `${student.first_name} ${student.last_name}` : '',
-      class_id: selectedClass,
-      class_arm_id: selectedClass,
-      class_arm_name: classArm ? `Grade ${classArm.grade_level} - ${classArm.arm_name}` : '',
+      class_id: classArmId || null,
+      class_arm_id: classArmId || null,
+      class_arm_name: classArmName,
       date: selectedDate,
       status: status,
       type: attendanceType === 'school_arrival' ? 'arrival' : attendanceType === 'class_register' ? 'class' : 'subject',
@@ -622,7 +636,7 @@ export default function UnifiedAttendance() {
                 </Button>
                 <Button
                   onClick={() => {
-                    handleMarkAttendance(scannedStudent.id, 'Present');
+                    handleMarkAttendance(scannedStudent.id, 'Present', true);
                     setConfirmDialogOpen(false);
                     setScannedStudent(null);
                   }}
