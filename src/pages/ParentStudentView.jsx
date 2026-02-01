@@ -14,10 +14,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Users, BookOpen, Calendar, Award, FileText, MessageSquare,
-  ShoppingCart, CheckCircle, XCircle, ClipboardList, TrendingUp, Plus, Link2
+  ShoppingCart, CheckCircle, XCircle, ClipboardList, TrendingUp, Plus, Link2, Unlink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrency } from '@/components/CurrencyProvider';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function ParentStudentView() {
   const [user, setUser] = useState(null);
@@ -29,6 +30,8 @@ export default function ParentStudentView() {
   const [messageText, setMessageText] = useState('');
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [linkForm, setLinkForm] = useState({ student_name: '', student_id_number: '', relationship: 'Parent' });
+  const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false);
+  const [studentToUnlink, setStudentToUnlink] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { formatAmount } = useCurrency();
@@ -194,6 +197,45 @@ export default function ParentStudentView() {
     },
   });
 
+  const unlinkStudentMutation = useMutation({
+    mutationFn: async (studentId) => {
+      if (!parentProfile) return;
+      
+      // Remove student from parent's linked_student_ids
+      let linkedStudents = [];
+      try { linkedStudents = JSON.parse(parentProfile.linked_student_ids || '[]'); } catch (e) {}
+      linkedStudents = linkedStudents.filter(id => id !== studentId);
+      await base44.entities.Parent.update(parentProfile.id, {
+        linked_student_ids: JSON.stringify(linkedStudents)
+      });
+      
+      // Remove parent from student's linked_parent_ids
+      const student = students.find(s => s.id === studentId);
+      if (student?.linked_parent_ids) {
+        let linkedParents = [];
+        try { linkedParents = JSON.parse(student.linked_parent_ids); } catch (e) {}
+        linkedParents = linkedParents.filter(id => id !== parentProfile.id);
+        await base44.entities.Student.update(studentId, {
+          linked_parent_ids: JSON.stringify(linkedParents)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['parent-profile']);
+      queryClient.invalidateQueries(['parent-students']);
+      toast.success('Student unlinked successfully');
+      setUnlinkDialogOpen(false);
+      setStudentToUnlink(null);
+      // Reset selected student if we unlinked the current one
+      if (studentToUnlink?.id === selectedStudentId) {
+        setSelectedStudentId('');
+      }
+    },
+    onError: () => {
+      toast.error('Failed to unlink student');
+    }
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async ({ message }) => {
       return await base44.integrations.Core.SendEmail({
@@ -342,6 +384,19 @@ export default function ParentStudentView() {
             <Link2 className="w-4 h-4 mr-2" />
             Link New Student
           </Button>
+          {selectedStudent && (
+            <Button 
+              variant="outline" 
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => {
+                setStudentToUnlink(selectedStudent);
+                setUnlinkDialogOpen(true);
+              }}
+            >
+              <Unlink className="w-4 h-4 mr-2" />
+              Unlink
+            </Button>
+          )}
           <Button onClick={() => setIsCartOpen(true)} variant="outline" className="relative">
             <ShoppingCart className="w-5 h-5" />
             {cart.length > 0 && (
@@ -681,6 +736,29 @@ export default function ParentStudentView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Unlink Confirmation Dialog */}
+      <AlertDialog open={unlinkDialogOpen} onOpenChange={setUnlinkDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlink Student?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to unlink <strong>{studentToUnlink?.first_name} {studentToUnlink?.last_name}</strong> from your account? 
+              You will no longer be able to view their information. You can request to link them again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => unlinkStudentMutation.mutate(studentToUnlink?.id)}
+              disabled={unlinkStudentMutation.isPending}
+            >
+              {unlinkStudentMutation.isPending ? 'Unlinking...' : 'Unlink Student'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Message Teacher Dialog */}
       <Dialog open={isMessageOpen} onOpenChange={setIsMessageOpen}>
