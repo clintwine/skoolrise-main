@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { DollarSign, CreditCard, Download, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/components/CurrencyProvider';
+import { useParentStudents } from '@/components/hooks/useParentStudents';
 
 export default function ParentFees() {
   const [user, setUser] = useState(null);
@@ -27,70 +28,7 @@ export default function ParentFees() {
     fetchUser();
   }, []);
 
-  const { data: parents = [] } = useQuery({
-    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      if (user.parent_profile_id) {
-        const parent = await base44.entities.Parent.get(user.parent_profile_id);
-        if (parent) return [parent];
-      }
-      
-      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
-      if (byUserId.length > 0) return byUserId;
-      
-      const allParents = await base44.entities.Parent.list();
-      const allStudents = await base44.entities.Student.list();
-      
-      const matchedStudents = allStudents.filter(s => 
-        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
-      );
-      
-      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
-        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
-        if (parentById) return [parentById];
-      }
-
-      return [];
-    },
-    enabled: !!user?.id,
-  });
-
-  const parentProfile = parents[0];
-
-  const { data: students = [] } = useQuery({
-    queryKey: ['parent-linked-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
-    queryFn: async () => {
-      const allStudents = await base44.entities.Student.list();
-      let foundStudents = [];
-      
-      if (parentProfile?.linked_student_ids) {
-        try {
-          const linkedIds = JSON.parse(parentProfile.linked_student_ids);
-          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
-            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
-            if (foundStudents.length > 0) return foundStudents;
-          }
-        } catch (e) {}
-      }
-      
-      if (parentProfile?.id) {
-        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
-        if (foundStudents.length > 0) return foundStudents;
-      }
-      
-      if (user?.email) {
-        foundStudents = allStudents.filter(s => 
-          s.parent_email?.toLowerCase() === user.email.toLowerCase()
-        );
-        if (foundStudents.length > 0) return foundStudents;
-      }
-
-      return [];
-    },
-    enabled: !!user?.id,
-  });
+  const { students, isLoading } = useParentStudents(user);
 
   useEffect(() => {
     if (students.length > 0 && !selectedStudentId) {
