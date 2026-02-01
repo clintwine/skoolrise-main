@@ -42,6 +42,71 @@ function GradeLevelSelect({ value, onChange }) {
   );
 }
 
+function ParentProfileSection({ profile }) {
+  const { data: linkedStudents = [] } = useQuery({
+    queryKey: ['parent-linked-students', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      
+      // Try linked_student_ids first
+      if (profile.linked_student_ids) {
+        try {
+          const linkedIds = JSON.parse(profile.linked_student_ids);
+          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
+            const allStudents = await base44.entities.Student.list();
+            return allStudents.filter(s => linkedIds.includes(s.id));
+          }
+        } catch (e) {
+          console.error('Error parsing linked_student_ids:', e);
+        }
+      }
+      
+      // Fallback to parent_id on students
+      const students = await base44.entities.Student.filter({ parent_id: profile.id });
+      return students;
+    },
+    enabled: !!profile?.id,
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Full Name</p>
+          <p className="font-medium text-gray-900">{profile?.first_name} {profile?.last_name}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Phone</p>
+          <p className="font-medium text-gray-900">{profile?.phone || 'N/A'}</p>
+        </div>
+      </div>
+      
+      {linkedStudents.length > 0 && (
+        <div className="mt-4">
+          <p className="text-xs text-gray-500 mb-2">LINKED CHILDREN</p>
+          <div className="space-y-2">
+            {linkedStudents.map((student) => (
+              <a 
+                key={student.id}
+                href={createPageUrl('UserProfile') + `?id=${student.user_id}&role=student`}
+                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{student.first_name} {student.last_name}</p>
+                  <p className="text-sm text-gray-500">Grade {student.grade_level} • ID: {student.student_id_number}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function UserProfile() {
   const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState(null);
@@ -529,16 +594,7 @@ export default function UserProfile() {
                       )}
 
                       {role === 'parent' && (
-                        <div className="grid grid-cols-2 gap-6">
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Full Name</p>
-                            <p className="font-medium text-gray-900">{profile?.first_name} {profile?.last_name}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Phone</p>
-                            <p className="font-medium text-gray-900">{profile?.phone || 'N/A'}</p>
-                          </div>
-                        </div>
+                        <ParentProfileSection profile={profile} />
                       )}
                     </CardContent>
                   </Card>

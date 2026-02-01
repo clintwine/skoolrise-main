@@ -21,6 +21,7 @@ export default function AdminLinkingRequests() {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedRoleRequest, setSelectedRoleRequest] = useState(null);
   const [assignedRole, setAssignedRole] = useState('');
+  const [selectedStudentForLink, setSelectedStudentForLink] = useState('');
   const queryClient = useQueryClient();
 
   const { data: allRequests = [] } = useQuery({
@@ -69,6 +70,13 @@ export default function AdminLinkingRequests() {
 
   const handleApprove = (request) => {
     setSelectedRequest(request);
+    setAdminNotes('');
+    // Pre-select the student if we can find a match
+    const matchingStudent = students.find(s => 
+      s.student_id_number === request.student_id_number ||
+      `${s.first_name} ${s.last_name}`.toLowerCase() === request.student_name?.toLowerCase()
+    );
+    setSelectedStudentForLink(matchingStudent?.id || '');
     setDialogOpen(true);
   };
 
@@ -441,17 +449,39 @@ export default function AdminLinkingRequests() {
 
       {/* Parent Linking Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-white max-w-lg">
           <DialogHeader>
-            <DialogTitle>Approve Linking Request</DialogTitle>
+            <DialogTitle>Review & Approve Linking Request</DialogTitle>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p><strong>Parent:</strong> {selectedRequest.parent_name}</p>
-                <p><strong>Student:</strong> {selectedRequest.student_name}</p>
-                <p><strong>Student ID:</strong> {selectedRequest.student_id_number}</p>
+                <p className="text-sm text-gray-600">{selectedRequest.parent_email}</p>
               </div>
+              
+              <div>
+                <Label>Select Correct Student</Label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Requested: {selectedRequest.student_name} (ID: {selectedRequest.student_id_number})
+                </p>
+                <Select 
+                  value={selectedStudentForLink || ''} 
+                  onValueChange={setSelectedStudentForLink}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select student to link" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.first_name} {student.last_name} - ID: {student.student_id_number} (Grade {student.grade_level})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
               <div>
                 <Label>Admin Notes (Optional)</Label>
                 <Textarea
@@ -461,9 +491,50 @@ export default function AdminLinkingRequests() {
                   rows={3}
                 />
               </div>
-              <Button onClick={confirmApproval} className="w-full" disabled={processRequestMutation.isPending}>
-                {processRequestMutation.isPending ? 'Processing...' : 'Confirm Approval'}
-              </Button>
+              
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    const notes = adminNotes || 'Request rejected by admin';
+                    processRequestMutation.mutate({
+                      requestId: selectedRequest.id,
+                      status: 'Rejected',
+                      adminNotes: notes,
+                    });
+                  }}
+                  className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                  disabled={processRequestMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Reject
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (!selectedStudentForLink) {
+                      toast.error('Please select a student to link');
+                      return;
+                    }
+                    const parent = parents.find(p => p.user_id === selectedRequest.parent_user_id);
+                    if (!parent) {
+                      toast.error('Parent profile not found');
+                      return;
+                    }
+                    processRequestMutation.mutate({
+                      requestId: selectedRequest.id,
+                      status: 'Approved',
+                      adminNotes,
+                      studentId: selectedStudentForLink,
+                      parentId: parent.id,
+                    });
+                  }} 
+                  className="flex-1 bg-green-600 hover:bg-green-700" 
+                  disabled={processRequestMutation.isPending || !selectedStudentForLink}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {processRequestMutation.isPending ? 'Processing...' : 'Approve & Link'}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
