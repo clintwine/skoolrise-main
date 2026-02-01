@@ -106,7 +106,7 @@ export default function Layout({ children, currentPageName }) {
           'AdmissionsManagement', 'StudentRecords', 'ParentManagement', 'EnrollmentManagement', 'AdminLinkingRequests',
           'UnifiedAttendance', 'AssignmentManagement', 'BehaviorManagement', 'BehaviorAnalytics', 'ReportCardsManagement',
           'CurriculumMapping', 'ConferenceScheduling', 'ExamCommandCenter', 'ExamManagement', 'QuestionBank',
-          'FeePolicies', 'FeesManagement', 'FeeReminderSystem', 'InstalmentPlans', 'SalaryManagement', 'ExpenseTracking',
+          'FeePolicies', 'FeesManagement', 'FeeReminderSystem', 'InstalmentPlans', 'PaymentProviders', 'SalaryManagement', 'ExpenseTracking',
           'BookshopManager', 'BookshopReports', 'VendorManagement', 'SchoolShopManagement', 'TripsManagement',
           'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
@@ -281,6 +281,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Fees Management', icon: DollarSign, path: 'FeesManagement' },
           { name: 'Fee Reminders', icon: Bell, path: 'FeeReminderSystem' },
           { name: 'Instalment Plans', icon: Calendar, path: 'InstalmentPlans' },
+          { name: 'Payment Providers', icon: DollarSign, path: 'PaymentProviders' },
           { name: 'Salary Management', icon: DollarSign, path: 'SalaryManagement' },
           { name: 'Expense Tracking', icon: TrendingUp, path: 'ExpenseTracking' },
         ]
