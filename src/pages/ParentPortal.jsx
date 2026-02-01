@@ -78,6 +78,7 @@ export default function ParentPortal() {
       if (parentProfile?.linked_student_ids) {
         try {
           const linkedIds = JSON.parse(parentProfile.linked_student_ids);
+          console.log('Parsed linked_student_ids:', linkedIds);
           if (Array.isArray(linkedIds)) {
             linkedIds.forEach(id => {
               if (id) studentIdSet.add(id);
@@ -108,10 +109,10 @@ export default function ParentPortal() {
       
       // Return all unique students found
       const foundStudents = allStudents.filter(s => studentIdSet.has(s.id));
-      console.log('Found students for parent:', foundStudents.length, 'from IDs:', Array.from(studentIdSet));
+      console.log('Found students for parent:', foundStudents.length, 'from IDs:', Array.from(studentIdSet), 'parentProfile:', parentProfile?.id);
       return foundStudents;
     },
-    enabled: !!user?.id && !parentsLoading,
+    enabled: !!user?.id && !!parentProfile,
   });
 
   useEffect(() => {
