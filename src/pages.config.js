@@ -159,6 +159,7 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
+import PaymentProviders from './pages/PaymentProviders';
 import __Layout from './Layout.jsx';
 
 
@@ -275,6 +276,7 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
+    "PaymentProviders": PaymentProviders,
 }
 
 export const pagesConfig = {
