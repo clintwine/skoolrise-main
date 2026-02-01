@@ -12,32 +12,33 @@ export function useParentStudents(user) {
     queryFn: async () => {
       console.log('Fetching parent profile for user:', user.id, user.email);
       
-      // First try direct parent_profile_id from User entity
-      if (user.parent_profile_id) {
-        try {
-          const parent = await base44.entities.Parent.get(user.parent_profile_id);
-          console.log('Found parent by profile_id:', parent);
-          if (parent) return parent;
-        } catch (e) {
-          console.log('Could not fetch parent by profile_id:', e);
+      // For parents, fetch by user_id filter
+      try {
+        const parents = await base44.entities.Parent.filter({ user_id: user.id });
+        console.log('Parents from filter({ user_id }):', parents.length, parents);
+        if (parents.length > 0) {
+          return parents[0];
         }
+      } catch (e) {
+        console.log('Filter by user_id failed:', e);
       }
       
-      // Filter to find parent record for this user
-      const parents = await base44.entities.Parent.filter({ user_id: user.id });
-      console.log('Parents from filter() call:', parents.length, parents);
-      
-      if (parents.length > 0) {
-        console.log('Found my parent profile:', parents[0]);
-        return parents[0];
+      // Fallback: list all and find
+      try {
+        const allParents = await base44.entities.Parent.list();
+        console.log('All parents from list():', allParents.length);
+        allParents.forEach(p => console.log('Parent:', p.id, 'user_id:', p.user_id));
+        const myParent = allParents.find(p => p.user_id === user.id);
+        if (myParent) {
+          console.log('Found parent via list fallback:', myParent);
+          return myParent;
+        }
+      } catch (e) {
+        console.log('List parents failed:', e);
       }
       
-      // Fallback: try list and manually filter
-      const allParents = await base44.entities.Parent.list();
-      console.log('Fallback - all parents from list():', allParents.length, allParents);
-      const myParent = allParents.find(p => p.user_id === user.id);
-      console.log('Found my parent profile via fallback:', myParent);
-      return myParent || null;
+      console.log('No parent profile found for user');
+      return null;
     },
     enabled: !!user?.id,
   });
