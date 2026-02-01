@@ -700,6 +700,67 @@ export default function UserProfile() {
                               </div>
                             </>
                           )}
+                          
+                          {(role === 'teacher' || role === 'admin') && (
+                            <>
+                              <div>
+                                <Label>Staff ID</Label>
+                                <Input
+                                  value={formData.staff_id || ''}
+                                  onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <Label>Department</Label>
+                                <Input
+                                  value={formData.department || ''}
+                                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <Label>Position</Label>
+                                <Input
+                                  value={formData.position || ''}
+                                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <Label>Hire Date</Label>
+                                <Input
+                                  type="date"
+                                  value={formData.hire_date || ''}
+                                  onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <Label>Status</Label>
+                                <Select value={formData.status || ''} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="On Leave">On Leave</SelectItem>
+                                    <SelectItem value="Inactive">Inactive</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Qualifications</Label>
+                                <Input
+                                  value={formData.qualifications || ''}
+                                  onChange={(e) => setFormData({ ...formData, qualifications: e.target.value })}
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Label>Emergency Contact</Label>
+                                <Input
+                                  value={formData.emergency_contact || ''}
+                                  onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
 
