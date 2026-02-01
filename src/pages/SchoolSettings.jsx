@@ -32,6 +32,11 @@ export default function SchoolSettings() {
     principal_signature_url: '',
     report_card_header: '',
     report_card_footer: '',
+    student_id_pattern: 'STU-{YEAR}-{SEQ}',
+    teacher_id_pattern: 'TCH-{YEAR}-{SEQ}',
+    parent_id_pattern: 'PAR-{YEAR}-{SEQ}',
+    staff_id_pattern: 'STF-{YEAR}-{SEQ}',
+    vendor_id_pattern: 'VND-{YEAR}-{SEQ}',
   });
 
   React.useEffect(() => {
@@ -228,6 +233,64 @@ export default function SchoolSettings() {
                 rows={2}
                 placeholder="Custom footer text for report cards"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-md">
+          <CardHeader>
+            <CardTitle>ID Number Patterns</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Configure the pattern for auto-generated IDs. Use {'{YEAR}'} for year and {'{SEQ}'} for sequence number.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Student ID Pattern</Label>
+                <Input
+                  value={formData.student_id_pattern || 'STU-{YEAR}-{SEQ}'}
+                  onChange={(e) => setFormData({ ...formData, student_id_pattern: e.target.value })}
+                  placeholder="STU-{YEAR}-{SEQ}"
+                />
+                <p className="text-xs text-gray-500 mt-1">Example: STU-2025-001</p>
+              </div>
+              <div>
+                <Label>Teacher ID Pattern</Label>
+                <Input
+                  value={formData.teacher_id_pattern || 'TCH-{YEAR}-{SEQ}'}
+                  onChange={(e) => setFormData({ ...formData, teacher_id_pattern: e.target.value })}
+                  placeholder="TCH-{YEAR}-{SEQ}"
+                />
+                <p className="text-xs text-gray-500 mt-1">Example: TCH-2025-001</p>
+              </div>
+              <div>
+                <Label>Parent ID Pattern</Label>
+                <Input
+                  value={formData.parent_id_pattern || 'PAR-{YEAR}-{SEQ}'}
+                  onChange={(e) => setFormData({ ...formData, parent_id_pattern: e.target.value })}
+                  placeholder="PAR-{YEAR}-{SEQ}"
+                />
+                <p className="text-xs text-gray-500 mt-1">Example: PAR-2025-001</p>
+              </div>
+              <div>
+                <Label>Staff ID Pattern</Label>
+                <Input
+                  value={formData.staff_id_pattern || 'STF-{YEAR}-{SEQ}'}
+                  onChange={(e) => setFormData({ ...formData, staff_id_pattern: e.target.value })}
+                  placeholder="STF-{YEAR}-{SEQ}"
+                />
+                <p className="text-xs text-gray-500 mt-1">Example: STF-2025-001</p>
+              </div>
+              <div>
+                <Label>Vendor ID Pattern</Label>
+                <Input
+                  value={formData.vendor_id_pattern || 'VND-{YEAR}-{SEQ}'}
+                  onChange={(e) => setFormData({ ...formData, vendor_id_pattern: e.target.value })}
+                  placeholder="VND-{YEAR}-{SEQ}"
+                />
+                <p className="text-xs text-gray-500 mt-1">Example: VND-2025-001</p>
+              </div>
             </div>
           </CardContent>
         </Card>

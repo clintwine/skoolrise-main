@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Search, Upload, UserCircle, LayoutGrid, Table as TableIcon } from 'lucide-react';
 import BulkImportDialog from '../components/admin/BulkImportDialog';
+import { createPageUrl } from '../utils';
 
 export default function TeacherManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -121,7 +122,7 @@ export default function TeacherManagement() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredTeachers.map((teacher) => (
-                  <tr key={teacher.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => window.location.href = `/userprofile?id=${teacher.user_id}&role=teacher`}>
+                  <tr key={teacher.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => window.location.href = createPageUrl('UserProfile') + `?id=${teacher.user_id}&role=teacher&edit=true`}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -156,7 +157,7 @@ export default function TeacherManagement() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTeachers.map((teacher) => (
-            <Card key={teacher.id} className="bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = `/userprofile?id=${teacher.user_id}&role=teacher`}>
+            <Card key={teacher.id} className="bg-white shadow-md hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = createPageUrl('UserProfile') + `?id=${teacher.user_id}&role=teacher&edit=true`}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">

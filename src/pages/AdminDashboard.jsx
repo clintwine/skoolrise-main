@@ -84,8 +84,8 @@ export default function AdminDashboard() {
   const stats = [
     { title: 'Total Students', value: activeStudents, icon: Users, color: 'bg-blue-500', link: 'StudentRecords' },
     { title: 'Active Teachers', value: activeTeachers, icon: GraduationCap, color: 'bg-green-500', link: 'TeacherManagement' },
-    { title: 'Active Classes', value: activeClasses, icon: BookOpen, color: 'bg-purple-500', link: 'ClassManagement' },
-    { title: 'Avg Performance', value: `${avgScore}%`, icon: Award, color: 'bg-orange-500', link: 'Reports' },
+    { title: 'Active Classes', value: activeClasses, icon: BookOpen, color: 'bg-purple-500', link: 'ActiveClasses', clickable: true },
+    { title: 'Avg Performance', value: `${avgScore}%`, icon: Award, color: 'bg-orange-500', link: null, clickable: false },
   ];
 
   return (
@@ -109,23 +109,30 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
-          return (
-            <Link key={stat.title} to={createPageUrl(stat.link)}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-white">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.title}</p>
-                      <p className="text-xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{stat.value}</p>
-                    </div>
-                    <div className={`${stat.color} p-2 sm:p-3 rounded-lg`}>
-                      <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                    </div>
+          const content = (
+            <Card className={`${stat.clickable !== false ? 'hover:shadow-lg cursor-pointer' : ''} transition-shadow bg-white`}>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{stat.value}</p>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
+                  <div className={`${stat.color} p-2 sm:p-3 rounded-lg`}>
+                    <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           );
+          
+          if (stat.link) {
+            return (
+              <Link key={stat.title} to={createPageUrl(stat.link)}>
+                {content}
+              </Link>
+            );
+          }
+          return <div key={stat.title}>{content}</div>;
         })}
       </div>
       )}

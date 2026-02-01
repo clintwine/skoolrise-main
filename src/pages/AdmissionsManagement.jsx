@@ -33,21 +33,54 @@ export default function AdmissionsManagement() {
     },
   });
 
+  const { data: schools = [] } = useQuery({
+    queryKey: ['schools'],
+    queryFn: () => base44.entities.School.list(),
+  });
+
+  const { data: existingStudents = [] } = useQuery({
+    queryKey: ['students-for-id'],
+    queryFn: () => base44.entities.Student.list(),
+  });
+
+  const generateStudentId = () => {
+    const school = schools[0];
+    const pattern = school?.student_id_pattern || 'STU-{YEAR}-{SEQ}';
+    const year = new Date().getFullYear();
+    const seqNum = existingStudents.length + 1;
+    const paddedSeq = String(seqNum).padStart(3, '0');
+    
+    return pattern
+      .replace('{YEAR}', year)
+      .replace('{SEQ}', paddedSeq);
+  };
+
   const convertToStudentMutation = useMutation({
     mutationFn: async (application) => {
-      const studentId = `STU${Date.now()}`;
+      const studentId = generateStudentId();
+      
+      // Create a user account first
+      try {
+        await base44.users.inviteUser(application.email || application.parent_email, 'user');
+      } catch (error) {
+        console.log('User may already exist:', error);
+      }
+      
+      // Get the user ID
+      const allUsers = await base44.entities.User.list();
+      const userRecord = allUsers.find(u => u.email === (application.email || application.parent_email));
+      
       await base44.entities.Student.create({
+        user_id: userRecord?.id || '',
         first_name: application.first_name,
         last_name: application.last_name,
-        student_id: studentId,
+        student_id_number: studentId,
         date_of_birth: application.date_of_birth,
         gender: application.gender,
         grade_level: application.grade_applying_for,
         status: 'Active',
-        email: application.email,
         phone: application.phone,
         address: application.address,
-        parent_name: application.parent_name,
         parent_email: application.parent_email,
         parent_phone: application.parent_phone,
         admission_date: new Date().toISOString().split('T')[0],
@@ -62,7 +95,11 @@ export default function AdmissionsManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['students-for-id'] });
       alert('Application converted to student successfully!');
+    },
+    onError: (error) => {
+      alert('Failed to enroll student: ' + error.message);
     },
   });
 
@@ -290,10 +327,18 @@ export default function AdmissionsManagement() {
                             Send Offer
                           </Button>
                         )}
-                        {app.application_stage === 'Accepted' && !app.student_id && (
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => convertToStudentMutation.mutate(app)}>
+                        {(app.application_stage === 'Accepted' || app.application_stage === 'Offered') && !app.student_id && (
+                          <Button 
+                            size="sm" 
+                            className="bg-green-600 hover:bg-green-700" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              convertToStudentMutation.mutate(app);
+                            }}
+                            disabled={convertToStudentMutation.isPending}
+                          >
                             <UserPlus className="w-3 h-3 mr-1" />
-                            Enroll
+                            {convertToStudentMutation.isPending ? 'Enrolling...' : 'Enroll'}
                           </Button>
                         )}
                       </div>
