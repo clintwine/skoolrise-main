@@ -17,9 +17,7 @@ import { createPageUrl } from '../utils';
 import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ParentPortal() {
-  // Parent Portal - displays children and overview for parents
   const [user, setUser] = useState(null);
-  const [studentIds, setStudentIds] = useState([]);
   const [expandedCard, setExpandedCard] = useState(null);
   const { formatAmount } = useCurrency();
 
@@ -31,67 +29,77 @@ export default function ParentPortal() {
     fetchUser();
   }, []);
 
+  // Get parent profile for current user
   const { data: parentProfile, isLoading: parentsLoading } = useQuery({
-    queryKey: ['parent-profile', user?.id],
+    queryKey: ['parent-profile', user?.id, user?.parent_profile_id],
     queryFn: async () => {
-      // Parent entity RLS filters by user_id matching current user
-      // So list() should return only the parent record for this user
-      const parents = await base44.entities.Parent.list();
-      console.log('Parents returned by RLS:', parents);
+      // First try direct parent_profile_id from User
+      if (user.parent_profile_id) {
+        try {
+          const parent = await base44.entities.Parent.get(user.parent_profile_id);
+          if (parent) {
+            console.log('Found parent by profile_id:', parent.id);
+            return parent;
+          }
+        } catch (e) {
+          console.log('Could not fetch parent by profile_id');
+        }
+      }
       
+      // RLS should filter to only this user's parent record
+      const parents = await base44.entities.Parent.list();
+      console.log('Parents from list (filtered by RLS):', parents.length);
       if (parents.length > 0) {
         return parents[0];
       }
       
-      console.log('No parent found for user:', user.id);
       return null;
     },
     enabled: !!user?.id,
   });
 
+  // Get students linked to this parent
   const { data: students = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids],
     queryFn: async () => {
-      // Get linked student IDs from parent profile
-      let linkedIds = [];
-      if (parentProfile?.linked_student_ids) {
-        try {
-          linkedIds = JSON.parse(parentProfile.linked_student_ids);
-          console.log('Linked student IDs:', linkedIds);
-        } catch (e) {
-          console.error('Error parsing linked_student_ids:', e);
-        }
-      }
-      
-      if (linkedIds.length === 0) {
-        console.log('No linked students found in parent profile');
+      if (!parentProfile?.linked_student_ids) {
+        console.log('No linked_student_ids on parent profile');
         return [];
       }
       
-      // Fetch each student by ID directly (bypasses RLS issues)
+      let linkedIds = [];
+      try {
+        linkedIds = JSON.parse(parentProfile.linked_student_ids);
+        console.log('Parsed linked student IDs:', linkedIds);
+      } catch (e) {
+        console.error('Error parsing linked_student_ids:', e);
+        return [];
+      }
+      
+      if (!Array.isArray(linkedIds) || linkedIds.length === 0) {
+        return [];
+      }
+      
+      // Fetch each student by ID
       const studentPromises = linkedIds.map(async (id) => {
         try {
           const student = await base44.entities.Student.get(id);
           return student;
         } catch (e) {
-          console.log('Could not fetch student:', id, e);
+          console.log('Could not fetch student:', id);
           return null;
         }
       });
       
       const results = await Promise.all(studentPromises);
       const foundStudents = results.filter(s => s !== null);
-      console.log('Found students:', foundStudents.length, 'of', linkedIds.length);
+      console.log('Found students:', foundStudents.length);
       return foundStudents;
     },
     enabled: !!parentProfile?.id,
   });
 
-  useEffect(() => {
-    if (students.length > 0) {
-      setStudentIds(students.map(s => s.id));
-    }
-  }, [students]);
+  const studentIds = students.map(s => s.id);
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['parent-invoices', studentIds],
@@ -292,185 +300,180 @@ export default function ParentPortal() {
         </div>
       </div>
 
-      {/* Expanded Card Dialogs */}
-      {/* Expanded Card Dialogs - Render one at a time without AnimatePresence */}
-        {/* Fees Dialog */}
-        <Dialog open={expandedCard === 'fees'} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <DollarSign className="w-6 h-6 text-orange-600" />
-                Fees & Payments
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              {invoices.length === 0 ? (
-                <p className="text-center text-text-secondary py-8">No invoices found</p>
-              ) : (
-                invoices.map((invoice) => (
-                  <div key={invoice.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-semibold text-text">{invoice.student_name}</p>
-                        <p className="text-sm text-text-secondary">Invoice #{invoice.invoice_number}</p>
-                      </div>
-                      <Badge className={
-                        invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
-                        invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }>
-                        {invoice.status}
-                      </Badge>
+      {/* Dialogs */}
+      <Dialog open={expandedCard === 'fees'} onOpenChange={() => setExpandedCard(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="w-6 h-6 text-orange-600" />
+              Fees & Payments
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {invoices.length === 0 ? (
+              <p className="text-center text-text-secondary py-8">No invoices found</p>
+            ) : (
+              invoices.map((invoice) => (
+                <div key={invoice.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-text">{invoice.student_name}</p>
+                      <p className="text-sm text-text-secondary">Invoice #{invoice.invoice_number}</p>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-text-secondary">
-                        Due: {new Date(invoice.due_date).toLocaleDateString()}
-                      </span>
-                      <span className="text-lg font-bold text-text">
-                        {formatAmount(invoice.balance)}
-                      </span>
-                    </div>
+                    <Badge className={
+                      invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                      invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }>
+                      {invoice.status}
+                    </Badge>
                   </div>
-                ))
-              )}
-              <Button 
-                onClick={() => window.location.href = createPageUrl('ParentFees')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                View All Invoices
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-text-secondary">
+                      Due: {new Date(invoice.due_date).toLocaleDateString()}
+                    </span>
+                    <span className="text-lg font-bold text-text">
+                      {formatAmount(invoice.balance)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+            <Button 
+              onClick={() => window.location.href = createPageUrl('ParentFees')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              View All Invoices
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Attendance Dialog */}
-        <Dialog open={expandedCard === 'attendance'} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-                Attendance Records
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center p-4 bg-green-50 rounded-xl">
-                  <p className="text-3xl font-bold text-green-600">
-                    {attendance.filter(a => a.status === 'Present').length}
-                  </p>
-                  <p className="text-sm text-text-secondary">Present</p>
-                </div>
-                <div className="text-center p-4 bg-red-50 rounded-xl">
-                  <p className="text-3xl font-bold text-red-600">
-                    {attendance.filter(a => a.status === 'Absent').length}
-                  </p>
-                  <p className="text-sm text-text-secondary">Absent</p>
-                </div>
-                <div className="text-center p-4 bg-yellow-50 rounded-xl">
-                  <p className="text-3xl font-bold text-yellow-600">
-                    {attendance.filter(a => a.status === 'Late').length}
-                  </p>
-                  <p className="text-sm text-text-secondary">Late</p>
-                </div>
+      <Dialog open={expandedCard === 'attendance'} onOpenChange={() => setExpandedCard(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              Attendance Records
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="text-center p-4 bg-green-50 rounded-xl">
+                <p className="text-3xl font-bold text-green-600">
+                  {attendance.filter(a => a.status === 'Present').length}
+                </p>
+                <p className="text-sm text-text-secondary">Present</p>
               </div>
-              <Button 
-                onClick={() => window.location.href = createPageUrl('ParentAttendance')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                View Full Attendance History
-              </Button>
+              <div className="text-center p-4 bg-red-50 rounded-xl">
+                <p className="text-3xl font-bold text-red-600">
+                  {attendance.filter(a => a.status === 'Absent').length}
+                </p>
+                <p className="text-sm text-text-secondary">Absent</p>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                <p className="text-3xl font-bold text-yellow-600">
+                  {attendance.filter(a => a.status === 'Late').length}
+                </p>
+                <p className="text-sm text-text-secondary">Late</p>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+            <Button 
+              onClick={() => window.location.href = createPageUrl('ParentAttendance')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              View Full Attendance History
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Reports Dialog */}
-        <Dialog open={expandedCard === 'reports'} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="w-6 h-6 text-blue-600" />
-                Report Cards
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              {reportCards.length === 0 ? (
-                <p className="text-center text-text-secondary py-8">No report cards available</p>
-              ) : (
-                reportCards.slice(0, 5).map((report) => (
-                  <div key={report.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-text">{report.student_name}</p>
-                        <p className="text-sm text-text-secondary">
-                          Term {report.term_number} • Session {report.session_id}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-text">{report.average_score}%</p>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          View Report
-                        </Button>
-                      </div>
+      <Dialog open={expandedCard === 'reports'} onOpenChange={() => setExpandedCard(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-6 h-6 text-blue-600" />
+              Report Cards
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {reportCards.length === 0 ? (
+              <p className="text-center text-text-secondary py-8">No report cards available</p>
+            ) : (
+              reportCards.slice(0, 5).map((report) => (
+                <div key={report.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold text-text">{report.student_name}</p>
+                      <p className="text-sm text-text-secondary">
+                        Term {report.term_number} • Session {report.session_id}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-text">{report.average_score}%</p>
+                      <Button size="sm" variant="outline" className="mt-2">
+                        View Report
+                      </Button>
                     </div>
                   </div>
-                ))
-              )}
-              <Button 
-                onClick={() => window.location.href = createPageUrl('ParentReports')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                View All Reports
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                </div>
+              ))
+            )}
+            <Button 
+              onClick={() => window.location.href = createPageUrl('ParentReports')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              View All Reports
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Behavior Dialog */}
-        <Dialog open={expandedCard === 'behavior'} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Award className="w-6 h-6 text-purple-600" />
-                Behavior Records
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              {recentBehaviors.length === 0 ? (
-                <p className="text-center text-text-secondary py-8">No behavior records</p>
-              ) : (
-                recentBehaviors.map((behavior) => (
-                  <div key={behavior.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold text-text">{behavior.student_name}</p>
-                          <Badge className={
-                            behavior.type === 'Merit' || behavior.type === 'Reward' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }>
-                            {behavior.type}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-text-secondary mb-2">{behavior.category}</p>
-                        <p className="text-sm text-text">{behavior.description}</p>
+      <Dialog open={expandedCard === 'behavior'} onOpenChange={() => setExpandedCard(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Award className="w-6 h-6 text-purple-600" />
+              Behavior Records
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {recentBehaviors.length === 0 ? (
+              <p className="text-center text-text-secondary py-8">No behavior records</p>
+            ) : (
+              recentBehaviors.map((behavior) => (
+                <div key={behavior.id} className="p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-text">{behavior.student_name}</p>
+                        <Badge className={
+                          behavior.type === 'Merit' || behavior.type === 'Reward' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }>
+                          {behavior.type}
+                        </Badge>
                       </div>
-                      <span className="text-sm text-text-secondary">
-                        {new Date(behavior.date).toLocaleDateString()}
-                      </span>
+                      <p className="text-sm text-text-secondary mb-2">{behavior.category}</p>
+                      <p className="text-sm text-text">{behavior.description}</p>
                     </div>
+                    <span className="text-sm text-text-secondary">
+                      {new Date(behavior.date).toLocaleDateString()}
+                    </span>
                   </div>
-                ))
-              )}
-              <Button 
-                onClick={() => window.location.href = createPageUrl('ParentBehavior')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                View All Behavior Records
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                </div>
+              ))
+            )}
+            <Button 
+              onClick={() => window.location.href = createPageUrl('ParentBehavior')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              View All Behavior Records
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
