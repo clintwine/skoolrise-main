@@ -59,14 +59,45 @@ export default function AdminLinkingRequests() {
         processed_date: new Date().toISOString(),
       });
 
-      // If approved, link student to parent
+      // If approved, link student to parent bidirectionally
       if (status === 'Approved' && studentId && parentId) {
-        await base44.entities.Student.update(studentId, { parent_id: parentId });
+        // Get current student and parent
+        const student = students.find(s => s.id === studentId);
+        const parent = parents.find(p => p.id === parentId);
+        
+        // Update student's linked_parent_ids (add parent if not already linked)
+        let studentLinkedParents = [];
+        if (student?.linked_parent_ids) {
+          try {
+            studentLinkedParents = JSON.parse(student.linked_parent_ids);
+          } catch (e) { studentLinkedParents = []; }
+        }
+        if (!studentLinkedParents.includes(parentId)) {
+          studentLinkedParents.push(parentId);
+        }
+        await base44.entities.Student.update(studentId, { 
+          linked_parent_ids: JSON.stringify(studentLinkedParents)
+        });
+        
+        // Update parent's linked_student_ids (add student if not already linked)
+        let parentLinkedStudents = [];
+        if (parent?.linked_student_ids) {
+          try {
+            parentLinkedStudents = JSON.parse(parent.linked_student_ids);
+          } catch (e) { parentLinkedStudents = []; }
+        }
+        if (!parentLinkedStudents.includes(studentId)) {
+          parentLinkedStudents.push(studentId);
+        }
+        await base44.entities.Parent.update(parentId, { 
+          linked_student_ids: JSON.stringify(parentLinkedStudents)
+        });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['all-linking-requests']);
       queryClient.invalidateQueries(['students']);
+      queryClient.invalidateQueries(['parents']);
       toast.success('Request processed successfully');
       setDialogOpen(false);
       setSelectedRequest(null);
