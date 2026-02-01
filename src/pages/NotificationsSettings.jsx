@@ -195,12 +195,24 @@ export default function NotificationsSettings() {
         toast.error('Please fill in SMS configuration before testing');
         return;
       }
+    } else if (!smsConfig.custom_endpoint) {
+      toast.error('Please fill in API endpoint for custom SMS');
+      return;
     }
 
     setTesting({ ...testing, sms: true });
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Test SMS simulation complete! Implement backend function for actual SMS sending.');
+      const response = await base44.functions.invoke('sendTestSms', {
+        to: testPhone,
+        message: `Test SMS from SkoolRise - ${new Date().toLocaleString()}`,
+        config: smsConfig,
+      });
+
+      if (response.data.success) {
+        toast.success(`✅ Test SMS sent successfully via ${smsConfig.provider}! Check ${testPhone} to confirm delivery.`);
+      } else {
+        toast.error(`❌ ${response.data.error || 'Failed to send test SMS'}`);
+      }
     } catch (error) {
       toast.error('Failed to send test SMS: ' + error.message);
     } finally {
@@ -238,8 +250,17 @@ export default function NotificationsSettings() {
 
     setTesting({ ...testing, whatsapp: true });
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Test WhatsApp simulation complete! Implement backend function for actual WhatsApp sending.');
+      const response = await base44.functions.invoke('sendTestWhatsapp', {
+        to: testWhatsapp,
+        message: `Test WhatsApp from SkoolRise - ${new Date().toLocaleString()}`,
+        config: whatsappConfig,
+      });
+
+      if (response.data.success) {
+        toast.success(`✅ Test WhatsApp sent successfully via ${whatsappConfig.provider}! Check ${testWhatsapp} to confirm delivery.`);
+      } else {
+        toast.error(`❌ ${response.data.error || 'Failed to send test WhatsApp'}`);
+      }
     } catch (error) {
       toast.error('Failed to send test WhatsApp: ' + error.message);
     } finally {

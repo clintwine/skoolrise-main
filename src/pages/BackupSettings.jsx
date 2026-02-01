@@ -32,9 +32,14 @@ export default function BackupSettings() {
   };
 
   const handleConnect = async () => {
-    toast.info('Google Drive authorization is already set up. Please refresh the page to see the updated connection status.');
-    // Recheck connection
+    // The Google Drive connector is already authorized via OAuth
+    // Recheck connection status
     await checkConnection();
+    if (!isConnected) {
+      toast.info('Please contact your administrator to set up Google Drive authorization.');
+    } else {
+      toast.success('Google Drive is connected and ready to use!');
+    }
   };
 
   const handleDisconnect = async () => {
