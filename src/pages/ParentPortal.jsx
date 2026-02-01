@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { useCurrency } from '@/components/CurrencyProvider';
+import { useParentStudents } from '@/components/hooks/useParentStudents';
 
 export default function ParentPortal() {
   const [user, setUser] = useState(null);
@@ -29,75 +30,7 @@ export default function ParentPortal() {
     fetchUser();
   }, []);
 
-  // Get parent profile for current user
-  const { data: parentProfile, isLoading: parentsLoading } = useQuery({
-    queryKey: ['parent-profile', user?.id, user?.parent_profile_id],
-    queryFn: async () => {
-      // First try direct parent_profile_id from User
-      if (user.parent_profile_id) {
-        try {
-          const parent = await base44.entities.Parent.get(user.parent_profile_id);
-          if (parent) {
-            console.log('Found parent by profile_id:', parent.id);
-            return parent;
-          }
-        } catch (e) {
-          console.log('Could not fetch parent by profile_id');
-        }
-      }
-      
-      // RLS should filter to only this user's parent record
-      const parents = await base44.entities.Parent.list();
-      console.log('Parents from list (filtered by RLS):', parents.length);
-      if (parents.length > 0) {
-        return parents[0];
-      }
-      
-      return null;
-    },
-    enabled: !!user?.id,
-  });
-
-  // Get students linked to this parent
-  const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids],
-    queryFn: async () => {
-      if (!parentProfile?.linked_student_ids) {
-        console.log('No linked_student_ids on parent profile');
-        return [];
-      }
-      
-      let linkedIds = [];
-      try {
-        linkedIds = JSON.parse(parentProfile.linked_student_ids);
-        console.log('Parsed linked student IDs:', linkedIds);
-      } catch (e) {
-        console.error('Error parsing linked_student_ids:', e);
-        return [];
-      }
-      
-      if (!Array.isArray(linkedIds) || linkedIds.length === 0) {
-        return [];
-      }
-      
-      // Fetch each student by ID
-      const studentPromises = linkedIds.map(async (id) => {
-        try {
-          const student = await base44.entities.Student.get(id);
-          return student;
-        } catch (e) {
-          console.log('Could not fetch student:', id);
-          return null;
-        }
-      });
-      
-      const results = await Promise.all(studentPromises);
-      const foundStudents = results.filter(s => s !== null);
-      console.log('Found students:', foundStudents.length);
-      return foundStudents;
-    },
-    enabled: !!parentProfile?.id,
-  });
+  const { parentProfile, students, isLoading } = useParentStudents(user);
 
   const studentIds = students.map(s => s.id);
 
