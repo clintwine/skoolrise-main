@@ -100,25 +100,80 @@ export default function Layout({ children, currentPageName }) {
 
         setUser(currentUser);
 
-        // Redirect root pages to user-specific dashboard based on single user_type
-        if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
-          const isAdmin = currentUser.role === 'admin' || userType === 'admin';
-          const isTeacher = userType === 'teacher';
-          const isStudent = userType === 'student';
-          const isParent = userType === 'parent';
-          const isVendor = userType === 'vendor';
+        // Define allowed pages per role
+        const adminPages = [
+          'AdminDashboard', 'SchoolSettings', 'AcademicsHub', 'TeacherManagement', 'TimetableManagement',
+          'AdmissionsManagement', 'StudentRecords', 'ParentManagement', 'EnrollmentManagement', 'AdminLinkingRequests',
+          'UnifiedAttendance', 'AssignmentManagement', 'BehaviorManagement', 'BehaviorAnalytics', 'ReportCardsManagement',
+          'CurriculumMapping', 'ConferenceScheduling', 'ExamCommandCenter', 'ExamManagement', 'QuestionBank',
+          'FeePolicies', 'FeesManagement', 'FeeReminderSystem', 'InstalmentPlans', 'SalaryManagement', 'ExpenseTracking',
+          'BookshopManager', 'BookshopReports', 'VendorManagement', 'SchoolShopManagement', 'TripsManagement',
+          'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
+          'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
+          'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
+          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses'
+        ];
+        
+        const teacherPages = [
+          'TeacherDashboard', 'TeacherSchedule', 'MyClasses', 'AttendanceTaking', 'Gradebook', 'BehaviorTracking',
+          'StudentProgressTracking', 'ClassroomResources', 'AILessonPlanner', 'EventCalendar', 'TeacherAssignmentManager',
+          'TeacherAssignments', 'TeacherTests', 'QuestionBank', 'ExamCreator', 'ExamManagement', 'ExamCommandCenter',
+          'DetailedExamAnalytics', 'ExamResults', 'ExamAttemptReview', 'GradeExam', 'UserProfile', 'AssignmentBuilder'
+        ];
+        
+        const studentPages = [
+          'StudentDashboard', 'StudentClasses', 'StudentAssignments', 'StudentTests', 'StudentGrades',
+          'RewardsStore', 'StudentAttendance', 'UserProfile', 'TakeExam', 'StudentAssignmentDashboard'
+        ];
+        
+        const parentPages = [
+          'ParentPortal', 'ParentStudentView', 'ParentSchoolShop', 'ParentActivities', 'ParentCalendar',
+          'ParentConferences', 'ParentHomework', 'ParentFees', 'ParentAttendance', 'ParentReports',
+          'ParentBehavior', 'ParentLinkingRequests', 'ParentAssignmentView', 'UserProfile'
+        ];
+        
+        const vendorPages = [
+          'VendorDashboard', 'VendorProfile', 'UserProfile'
+        ];
 
-          if (isAdmin) {
-            navigate(createPageUrl('AdminDashboard'));
-          } else if (isVendor) {
-            navigate(createPageUrl('VendorDashboard'));
-          } else if (isParent) {
-            navigate(createPageUrl('ParentPortal'));
-          } else if (isStudent) {
-            navigate(createPageUrl('StudentDashboard'));
-          } else if (isTeacher) {
-            navigate(createPageUrl('TeacherDashboard'));
-          }
+        const isAdmin = currentUser.role === 'admin' || userType === 'admin';
+        const isTeacher = userType === 'teacher';
+        const isStudent = userType === 'student';
+        const isParent = userType === 'parent';
+        const isVendor = userType === 'vendor';
+
+        // Determine user's allowed pages
+        let allowedPages = [];
+        let defaultDashboard = 'AdminDashboard';
+        
+        if (isAdmin) {
+          allowedPages = adminPages;
+          defaultDashboard = 'AdminDashboard';
+        } else if (isTeacher) {
+          allowedPages = teacherPages;
+          defaultDashboard = 'TeacherDashboard';
+        } else if (isStudent) {
+          allowedPages = studentPages;
+          defaultDashboard = 'StudentDashboard';
+        } else if (isParent) {
+          allowedPages = parentPages;
+          defaultDashboard = 'ParentPortal';
+        } else if (isVendor) {
+          allowedPages = vendorPages;
+          defaultDashboard = 'VendorDashboard';
+        }
+
+        // Redirect root/generic pages to user-specific dashboard
+        if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
+          navigate(createPageUrl(defaultDashboard));
+          return;
+        }
+
+        // Check if current page is allowed for this user role
+        if (!allowedPages.includes(currentPageName) && !publicPages.includes(currentPageName)) {
+          console.warn(`User type '${userType}' not allowed on page '${currentPageName}', redirecting to ${defaultDashboard}`);
+          navigate(createPageUrl(defaultDashboard));
+          return;
         }
       } catch (error) {
         console.error('Failed to fetch user:', error);
