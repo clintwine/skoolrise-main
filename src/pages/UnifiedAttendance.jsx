@@ -505,15 +505,15 @@ export default function UnifiedAttendance() {
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label>Select Class Arm *</Label>
+                    <Label>Select Class *</Label>
                     <Select value={selectedClass} onValueChange={setSelectedClass}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select class arm" />
+                        <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
                         {classArms.map(arm => (
                           <SelectItem key={arm.id} value={arm.id}>
-                            Grade {arm.grade_level} - {arm.arm_name}
+                            {arm.grade_level} - {arm.arm_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
