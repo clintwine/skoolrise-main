@@ -48,59 +48,42 @@ export default function ParentPortal() {
     enabled: !!user?.id,
   });
 
-  const parentProfile = parents[0];
-
   const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email, user?.id],
+    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids],
     queryFn: async () => {
-      // With updated RLS, students should be filtered automatically by:
-      // - parent_id matching user.linked_parent_id
-      // - parent_email matching user.email
-      const allStudents = await base44.entities.Student.list();
-      
-      // Additionally filter by linked_student_ids from parent profile
-      const studentIdSet = new Set();
-      
-      // Add all students returned (RLS already filters)
-      allStudents.forEach(s => studentIdSet.add(s.id));
-      
-      // Also include linked_student_ids from parent profile
+      // Get linked student IDs from parent profile
+      let linkedIds = [];
       if (parentProfile?.linked_student_ids) {
         try {
-          const linkedIds = JSON.parse(parentProfile.linked_student_ids);
-          if (Array.isArray(linkedIds)) {
-            linkedIds.forEach(id => {
-              if (id) studentIdSet.add(id);
-            });
-          }
+          linkedIds = JSON.parse(parentProfile.linked_student_ids);
+          console.log('Linked student IDs:', linkedIds);
         } catch (e) {
           console.error('Error parsing linked_student_ids:', e);
         }
       }
       
-      // Find students with parent_id matching this parent
-      if (parentProfile?.id) {
-        allStudents.forEach(s => {
-          if (s.parent_id === parentProfile.id) {
-            studentIdSet.add(s.id);
-          }
-        });
+      if (linkedIds.length === 0) {
+        console.log('No linked students found in parent profile');
+        return [];
       }
       
-      // Find students where parent_email matches current user's email
-      if (user?.email) {
-        allStudents.forEach(s => {
-          if (s.parent_email?.toLowerCase() === user.email.toLowerCase()) {
-            studentIdSet.add(s.id);
-          }
-        });
-      }
+      // Fetch each student by ID directly (bypasses RLS issues)
+      const studentPromises = linkedIds.map(async (id) => {
+        try {
+          const student = await base44.entities.Student.get(id);
+          return student;
+        } catch (e) {
+          console.log('Could not fetch student:', id, e);
+          return null;
+        }
+      });
       
-      const foundStudents = allStudents.filter(s => studentIdSet.has(s.id));
-      console.log('Found students for parent:', foundStudents.length, 'students returned by API:', allStudents.length);
+      const results = await Promise.all(studentPromises);
+      const foundStudents = results.filter(s => s !== null);
+      console.log('Found students:', foundStudents.length, 'of', linkedIds.length);
       return foundStudents;
     },
-    enabled: !!user?.id && !!parentProfile,
+    enabled: !!parentProfile?.id,
   });
 
   useEffect(() => {
