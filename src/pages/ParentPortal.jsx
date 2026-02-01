@@ -30,50 +30,20 @@ export default function ParentPortal() {
     fetchUser();
   }, []);
 
-  const { data: parents = [], isLoading: parentsLoading } = useQuery({
-    queryKey: ['parents', user?.id, user?.parent_profile_id, user?.email],
+  const { data: parentProfile, isLoading: parentsLoading } = useQuery({
+    queryKey: ['parent-profile', user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      // Parent entity RLS filters by user_id matching current user
+      // So list() should return only the parent record for this user
+      const parents = await base44.entities.Parent.list();
+      console.log('Parents returned by RLS:', parents);
       
-      // 1. Use profile_id from User first
-      if (user.parent_profile_id) {
-        try {
-          const parent = await base44.entities.Parent.get(user.parent_profile_id);
-          if (parent) {
-            console.log('Found parent by profile_id:', parent);
-            return [parent];
-          }
-        } catch (e) {
-          console.log('Error fetching parent by profile_id:', e);
-        }
+      if (parents.length > 0) {
+        return parents[0];
       }
       
-      // 2. Try by user_id on Parent entity
-      const allParents = await base44.entities.Parent.list();
-      const byUserId = allParents.filter(p => p.user_id === user.id);
-      if (byUserId.length > 0) {
-        console.log('Found parent by user_id:', byUserId[0]);
-        return byUserId;
-      }
-      
-      // 3. Fallback: find parent by matching email from student's parent_email
-      const allStudents = await base44.entities.Student.list();
-      
-      // Find students where parent_email matches current user's email
-      const matchedStudents = allStudents.filter(s => 
-        s.parent_email?.toLowerCase() === user.email?.toLowerCase()
-      );
-      
-      if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
-        const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
-        if (parentById) {
-          console.log('Found parent by student parent_email match:', parentById);
-          return [parentById];
-        }
-      }
-      
-      console.log('No parent found for user:', user.id, user.email);
-      return [];
+      console.log('No parent found for user:', user.id);
+      return null;
     },
     enabled: !!user?.id,
   });
