@@ -346,6 +346,7 @@ export default function UnifiedAttendance() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
@@ -359,6 +360,9 @@ export default function UnifiedAttendance() {
                       .slice(0, 20)
                       .map((record) => (
                         <tr key={record.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-700">
+                            {safeFormat(record.date || record.created_date, 'dd MMM yyyy')}
+                          </td>
                           <td className="px-4 py-3 text-sm text-gray-700">
                             {safeFormat(record.time_recorded || record.created_date, 'HH:mm')}
                           </td>

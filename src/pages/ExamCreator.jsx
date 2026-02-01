@@ -427,16 +427,18 @@ Return a JSON array of questions with the following structure:
     const isViewMode = viewOnly;
     
     return (
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
             {isViewMode ? 'View Exam' : examId ? 'Edit Exam' : 'Create New Exam'}
           </h1>
-          {isViewMode && (
-            <Button onClick={() => navigate(createPageUrl('ExamCommandCenter'))} variant="outline">
-              Back to Command Center
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {isViewMode && (
+              <Button onClick={() => navigate(createPageUrl('ExamCommandCenter'))} variant="outline">
+                Back to Command Center
+              </Button>
+            )}
+          </div>
         </div>
 
         <Card className="bg-white rounded-xl shadow-md">
@@ -451,13 +453,14 @@ Return a JSON array of questions with the following structure:
                 onChange={(e) => setExamData({ ...examData, title: e.target.value })}
                 placeholder="e.g., Mathematics Mid-Term Exam"
                 className="mt-1"
+                disabled={isViewMode}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Class *</Label>
-                <Select value={examData.class_id} onValueChange={(value) => setExamData({ ...examData, class_id: value })}>
+                <Select value={examData.class_id} onValueChange={(value) => setExamData({ ...examData, class_id: value })} disabled={isViewMode}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
@@ -472,7 +475,7 @@ Return a JSON array of questions with the following structure:
               </div>
               <div>
                 <Label>Subject *</Label>
-                <Select value={examData.subject} onValueChange={(value) => setExamData({ ...examData, subject: value })}>
+                <Select value={examData.subject} onValueChange={(value) => setExamData({ ...examData, subject: value })} disabled={isViewMode}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
@@ -490,7 +493,7 @@ Return a JSON array of questions with the following structure:
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Exam Type</Label>
-                <Select value={examData.exam_type} onValueChange={(value) => setExamData({ ...examData, exam_type: value })}>
+                <Select value={examData.exam_type} onValueChange={(value) => setExamData({ ...examData, exam_type: value })} disabled={isViewMode}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
@@ -509,6 +512,7 @@ Return a JSON array of questions with the following structure:
                   value={examData.duration_minutes}
                   onChange={(e) => setExamData({ ...examData, duration_minutes: parseInt(e.target.value) })}
                   className="mt-1"
+                  disabled={isViewMode}
                 />
               </div>
               <div>
@@ -519,6 +523,7 @@ Return a JSON array of questions with the following structure:
                   onChange={(e) => setExamData({ ...examData, total_questions: parseInt(e.target.value) || 10 })}
                   min="1"
                   className="mt-1"
+                  disabled={isViewMode}
                 />
               </div>
             </div>
@@ -531,6 +536,7 @@ Return a JSON array of questions with the following structure:
                   value={examData.start_date}
                   onChange={(e) => setExamData({ ...examData, start_date: e.target.value })}
                   className="mt-1"
+                  disabled={isViewMode}
                 />
               </div>
               <div>
@@ -540,6 +546,7 @@ Return a JSON array of questions with the following structure:
                   value={examData.end_date}
                   onChange={(e) => setExamData({ ...examData, end_date: e.target.value })}
                   className="mt-1"
+                  disabled={isViewMode}
                 />
               </div>
             </div>
@@ -550,6 +557,7 @@ Return a JSON array of questions with the following structure:
                 <Switch
                   checked={examData.shuffle_questions}
                   onCheckedChange={(checked) => setExamData({ ...examData, shuffle_questions: checked })}
+                  disabled={isViewMode}
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -557,6 +565,7 @@ Return a JSON array of questions with the following structure:
                 <Switch
                   checked={examData.shuffle_options}
                   onCheckedChange={(checked) => setExamData({ ...examData, shuffle_options: checked })}
+                  disabled={isViewMode}
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -564,6 +573,7 @@ Return a JSON array of questions with the following structure:
                 <Switch
                   checked={examData.enable_proctoring}
                   onCheckedChange={(checked) => setExamData({ ...examData, enable_proctoring: checked })}
+                  disabled={isViewMode}
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -571,6 +581,7 @@ Return a JSON array of questions with the following structure:
                 <Switch
                   checked={examData.show_results}
                   onCheckedChange={(checked) => setExamData({ ...examData, show_results: checked })}
+                  disabled={isViewMode}
                 />
               </div>
             </div>
@@ -591,9 +602,154 @@ Return a JSON array of questions with the following structure:
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
+              {viewOnly && existingQuestions.length > 0 && (
+                <Button 
+                  onClick={() => setViewMode('view-questions')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Questions ({existingQuestions.length})
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* View Mode: Show questions summary */}
+        {viewOnly && existingQuestions.length > 0 && (
+          <Card className="bg-white rounded-xl shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Questions Summary</span>
+                <Badge className="bg-blue-100 text-blue-800">{existingQuestions.length} Questions</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {existingQuestions.slice(0, 5).map((q, idx) => (
+                  <div key={q.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-700">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{q.question_text}</p>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">{q.question_type}</Badge>
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">{q.points} pts</Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {existingQuestions.length > 5 && (
+                  <p className="text-sm text-gray-500 text-center py-2">
+                    + {existingQuestions.length - 5} more questions
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // View Questions Mode (Read-only)
+  if (viewMode === 'view-questions') {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => setViewMode('setup')}>
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Back to Exam Details
+            </Button>
+            <h1 className="text-2xl font-bold text-gray-900">Exam Questions</h1>
+          </div>
+          <div className="flex gap-2">
+            <Badge className="bg-blue-100 text-blue-800">{existingQuestions.length} Questions</Badge>
+            <Badge className="bg-green-100 text-green-800">
+              {existingQuestions.reduce((sum, q) => sum + (q.points || 0), 0)} Total Points
+            </Badge>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {existingQuestions.map((q, idx) => {
+            const options = q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : [];
+            return (
+              <Card key={q.id} className="bg-white rounded-xl shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <span className="font-bold text-blue-600 text-lg">{idx + 1}</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <p className="font-medium text-gray-900 text-lg">{q.question_text}</p>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Badge variant="outline">{q.question_type}</Badge>
+                          <Badge className="bg-blue-100 text-blue-800">{q.points} pts</Badge>
+                          {q.difficulty && <Badge variant="outline">{q.difficulty}</Badge>}
+                        </div>
+                      </div>
+
+                      {q.question_type === 'Multiple Choice' && options.length > 0 && (
+                        <div className="space-y-2 mt-4">
+                          <Label className="text-sm text-gray-500">Options:</Label>
+                          {options.map((option, optIdx) => (
+                            <div 
+                              key={optIdx} 
+                              className={`flex items-center gap-3 p-3 rounded-lg border ${
+                                option === q.correct_answer 
+                                  ? 'bg-green-50 border-green-300' 
+                                  : 'bg-gray-50 border-gray-200'
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium ${
+                                option === q.correct_answer 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-gray-200 text-gray-600'
+                              }`}>
+                                {String.fromCharCode(65 + optIdx)}
+                              </div>
+                              <span className={option === q.correct_answer ? 'font-medium text-green-700' : ''}>
+                                {option}
+                              </span>
+                              {option === q.correct_answer && (
+                                <Badge className="bg-green-500 text-white ml-auto">Correct</Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {q.question_type === 'True/False' && (
+                        <div className="mt-4">
+                          <Label className="text-sm text-gray-500">Correct Answer:</Label>
+                          <Badge className="bg-green-100 text-green-800 mt-1">{q.correct_answer}</Badge>
+                        </div>
+                      )}
+
+                      {(q.question_type === 'Short Answer' || q.question_type === 'Essay') && q.correct_answer && (
+                        <div className="mt-4">
+                          <Label className="text-sm text-gray-500">Expected Answer / Marking Guide:</Label>
+                          <p className="mt-1 p-3 bg-green-50 rounded-lg text-green-800 text-sm">{q.correct_answer}</p>
+                        </div>
+                      )}
+
+                      {q.explanation && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                          <Label className="text-sm text-blue-700">Explanation:</Label>
+                          <p className="text-sm text-blue-800 mt-1">{q.explanation}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     );
   }

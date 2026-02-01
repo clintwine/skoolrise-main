@@ -9,8 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserCheck, Clock, CheckCircle, XCircle, UserPlus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { UserCheck, Clock, CheckCircle, XCircle, UserPlus, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function AdminLinkingRequests() {
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -22,6 +26,8 @@ export default function AdminLinkingRequests() {
   const [selectedRoleRequest, setSelectedRoleRequest] = useState(null);
   const [assignedRole, setAssignedRole] = useState('');
   const [selectedStudentForLink, setSelectedStudentForLink] = useState('');
+  const [studentSearchOpen, setStudentSearchOpen] = useState(false);
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const queryClient = useQueryClient();
 
   const { data: allRequests = [] } = useQuery({
@@ -465,21 +471,66 @@ export default function AdminLinkingRequests() {
                 <p className="text-xs text-gray-500 mb-2">
                   Requested: {selectedRequest.student_name} (ID: {selectedRequest.student_id_number})
                 </p>
-                <Select 
-                  value={selectedStudentForLink || ''} 
-                  onValueChange={setSelectedStudentForLink}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select student to link" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students.map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.first_name} {student.last_name} - ID: {student.student_id_number} (Grade {student.grade_level})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={studentSearchOpen} onOpenChange={setStudentSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={studentSearchOpen}
+                      className="w-full justify-between"
+                    >
+                      {selectedStudentForLink
+                        ? (() => {
+                            const student = students.find(s => s.id === selectedStudentForLink);
+                            return student ? `${student.first_name} ${student.last_name} - ${student.student_id_number}` : 'Select student...';
+                          })()
+                        : 'Search by name or Student ID...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search by name or Student ID..." 
+                        value={studentSearchQuery}
+                        onValueChange={setStudentSearchQuery}
+                      />
+                      <CommandList>
+                        <CommandEmpty>No student found.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {students
+                            .filter(student => {
+                              const searchLower = studentSearchQuery.toLowerCase();
+                              const fullName = `${student.first_name} ${student.last_name}`.toLowerCase();
+                              const idNumber = (student.student_id_number || '').toLowerCase();
+                              return fullName.includes(searchLower) || idNumber.includes(searchLower);
+                            })
+                            .map((student) => (
+                              <CommandItem
+                                key={student.id}
+                                value={`${student.first_name} ${student.last_name} ${student.student_id_number}`}
+                                onSelect={() => {
+                                  setSelectedStudentForLink(student.id);
+                                  setStudentSearchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedStudentForLink === student.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div>
+                                  <p className="font-medium">{student.first_name} {student.last_name}</p>
+                                  <p className="text-xs text-gray-500">ID: {student.student_id_number} • Grade {student.grade_level || 'Unassigned'}</p>
+                                </div>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               
               <div>

@@ -55,6 +55,8 @@ export default function AdmissionsManagement() {
       .replace('{SEQ}', paddedSeq);
   };
 
+  const [enrollingAppId, setEnrollingAppId] = useState(null);
+  
   const convertToStudentMutation = useMutation({
     mutationFn: async (application) => {
       const studentId = generateStudentId();
@@ -96,9 +98,11 @@ export default function AdmissionsManagement() {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['students'] });
       queryClient.invalidateQueries({ queryKey: ['students-for-id'] });
+      setEnrollingAppId(null);
       alert('Application converted to student successfully!');
     },
     onError: (error) => {
+      setEnrollingAppId(null);
       alert('Failed to enroll student: ' + error.message);
     },
   });
@@ -333,12 +337,13 @@ export default function AdmissionsManagement() {
                             className="bg-green-600 hover:bg-green-700" 
                             onClick={(e) => {
                               e.stopPropagation();
+                              setEnrollingAppId(app.id);
                               convertToStudentMutation.mutate(app);
                             }}
-                            disabled={convertToStudentMutation.isPending}
+                            disabled={enrollingAppId === app.id}
                           >
                             <UserPlus className="w-3 h-3 mr-1" />
-                            {convertToStudentMutation.isPending ? 'Enrolling...' : 'Enroll'}
+                            {enrollingAppId === app.id ? 'Enrolling...' : 'Enroll'}
                           </Button>
                         )}
                       </div>
