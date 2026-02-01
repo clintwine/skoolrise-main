@@ -17,6 +17,7 @@ import { createPageUrl } from '../utils';
 import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function ParentPortal() {
+  // Parent Portal - displays children and overview for parents
   const [user, setUser] = useState(null);
   const [studentIds, setStudentIds] = useState([]);
   const [expandedCard, setExpandedCard] = useState(null);
