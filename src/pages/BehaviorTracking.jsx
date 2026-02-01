@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,14 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Award, AlertTriangle, Plus } from 'lucide-react';
+import { Award, AlertTriangle, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function BehaviorTracking() {
   const [selectedClass, setSelectedClass] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [studentSearch, setStudentSearch] = useState('');
   const [formData, setFormData] = useState({
     student_id: '',
+    class_id: '',
     type: 'Positive',
     points: 0,
     description: '',
@@ -74,6 +76,23 @@ export default function BehaviorTracking() {
     enabled: !!selectedClass,
   });
 
+  // Get students for dialog based on selected class in form
+  const dialogStudents = useMemo(() => {
+    if (!formData.class_id) return students;
+    const selectedClassArm = classes.find(c => c.id === formData.class_id);
+    if (!selectedClassArm) return students;
+    return students.filter(s => s.grade_level === selectedClassArm.grade_level);
+  }, [formData.class_id, classes, students]);
+
+  // Filter students by search
+  const filteredStudents = useMemo(() => {
+    if (!studentSearch.trim()) return dialogStudents;
+    const search = studentSearch.toLowerCase();
+    return dialogStudents.filter(s => 
+      `${s.first_name} ${s.last_name}`.toLowerCase().includes(search)
+    );
+  }, [dialogStudents, studentSearch]);
+
   const { data: behaviors = [] } = useQuery({
     queryKey: ['behaviors', selectedClass],
     queryFn: () => base44.entities.Behavior.filter({ class_id: selectedClass }),
@@ -86,52 +105,103 @@ export default function BehaviorTracking() {
       queryClient.invalidateQueries(['behaviors']);
       toast.success('Behavior record created');
       setDialogOpen(false);
-      setFormData({ student_id: '', type: 'Positive', points: 0, description: '' });
+      setFormData({ student_id: '', class_id: '', type: 'Positive', points: 0, description: '' });
+      setStudentSearch('');
     },
   });
 
   const handleSubmit = () => {
-    const student = enrollments.find(s => s.id === formData.student_id);
-    const selectedClassArm = classes.find(c => c.id === selectedClass);
+    if (!formData.student_id || !formData.class_id) {
+      toast.error('Please select both a class and a student');
+      return;
+    }
+    const student = students.find(s => s.id === formData.student_id);
+    const selectedClassArm = classes.find(c => c.id === formData.class_id);
     createBehaviorMutation.mutate({
       ...formData,
       student_name: student ? `${student.first_name} ${student.last_name}` : '',
-      class_id: selectedClass,
       class_name: selectedClassArm ? `${selectedClassArm.grade_level}${selectedClassArm.arm_name}` : '',
       date: new Date().toISOString().split('T')[0],
     });
+  };
+
+  const handleSelectStudent = (studentId) => {
+    setFormData({ ...formData, student_id: studentId });
+    setStudentSearch('');
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Behavior Tracking</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setStudentSearch('');
+            setFormData({ student_id: '', class_id: '', type: 'Positive', points: 0, description: '' });
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
               Record Behavior
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Record Student Behavior</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Student</Label>
-                <Select value={formData.student_id} onValueChange={(value) => setFormData({ ...formData, student_id: value })}>
+                <Label>Class *</Label>
+                <Select value={formData.class_id} onValueChange={(value) => setFormData({ ...formData, class_id: value, student_id: '' })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select student" />
+                    <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {enrollments.map(student => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.first_name} {student.last_name}
+                    {classes.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.grade_level}{c.arm_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Student *</Label>
+                <div className="relative">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      value={formData.student_id ? students.find(s => s.id === formData.student_id)?.first_name + ' ' + students.find(s => s.id === formData.student_id)?.last_name : studentSearch}
+                      onChange={(e) => {
+                        setStudentSearch(e.target.value);
+                        if (formData.student_id) {
+                          setFormData({ ...formData, student_id: '' });
+                        }
+                      }}
+                      placeholder="Search student by name..."
+                      className="pl-10"
+                    />
+                  </div>
+                  {studentSearch && !formData.student_id && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      {filteredStudents.length === 0 ? (
+                        <div className="p-3 text-sm text-gray-500">No students found</div>
+                      ) : (
+                        filteredStudents.map(student => (
+                          <button
+                            key={student.id}
+                            onClick={() => handleSelectStudent(student.id)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                          >
+                            {student.first_name} {student.last_name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <Label>Type</Label>
@@ -150,7 +220,7 @@ export default function BehaviorTracking() {
                 <Input
                   type="number"
                   value={formData.points}
-                  onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) || 0 })}
                 />
               </div>
               <div>
@@ -161,7 +231,9 @@ export default function BehaviorTracking() {
                   placeholder="Describe the behavior..."
                 />
               </div>
-              <Button onClick={handleSubmit} className="w-full">Submit</Button>
+              <Button onClick={handleSubmit} className="w-full" disabled={createBehaviorMutation.isPending}>
+                {createBehaviorMutation.isPending ? 'Submitting...' : 'Submit'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

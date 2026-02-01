@@ -6,17 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Target, TrendingUp, TrendingDown, AlertCircle, Plus } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, AlertCircle, Plus, CheckCircle, Clock, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 export default function StudentProgressTracking() {
   const [selectedStudent, setSelectedStudent] = useState('');
   const [isGoalFormOpen, setIsGoalFormOpen] = useState(false);
   const [goalData, setGoalData] = useState({
-    student_id: '',
     goal_title: '',
     subject: '',
     target_score: '',
@@ -25,6 +25,22 @@ export default function StudentProgressTracking() {
     notes: ''
   });
   const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await base44.entities.Teacher.filter({ user_id: user.id });
+    },
+    enabled: !!user?.id,
+  });
+
+  const teacherProfile = teachers[0];
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -49,7 +65,34 @@ export default function StudentProgressTracking() {
     enabled: !!selectedStudent,
   });
 
+  const { data: goals = [] } = useQuery({
+    queryKey: ['student-goals', selectedStudent],
+    queryFn: () => base44.entities.StudentGoal.filter({ student_id: selectedStudent }),
+    enabled: !!selectedStudent,
+  });
+
   const selectedStudentData = students.find(s => s.id === selectedStudent);
+
+  const createGoalMutation = useMutation({
+    mutationFn: (data) => base44.entities.StudentGoal.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['student-goals']);
+      toast.success('Goal created successfully');
+      setIsGoalFormOpen(false);
+      setGoalData({ goal_title: '', subject: '', target_score: '', current_score: '', deadline: '', notes: '' });
+    },
+    onError: (error) => {
+      toast.error('Failed to create goal: ' + error.message);
+    }
+  });
+
+  const updateGoalMutation = useMutation({
+    mutationFn: ({ id, status }) => base44.entities.StudentGoal.update(id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['student-goals']);
+      toast.success('Goal updated');
+    }
+  });
 
   // Calculate performance trends
   const performanceData = submissions
@@ -75,7 +118,7 @@ export default function StudentProgressTracking() {
   // Identify struggling areas
   const assignmentsBySubject = {};
   submissions.forEach(sub => {
-    const subject = sub.assignment_id; // Simplified - in real app would link to actual subject
+    const subject = sub.assignment_id;
     if (!assignmentsBySubject[subject]) {
       assignmentsBySubject[subject] = [];
     }
@@ -89,11 +132,40 @@ export default function StudentProgressTracking() {
   })).sort((a, b) => a.average - b.average);
 
   const handleOpenGoalForm = () => {
-    setGoalData({ ...goalData, student_id: selectedStudent });
+    setGoalData({ goal_title: '', subject: '', target_score: '', current_score: '', deadline: '', notes: '' });
     setIsGoalFormOpen(true);
   };
 
+  const handleSubmitGoal = () => {
+    if (!goalData.goal_title || !goalData.target_score) {
+      toast.error('Please fill in goal title and target score');
+      return;
+    }
+
+    createGoalMutation.mutate({
+      student_id: selectedStudent,
+      student_name: selectedStudentData ? `${selectedStudentData.first_name} ${selectedStudentData.last_name}` : '',
+      teacher_id: teacherProfile?.id || '',
+      goal_title: goalData.goal_title,
+      subject: goalData.subject,
+      target_score: parseFloat(goalData.target_score),
+      current_score: goalData.current_score ? parseFloat(goalData.current_score) : 0,
+      deadline: goalData.deadline,
+      notes: goalData.notes,
+      status: 'In Progress'
+    });
+  };
+
   const needsSupport = avgGrade < 70;
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Achieved': return 'bg-green-100 text-green-800';
+      case 'Not Achieved': return 'bg-red-100 text-red-800';
+      case 'Cancelled': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -234,7 +306,48 @@ export default function StudentProgressTracking() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500 text-center py-8">Goal setting feature - to be implemented</p>
+                {goals.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No goals set yet. Click "Set Goal" to create one.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {goals.map((goal) => (
+                      <div key={goal.id} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-semibold">{goal.goal_title}</p>
+                            {goal.subject && <p className="text-sm text-gray-600">{goal.subject}</p>}
+                          </div>
+                          <Badge className={getStatusColor(goal.status)}>{goal.status}</Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                          <span>Target: {goal.target_score}%</span>
+                          {goal.current_score > 0 && <span>Current: {goal.current_score}%</span>}
+                          {goal.deadline && <span>Due: {new Date(goal.deadline).toLocaleDateString()}</span>}
+                        </div>
+                        {goal.status === 'In Progress' && (
+                          <div className="flex gap-2 mt-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-green-600 hover:bg-green-50"
+                              onClick={() => updateGoalMutation.mutate({ id: goal.id, status: 'Achieved' })}
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" /> Achieved
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-600 hover:bg-red-50"
+                              onClick={() => updateGoalMutation.mutate({ id: goal.id, status: 'Not Achieved' })}
+                            >
+                              <X className="w-3 h-3 mr-1" /> Not Achieved
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -245,23 +358,101 @@ export default function StudentProgressTracking() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {reportCards.map((report) => (
-                  <div key={report.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-semibold">{report.term_name} - {report.session_name}</p>
-                      <p className="text-sm text-gray-600">Position: {report.position}</p>
+                {reportCards.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No report cards found</p>
+                ) : (
+                  reportCards.map((report) => (
+                    <div key={report.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-semibold">{report.term_name} - {report.session_name}</p>
+                        <p className="text-sm text-gray-600">Position: {report.position}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-blue-600">{report.average_score}%</p>
+                        <p className="text-sm text-gray-600">Average Score</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-blue-600">{report.average_score}%</p>
-                      <p className="text-sm text-gray-600">Average Score</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         </>
       )}
+
+      {/* Goal Form Dialog */}
+      <Dialog open={isGoalFormOpen} onOpenChange={setIsGoalFormOpen}>
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set Learning Goal for {selectedStudentData?.first_name} {selectedStudentData?.last_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Goal Title *</Label>
+              <Input
+                value={goalData.goal_title}
+                onChange={(e) => setGoalData({ ...goalData, goal_title: e.target.value })}
+                placeholder="e.g., Improve Math Grade"
+              />
+            </div>
+            <div>
+              <Label>Subject</Label>
+              <Input
+                value={goalData.subject}
+                onChange={(e) => setGoalData({ ...goalData, subject: e.target.value })}
+                placeholder="e.g., Mathematics"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Target Score (%) *</Label>
+                <Input
+                  type="number"
+                  value={goalData.target_score}
+                  onChange={(e) => setGoalData({ ...goalData, target_score: e.target.value })}
+                  placeholder="e.g., 85"
+                />
+              </div>
+              <div>
+                <Label>Current Score (%)</Label>
+                <Input
+                  type="number"
+                  value={goalData.current_score}
+                  onChange={(e) => setGoalData({ ...goalData, current_score: e.target.value })}
+                  placeholder="e.g., 70"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Deadline</Label>
+              <Input
+                type="date"
+                value={goalData.deadline}
+                onChange={(e) => setGoalData({ ...goalData, deadline: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Notes</Label>
+              <Textarea
+                value={goalData.notes}
+                onChange={(e) => setGoalData({ ...goalData, notes: e.target.value })}
+                placeholder="Additional notes or strategies..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsGoalFormOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleSubmitGoal} 
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={createGoalMutation.isPending}
+              >
+                {createGoalMutation.isPending ? 'Creating...' : 'Create Goal'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
