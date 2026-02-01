@@ -83,16 +83,21 @@ export default function ParentPortal() {
   const { data: students = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email, user?.id],
     queryFn: async () => {
+      // With updated RLS, students should be filtered automatically by:
+      // - parent_id matching user.linked_parent_id
+      // - parent_email matching user.email
       const allStudents = await base44.entities.Student.list();
       
-      // Collect students from ALL sources
+      // Additionally filter by linked_student_ids from parent profile
       const studentIdSet = new Set();
       
-      // 1. Try linked_student_ids from parent profile (PRIMARY SOURCE)
+      // Add all students returned (RLS already filters)
+      allStudents.forEach(s => studentIdSet.add(s.id));
+      
+      // Also include linked_student_ids from parent profile
       if (parentProfile?.linked_student_ids) {
         try {
           const linkedIds = JSON.parse(parentProfile.linked_student_ids);
-          console.log('Parsed linked_student_ids:', linkedIds);
           if (Array.isArray(linkedIds)) {
             linkedIds.forEach(id => {
               if (id) studentIdSet.add(id);
@@ -103,7 +108,7 @@ export default function ParentPortal() {
         }
       }
       
-      // 2. Find students with parent_id matching this parent
+      // Find students with parent_id matching this parent
       if (parentProfile?.id) {
         allStudents.forEach(s => {
           if (s.parent_id === parentProfile.id) {
@@ -112,7 +117,7 @@ export default function ParentPortal() {
         });
       }
       
-      // 3. Find students where parent_email matches current user's email
+      // Find students where parent_email matches current user's email
       if (user?.email) {
         allStudents.forEach(s => {
           if (s.parent_email?.toLowerCase() === user.email.toLowerCase()) {
@@ -121,9 +126,8 @@ export default function ParentPortal() {
         });
       }
       
-      // Return all unique students found
       const foundStudents = allStudents.filter(s => studentIdSet.has(s.id));
-      console.log('Found students for parent:', foundStudents.length, 'from IDs:', Array.from(studentIdSet), 'parentProfile:', parentProfile?.id);
+      console.log('Found students for parent:', foundStudents.length, 'students returned by API:', allStudents.length);
       return foundStudents;
     },
     enabled: !!user?.id && !!parentProfile,
