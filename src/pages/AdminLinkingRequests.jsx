@@ -12,9 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { UserCheck, Clock, CheckCircle, XCircle, UserPlus, ChevronsUpDown, Check } from 'lucide-react';
+import { UserCheck, Clock, CheckCircle, XCircle, UserPlus, ChevronsUpDown, Check, Unlink, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function AdminLinkingRequests() {
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -28,6 +29,8 @@ export default function AdminLinkingRequests() {
   const [selectedStudentForLink, setSelectedStudentForLink] = useState('');
   const [studentSearchOpen, setStudentSearchOpen] = useState(false);
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false);
+  const [unlinkTarget, setUnlinkTarget] = useState(null); // {parentId, studentId, parentName, studentName}
   const queryClient = useQueryClient();
 
   const { data: allRequests = [] } = useQuery({
@@ -245,6 +248,61 @@ export default function AdminLinkingRequests() {
     });
   };
 
+  // Unlink mutation
+  const unlinkMutation = useMutation({
+    mutationFn: async ({ parentId, studentId }) => {
+      const parent = parents.find(p => p.id === parentId);
+      const student = students.find(s => s.id === studentId);
+      
+      // Remove student from parent's linked_student_ids
+      if (parent?.linked_student_ids) {
+        let linkedStudents = [];
+        try { linkedStudents = JSON.parse(parent.linked_student_ids); } catch (e) {}
+        linkedStudents = linkedStudents.filter(id => id !== studentId);
+        await base44.entities.Parent.update(parentId, {
+          linked_student_ids: JSON.stringify(linkedStudents)
+        });
+      }
+      
+      // Remove parent from student's linked_parent_ids
+      if (student?.linked_parent_ids) {
+        let linkedParents = [];
+        try { linkedParents = JSON.parse(student.linked_parent_ids); } catch (e) {}
+        linkedParents = linkedParents.filter(id => id !== parentId);
+        await base44.entities.Student.update(studentId, {
+          linked_parent_ids: JSON.stringify(linkedParents)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['parents']);
+      queryClient.invalidateQueries(['students']);
+      toast.success('Successfully unlinked parent and student');
+      setUnlinkDialogOpen(false);
+      setUnlinkTarget(null);
+    },
+    onError: () => {
+      toast.error('Failed to unlink');
+    }
+  });
+
+  // Get linked relationships for display
+  const linkedRelationships = parents.flatMap(parent => {
+    let linkedIds = [];
+    try { linkedIds = JSON.parse(parent.linked_student_ids || '[]'); } catch (e) {}
+    return linkedIds.map(studentId => {
+      const student = students.find(s => s.id === studentId);
+      return student ? {
+        parentId: parent.id,
+        parentName: `${parent.first_name} ${parent.last_name}`,
+        studentId: student.id,
+        studentName: `${student.first_name} ${student.last_name}`,
+        studentIdNumber: student.student_id_number,
+        gradeLevel: student.grade_level
+      } : null;
+    }).filter(Boolean);
+  });
+
   const pendingRoleRequests = roleRequests.filter(r => r.status === 'Pending');
   const processedRoleRequests = roleRequests.filter(r => r.status !== 'Pending');
 
@@ -368,6 +426,44 @@ export default function AdminLinkingRequests() {
         </TabsContent>
 
         <TabsContent value="parent-linking" className="space-y-4">
+
+      {/* Existing Linked Relationships */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Current Parent-Student Links ({linkedRelationships.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {linkedRelationships.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No linked relationships</p>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {linkedRelationships.map((rel, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <p className="font-medium">{rel.parentName} → {rel.studentName}</p>
+                    <p className="text-sm text-gray-500">Student ID: {rel.studentIdNumber} • Grade {rel.gradeLevel || 'N/A'}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={() => {
+                      setUnlinkTarget(rel);
+                      setUnlinkDialogOpen(true);
+                    }}
+                  >
+                    <Unlink className="w-4 h-4 mr-1" />
+                    Unlink
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card 
@@ -621,6 +717,32 @@ export default function AdminLinkingRequests() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Unlink Confirmation Dialog */}
+      <AlertDialog open={unlinkDialogOpen} onOpenChange={setUnlinkDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlink Parent and Student?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the link between <strong>{unlinkTarget?.parentName}</strong> and <strong>{unlinkTarget?.studentName}</strong>. 
+              The parent will no longer be able to view this student's information in the Parent Portal.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => unlinkMutation.mutate({
+                parentId: unlinkTarget?.parentId,
+                studentId: unlinkTarget?.studentId
+              })}
+              disabled={unlinkMutation.isPending}
+            >
+              {unlinkMutation.isPending ? 'Unlinking...' : 'Unlink'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Role Assignment Dialog */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
