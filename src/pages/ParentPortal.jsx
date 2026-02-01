@@ -37,16 +37,26 @@ export default function ParentPortal() {
       
       // 1. Use profile_id from User first
       if (user.parent_profile_id) {
-        const parent = await base44.entities.Parent.get(user.parent_profile_id);
-        if (parent) return [parent];
+        try {
+          const parent = await base44.entities.Parent.get(user.parent_profile_id);
+          if (parent) {
+            console.log('Found parent by profile_id:', parent);
+            return [parent];
+          }
+        } catch (e) {
+          console.log('Error fetching parent by profile_id:', e);
+        }
       }
       
       // 2. Try by user_id on Parent entity
-      const byUserId = await base44.entities.Parent.filter({ user_id: user.id });
-      if (byUserId.length > 0) return byUserId;
+      const allParents = await base44.entities.Parent.list();
+      const byUserId = allParents.filter(p => p.user_id === user.id);
+      if (byUserId.length > 0) {
+        console.log('Found parent by user_id:', byUserId[0]);
+        return byUserId;
+      }
       
       // 3. Fallback: find parent by matching email from student's parent_email
-      const allParents = await base44.entities.Parent.list();
       const allStudents = await base44.entities.Student.list();
       
       // Find students where parent_email matches current user's email
@@ -56,9 +66,13 @@ export default function ParentPortal() {
       
       if (matchedStudents.length > 0 && matchedStudents[0].parent_id) {
         const parentById = allParents.find(p => p.id === matchedStudents[0].parent_id);
-        if (parentById) return [parentById];
+        if (parentById) {
+          console.log('Found parent by student parent_email match:', parentById);
+          return [parentById];
+        }
       }
       
+      console.log('No parent found for user:', user.id, user.email);
       return [];
     },
     enabled: !!user?.id,
