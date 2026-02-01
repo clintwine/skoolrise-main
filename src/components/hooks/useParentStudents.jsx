@@ -48,20 +48,14 @@ export function useParentStudents(user) {
         return [];
       }
       
-      // Fetch each student by ID directly (admins can read all students)
-      const studentPromises = linkedIds.map(async (id) => {
-        try {
-          const student = await base44.entities.Student.get(id);
-          return student;
-        } catch (e) {
-          console.log('Could not fetch student:', id);
-          return null;
-        }
-      });
+      console.log('Fetching students with IDs:', linkedIds);
       
-      const results = await Promise.all(studentPromises);
-      const foundStudents = results.filter(s => s !== null);
-      console.log('Found students:', foundStudents.length, 'of', linkedIds.length);
+      // Fetch all students the parent can see, then filter by linked IDs
+      const allStudents = await base44.entities.Student.list();
+      console.log('All students visible to parent:', allStudents.length);
+      
+      const foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
+      console.log('Found linked students:', foundStudents.length, 'of', linkedIds.length);
       return foundStudents;
     },
     enabled: !!parentProfile?.id,
