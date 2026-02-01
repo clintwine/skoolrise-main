@@ -23,13 +23,20 @@ export function useParentStudents(user) {
         }
       }
       
-      // RLS filters to only this user's parent record (user_id matches)
-      const parents = await base44.entities.Parent.list();
-      console.log('Parents from list() call:', parents.length, parents);
+      // Filter to find parent record for this user
+      const parents = await base44.entities.Parent.filter({ user_id: user.id });
+      console.log('Parents from filter() call:', parents.length, parents);
       
-      // Find parent where user_id matches current user
-      const myParent = parents.find(p => p.user_id === user.id);
-      console.log('Found my parent profile:', myParent);
+      if (parents.length > 0) {
+        console.log('Found my parent profile:', parents[0]);
+        return parents[0];
+      }
+      
+      // Fallback: try list and manually filter
+      const allParents = await base44.entities.Parent.list();
+      console.log('Fallback - all parents from list():', allParents.length, allParents);
+      const myParent = allParents.find(p => p.user_id === user.id);
+      console.log('Found my parent profile via fallback:', myParent);
       return myParent || null;
     },
     enabled: !!user?.id,
