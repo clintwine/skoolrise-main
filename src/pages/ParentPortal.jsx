@@ -67,20 +67,21 @@ export default function ParentPortal() {
   const parentProfile = parents[0];
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email],
+    queryKey: ['parent-students', parentProfile?.id, parentProfile?.linked_student_ids, user?.email, user?.id],
     queryFn: async () => {
       const allStudents = await base44.entities.Student.list();
-      let foundStudents = [];
       
-      // Collect students from ALL sources (not just one)
+      // Collect students from ALL sources
       const studentIdSet = new Set();
       
-      // 1. Try linked_student_ids from parent profile
+      // 1. Try linked_student_ids from parent profile (PRIMARY SOURCE)
       if (parentProfile?.linked_student_ids) {
         try {
           const linkedIds = JSON.parse(parentProfile.linked_student_ids);
-          if (Array.isArray(linkedIds) && linkedIds.length > 0) {
-            linkedIds.forEach(id => studentIdSet.add(id));
+          if (Array.isArray(linkedIds)) {
+            linkedIds.forEach(id => {
+              if (id) studentIdSet.add(id);
+            });
           }
         } catch (e) {
           console.error('Error parsing linked_student_ids:', e);
@@ -89,22 +90,28 @@ export default function ParentPortal() {
       
       // 2. Find students with parent_id matching this parent
       if (parentProfile?.id) {
-        allStudents.filter(s => s.parent_id === parentProfile.id)
-          .forEach(s => studentIdSet.add(s.id));
+        allStudents.forEach(s => {
+          if (s.parent_id === parentProfile.id) {
+            studentIdSet.add(s.id);
+          }
+        });
       }
       
       // 3. Find students where parent_email matches current user's email
       if (user?.email) {
-        allStudents.filter(s => 
-          s.parent_email?.toLowerCase() === user.email.toLowerCase()
-        ).forEach(s => studentIdSet.add(s.id));
+        allStudents.forEach(s => {
+          if (s.parent_email?.toLowerCase() === user.email.toLowerCase()) {
+            studentIdSet.add(s.id);
+          }
+        });
       }
       
       // Return all unique students found
-      foundStudents = allStudents.filter(s => studentIdSet.has(s.id));
+      const foundStudents = allStudents.filter(s => studentIdSet.has(s.id));
+      console.log('Found students for parent:', foundStudents.length, 'from IDs:', Array.from(studentIdSet));
       return foundStudents;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !parentsLoading,
   });
 
   useEffect(() => {
