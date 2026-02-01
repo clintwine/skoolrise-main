@@ -81,7 +81,7 @@ export default function ParentPortal() {
     : '0';
   const recentBehaviors = behaviors.slice(0, 5);
 
-  if (parentsLoading || studentsLoading) {
+  if (isLoading) {
     return <DashboardSkeleton />;
   }
 
