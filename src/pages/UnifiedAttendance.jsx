@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   UserCheck, Calendar, CheckCircle, XCircle, Clock, 
-  Users, BookOpen, Search, Camera, BarChart3
+  Users, BookOpen, Search, Camera, BarChart3, CalendarDays
 } from 'lucide-react';
-import { format, isValid, parseISO } from 'date-fns';
+import { format, isValid, parseISO, startOfDay, endOfDay, isAfter, isBefore, isEqual } from 'date-fns';
 
 // Helper to safely format dates
 const safeFormat = (dateValue, formatString) => {
@@ -35,7 +35,10 @@ const DEFAULT_AVATAR = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/obje
 export default function UnifiedAttendance() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('school-arrival');
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [endDate, setEndDate] = useState('');
+  const [useDateRange, setUseDateRange] = useState(false);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('');
@@ -65,9 +68,17 @@ export default function UnifiedAttendance() {
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance', selectedDate],
+    queryKey: ['attendance', selectedDate, endDate, useDateRange],
     queryFn: async () => {
       const all = await base44.entities.Attendance.list();
+      
+      if (useDateRange && endDate) {
+        return all.filter(a => {
+          const recordDate = a.date;
+          return recordDate >= selectedDate && recordDate <= endDate;
+        });
+      }
+      
       return all.filter(a => a.date === selectedDate);
     },
   });
@@ -146,10 +157,20 @@ export default function UnifiedAttendance() {
     return record?.status || null;
   };
 
-  const presentCount = attendance.filter(a => a.status === 'Present' && a.attendance_type === activeTab.replace(/-/g, '_')).length;
-  const absentCount = attendance.filter(a => a.status === 'Absent' && a.attendance_type === activeTab.replace(/-/g, '_')).length;
-  const lateCount = attendance.filter(a => a.status === 'Late' && a.attendance_type === activeTab.replace(/-/g, '_')).length;
-  const totalRecords = attendance.filter(a => a.attendance_type === activeTab.replace(/-/g, '_')).length;
+  // Filter attendance based on type for stats - handle both old 'type' and new 'attendance_type' fields
+  const filteredForStats = attendance.filter(a => {
+    const attendanceType = activeTab.replace(/-/g, '_');
+    // Check both attendance_type and type fields for backward compatibility
+    return a.attendance_type === attendanceType || 
+           (attendanceType === 'school_arrival' && a.type === 'arrival') ||
+           (attendanceType === 'class_register' && a.type === 'class') ||
+           (attendanceType === 'subject_period' && a.type === 'subject');
+  });
+  
+  const presentCount = filteredForStats.filter(a => a.status === 'Present').length;
+  const absentCount = filteredForStats.filter(a => a.status === 'Absent').length;
+  const lateCount = filteredForStats.filter(a => a.status === 'Late').length;
+  const totalRecords = filteredForStats.length;
 
   const filteredStudents = students.filter(s => {
     if (!selectedClass) return true;
@@ -180,15 +201,41 @@ export default function UnifiedAttendance() {
       {/* Date Picker */}
       <Card className="bg-white shadow-sm border">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <Label className="text-sm font-medium">Date:</Label>
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-48"
-            />
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <Label className="text-sm font-medium">Date:</Label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-48"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="use-date-range"
+                checked={useDateRange}
+                onChange={(e) => setUseDateRange(e.target.checked)}
+                className="rounded"
+              />
+              <Label htmlFor="use-date-range" className="text-sm">Date Range</Label>
+            </div>
+
+            {useDateRange && (
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">To:</Label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={selectedDate}
+                  className="w-48"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -301,28 +348,36 @@ export default function UnifiedAttendance() {
                     <tr className="border-b">
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {attendance
-                      .filter(a => a.attendance_type === 'school_arrival')
-                      .sort((a, b) => new Date(b.time_recorded) - new Date(a.time_recorded))
+                      .filter(a => a.attendance_type === 'school_arrival' || a.type === 'arrival')
+                      .sort((a, b) => new Date(b.time_recorded || b.created_date) - new Date(a.time_recorded || a.created_date))
                       .slice(0, 20)
                       .map((record) => (
                         <tr key={record.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm text-gray-700">
-                            {safeFormat(record.time_recorded, 'HH:mm')}
+                            {safeFormat(record.time_recorded || record.created_date, 'HH:mm')}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{record.student_name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{record.student_name || 'Unknown'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{record.class_arm_name || '-'}</td>
                           <td className="px-4 py-3">
-                            <Badge className="bg-green-100 text-green-700">Checked In</Badge>
+                            <Badge className={
+                              record.status === 'Present' ? 'bg-green-100 text-green-700' :
+                              record.status === 'Late' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }>
+                              {record.status === 'Present' ? 'Checked In' : record.status}
+                            </Badge>
                           </td>
                         </tr>
                       ))}
                   </tbody>
                 </table>
-                {attendance.filter(a => a.attendance_type === 'school_arrival').length === 0 && (
+                {attendance.filter(a => a.attendance_type === 'school_arrival' || a.type === 'arrival').length === 0 && (
                   <div className="text-center text-gray-500 py-8">No arrival records for this date</div>
                 )}
               </div>
@@ -334,70 +389,106 @@ export default function UnifiedAttendance() {
         <TabsContent value="class-register" className="mt-6 space-y-4">
           <Card className="bg-white shadow-sm border">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h3 className="font-semibold text-gray-900">Class Register</h3>
-                <Select value={selectedClass} onValueChange={setSelectedClass}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select class arm" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classArms.map(arm => (
-                      <SelectItem key={arm.id} value={arm.id}>
-                        Grade {arm.grade_level} - {arm.arm_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm">Date:</Label>
+                    <Input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => {
+                        if (e.target.value >= today) {
+                          setSelectedDate(e.target.value);
+                        } else {
+                          toast.error('Cannot select past dates for class register');
+                        }
+                      }}
+                      min={today}
+                      className="w-40"
+                    />
+                  </div>
+                  <Select value={selectedClass} onValueChange={setSelectedClass}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classArms.map(arm => (
+                        <SelectItem key={arm.id} value={arm.id}>
+                          {arm.grade_level} - {arm.arm_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {selectedClass && (
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search student by name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              )}
 
               {!selectedClass ? (
                 <div className="text-center text-gray-500 py-12">
-                  Select a class arm to begin
+                  Select a class to begin taking attendance
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {filteredStudents.map((student) => {
-                    const status = getStudentStatus(student.id);
-                    return (
-                      <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-blue-700 font-semibold text-sm">{getInitials(student)}</span>
+                  {filteredStudents.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      {searchQuery ? 'No students found matching your search' : 'No students in this class'}
+                    </div>
+                  ) : (
+                    filteredStudents.map((student) => {
+                      const status = getStudentStatus(student.id);
+                      return (
+                        <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-blue-700 font-semibold text-sm">{getInitials(student)}</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{student.first_name} {student.last_name}</p>
+                              <p className="text-sm text-gray-500">ID: {student.student_id_number}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{student.first_name} {student.last_name}</p>
-                            <p className="text-sm text-gray-500">SR/{selectedDate.split('-')[0].slice(2)}/{student.student_id_number}</p>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant={status === 'Present' ? 'default' : 'outline'}
+                              onClick={() => handleMarkAttendance(student.id, 'Present')}
+                              className={status === 'Present' ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : 'border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'}
+                            >
+                              Present
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={status === 'Absent' ? 'default' : 'outline'}
+                              onClick={() => handleMarkAttendance(student.id, 'Absent')}
+                              className={status === 'Absent' ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' : 'border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300'}
+                            >
+                              Absent
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={status === 'Late' ? 'default' : 'outline'}
+                              onClick={() => handleMarkAttendance(student.id, 'Late')}
+                              className={status === 'Late' ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500' : 'border-gray-300 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300'}
+                            >
+                              Late
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant={status === 'Present' ? 'default' : 'outline'}
-                            onClick={() => handleMarkAttendance(student.id, 'Present')}
-                            className={status === 'Present' ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : 'border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'}
-                          >
-                            Present
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={status === 'Absent' ? 'default' : 'outline'}
-                            onClick={() => handleMarkAttendance(student.id, 'Absent')}
-                            className={status === 'Absent' ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' : 'border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300'}
-                          >
-                            Absent
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={status === 'Late' ? 'default' : 'outline'}
-                            onClick={() => handleMarkAttendance(student.id, 'Late')}
-                            className={status === 'Late' ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500' : 'border-gray-300 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300'}
-                          >
-                            Late
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               )}
             </CardContent>
