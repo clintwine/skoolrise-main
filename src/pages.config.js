@@ -51,6 +51,7 @@ import AIGradingAssistant from './pages/AIGradingAssistant';
 import AILessonPlanner from './pages/AILessonPlanner';
 import AcademicsHub from './pages/AcademicsHub';
 import ActivationPage from './pages/ActivationPage';
+import ActiveClasses from './pages/ActiveClasses';
 import Activities from './pages/Activities';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLinkingRequests from './pages/AdminLinkingRequests';
@@ -158,7 +159,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import ActiveClasses from './pages/ActiveClasses';
 import __Layout from './Layout.jsx';
 
 
@@ -167,6 +167,7 @@ export const PAGES = {
     "AILessonPlanner": AILessonPlanner,
     "AcademicsHub": AcademicsHub,
     "ActivationPage": ActivationPage,
+    "ActiveClasses": ActiveClasses,
     "Activities": Activities,
     "AdminDashboard": AdminDashboard,
     "AdminLinkingRequests": AdminLinkingRequests,
@@ -274,7 +275,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "ActiveClasses": ActiveClasses,
 }
 
 export const pagesConfig = {

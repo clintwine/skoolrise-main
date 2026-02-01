@@ -128,7 +128,7 @@ export default function Layout({ children, currentPageName }) {
         
         const parentPages = [
           'ParentPortal', 'ParentStudentView', 'ParentSchoolShop', 'ParentActivities', 'ParentCalendar',
-          'ParentConferences', 'ParentHomework', 'ParentFees', 'ParentAttendance', 'ParentReports',
+          'ParentHomework', 'ParentFees', 'ParentAttendance', 'ParentReports',
           'ParentBehavior', 'ParentLinkingRequests', 'ParentAssignmentView', 'UserProfile'
         ];
         
@@ -409,7 +409,6 @@ export default function Layout({ children, currentPageName }) {
               { name: 'School Shop', icon: BookMarked, path: 'ParentSchoolShop' },
               { name: 'Activities', icon: Award, path: 'ParentActivities' },
               { name: 'Calendar', icon: Calendar, path: 'ParentCalendar' },
-              { name: 'Conferences', icon: Calendar, path: 'ParentConferences' },
               { name: 'Homework', icon: ClipboardList, path: 'ParentHomework' },
               { name: 'Fees & Payments', icon: DollarSign, path: 'ParentFees' },
               { name: 'Attendance', icon: CheckSquare, path: 'ParentAttendance' },

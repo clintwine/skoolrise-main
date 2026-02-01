@@ -72,13 +72,15 @@ export default function ParentPortal() {
       const allStudents = await base44.entities.Student.list();
       let foundStudents = [];
       
+      // Collect students from ALL sources (not just one)
+      const studentIdSet = new Set();
+      
       // 1. Try linked_student_ids from parent profile
       if (parentProfile?.linked_student_ids) {
         try {
           const linkedIds = JSON.parse(parentProfile.linked_student_ids);
           if (Array.isArray(linkedIds) && linkedIds.length > 0) {
-            foundStudents = allStudents.filter(s => linkedIds.includes(s.id));
-            if (foundStudents.length > 0) return foundStudents;
+            linkedIds.forEach(id => studentIdSet.add(id));
           }
         } catch (e) {
           console.error('Error parsing linked_student_ids:', e);
@@ -87,19 +89,20 @@ export default function ParentPortal() {
       
       // 2. Find students with parent_id matching this parent
       if (parentProfile?.id) {
-        foundStudents = allStudents.filter(s => s.parent_id === parentProfile.id);
-        if (foundStudents.length > 0) return foundStudents;
+        allStudents.filter(s => s.parent_id === parentProfile.id)
+          .forEach(s => studentIdSet.add(s.id));
       }
       
       // 3. Find students where parent_email matches current user's email
       if (user?.email) {
-        foundStudents = allStudents.filter(s => 
+        allStudents.filter(s => 
           s.parent_email?.toLowerCase() === user.email.toLowerCase()
-        );
-        if (foundStudents.length > 0) return foundStudents;
+        ).forEach(s => studentIdSet.add(s.id));
       }
       
-      return [];
+      // Return all unique students found
+      foundStudents = allStudents.filter(s => studentIdSet.has(s.id));
+      return foundStudents;
     },
     enabled: !!user?.id,
   });
@@ -352,7 +355,7 @@ export default function ParentPortal() {
               )}
               <Button 
                 onClick={() => window.location.href = createPageUrl('ParentFees')}
-                className="w-full bg-accent hover:bg-accent-hover text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 View All Invoices
               </Button>
@@ -392,7 +395,7 @@ export default function ParentPortal() {
               </div>
               <Button 
                 onClick={() => window.location.href = createPageUrl('ParentAttendance')}
-                className="w-full bg-accent hover:bg-accent-hover text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 View Full Attendance History
               </Button>
@@ -434,7 +437,7 @@ export default function ParentPortal() {
               )}
               <Button 
                 onClick={() => window.location.href = createPageUrl('ParentReports')}
-                className="w-full bg-accent hover:bg-accent-hover text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 View All Reports
               </Button>
@@ -481,7 +484,7 @@ export default function ParentPortal() {
               )}
               <Button 
                 onClick={() => window.location.href = createPageUrl('ParentBehavior')}
-                className="w-full bg-accent hover:bg-accent-hover text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 View All Behavior Records
               </Button>
