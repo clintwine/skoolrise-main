@@ -10,19 +10,27 @@ export function useParentStudents(user) {
   const { data: parentProfile, isLoading: parentLoading } = useQuery({
     queryKey: ['parent-profile', user?.id, user?.parent_profile_id],
     queryFn: async () => {
+      console.log('Fetching parent profile for user:', user.id, user.email);
+      
       // First try direct parent_profile_id from User entity
       if (user.parent_profile_id) {
         try {
           const parent = await base44.entities.Parent.get(user.parent_profile_id);
+          console.log('Found parent by profile_id:', parent);
           if (parent) return parent;
         } catch (e) {
-          console.log('Could not fetch parent by profile_id');
+          console.log('Could not fetch parent by profile_id:', e);
         }
       }
       
       // RLS filters to only this user's parent record (user_id matches)
       const parents = await base44.entities.Parent.list();
-      return parents[0] || null;
+      console.log('Parents from list() call:', parents.length, parents);
+      
+      // Find parent where user_id matches current user
+      const myParent = parents.find(p => p.user_id === user.id);
+      console.log('Found my parent profile:', myParent);
+      return myParent || null;
     },
     enabled: !!user?.id,
   });
