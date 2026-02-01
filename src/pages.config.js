@@ -113,6 +113,7 @@ import ParentPortal from './pages/ParentPortal';
 import ParentReports from './pages/ParentReports';
 import ParentSchoolShop from './pages/ParentSchoolShop';
 import ParentStudentView from './pages/ParentStudentView';
+import PaymentProviders from './pages/PaymentProviders';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProctoringAnalytics from './pages/ProctoringAnalytics';
 import ProctoringMonitor from './pages/ProctoringMonitor';
@@ -159,7 +160,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import PaymentProviders from './pages/PaymentProviders';
 import __Layout from './Layout.jsx';
 
 
@@ -230,6 +230,7 @@ export const PAGES = {
     "ParentReports": ParentReports,
     "ParentSchoolShop": ParentSchoolShop,
     "ParentStudentView": ParentStudentView,
+    "PaymentProviders": PaymentProviders,
     "PrivacyPolicy": PrivacyPolicy,
     "ProctoringAnalytics": ProctoringAnalytics,
     "ProctoringMonitor": ProctoringMonitor,
@@ -276,7 +277,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "PaymentProviders": PaymentProviders,
 }
 
 export const pagesConfig = {

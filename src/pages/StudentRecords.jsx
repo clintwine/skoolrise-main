@@ -345,7 +345,7 @@ export default function StudentRecords() {
                 <SelectContent>
                   {parents.map(parent => (
                     <SelectItem key={parent.id} value={parent.id}>
-                      {parent.first_name} {parent.last_name} ({parent.phone})
+                      {parent.first_name} {parent.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
