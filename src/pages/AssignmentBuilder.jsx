@@ -106,7 +106,7 @@ export default function AssignmentBuilder() {
     enabled: !!assignmentId,
   });
 
-  const { data: existingQuestions = [] } = useQuery({
+  const { data: existingQuestions = [], isLoading: questionsLoading } = useQuery({
     queryKey: ['assignment-questions', assignmentId],
     queryFn: async () => {
       if (!assignmentId) return [];
@@ -114,17 +114,26 @@ export default function AssignmentBuilder() {
       const questionsWithData = [];
       for (const aq of assignmentQuestions) {
         if (aq.question_bank_id) {
-          const qData = await base44.entities.QuestionBank.get(aq.question_bank_id);
-          questionsWithData.push(qData);
+          try {
+            const qData = await base44.entities.QuestionBank.get(aq.question_bank_id);
+            if (qData) {
+              questionsWithData.push(qData);
+            }
+          } catch (error) {
+            console.error('Failed to fetch question:', aq.question_bank_id, error);
+          }
         }
       }
       return questionsWithData;
     },
     enabled: !!assignmentId,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
   });
 
+  // Load existing assignment data when available
   useEffect(() => {
-    if (existingAssignment && subjects.length > 0 && !assignmentLoaded) {
+    if (existingAssignment && subjects.length > 0) {
       console.log('📝 Loading existing assignment:', existingAssignment);
 
       // Find subject_id from subject_name if only subject_name exists
@@ -149,20 +158,16 @@ export default function AssignmentBuilder() {
         subject_name: subjectName,
       }));
     }
-  }, [existingAssignment, assignmentLoaded, subjects]);
+  }, [existingAssignment, subjects]);
 
+  // Load existing questions - only when they change and we have questions to load
   useEffect(() => {
-    if (existingQuestions.length > 0 && !assignmentLoaded) {
+    if (existingQuestions && existingQuestions.length > 0) {
       console.log('📚 Loading existing questions:', existingQuestions);
       setSelectedQuestions(existingQuestions);
-    }
-  }, [existingQuestions, assignmentLoaded]);
-
-  useEffect(() => {
-    if (existingAssignment && existingQuestions && !assignmentLoaded) {
       setAssignmentLoaded(true);
     }
-  }, [existingAssignment, existingQuestions, assignmentLoaded]);
+  }, [existingQuestions]);
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (data) => {
