@@ -103,12 +103,14 @@ export default function Layout({ children, currentPageName }) {
         setUser(currentUser);
 
         // Check if user has clocking permission
+        let userHasClockingPermission = false;
         try {
           const clockingPermissions = await base44.entities.ClockingPermission.filter({ 
             user_id: currentUser.id,
             is_active: true 
           });
-          setHasClockingPermission(clockingPermissions.length > 0);
+          userHasClockingPermission = clockingPermissions.length > 0;
+          setHasClockingPermission(userHasClockingPermission);
         } catch (e) {
           console.log('No clocking permissions found');
         }
@@ -183,7 +185,7 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // Allow StaffClocking page if user has permission
-        if (currentPageName === 'StaffClocking' && clockingPermissions?.length > 0) {
+        if (currentPageName === 'StaffClocking' && userHasClockingPermission) {
           allowedPages.push('StaffClocking');
         }
 
