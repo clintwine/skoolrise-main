@@ -37,7 +37,8 @@ import {
   Bell,
   Camera,
   DoorOpen,
-  Search
+  Search,
+  Clock
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -354,7 +355,7 @@ export default function Layout({ children, currentPageName }) {
       }
     ];
 
-    const teacherGroups = [
+    let teacherGroups = [
       {
         id: 'workspace',
         groupName: 'WORKSPACE',
@@ -395,6 +396,17 @@ export default function Layout({ children, currentPageName }) {
           ]
         }
     ];
+
+    // Add Staff Clocking for teachers with permission
+    if (hasClockingPermission && isTeacher) {
+      teacherGroups.push({
+        id: 'staff-tools',
+        groupName: 'STAFF TOOLS',
+        items: [
+          { name: 'Staff Clocking', icon: Clock, path: 'StaffClocking' },
+        ]
+      });
+    }
 
     const studentGroups = [
       {
