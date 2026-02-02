@@ -47,6 +47,7 @@ export default function Layout({ children, currentPageName }) {
   const [loading, setLoading] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState(['workspace', 'school-setup', 'school-admin', 'academics', 'cbt', 'my-teaching', 'my-learning', 'parent-home', 'fees', 'communication']);
+  const [hasClockingPermission, setHasClockingPermission] = useState(false);
 
   // Public pages that don't need the layout wrapper
   const publicPages = ['LandingPage', 'PrivacyPolicy', 'TermsOfService', 'PublicApplicationForm', 'ActivationPage', 'ProfileSetupPage'];
@@ -100,6 +101,17 @@ export default function Layout({ children, currentPageName }) {
 
         setUser(currentUser);
 
+        // Check if user has clocking permission
+        try {
+          const clockingPermissions = await base44.entities.ClockingPermission.filter({ 
+            user_id: currentUser.id,
+            is_active: true 
+          });
+          setHasClockingPermission(clockingPermissions.length > 0);
+        } catch (e) {
+          console.log('No clocking permissions found');
+        }
+
         // Define allowed pages per role
         const adminPages = [
           'AdminDashboard', 'SchoolSettings', 'AcademicsHub', 'TeacherManagement', 'TimetableManagement',
@@ -111,14 +123,14 @@ export default function Layout({ children, currentPageName }) {
           'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
           'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
-          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses'
+          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions'
         ];
         
         const teacherPages = [
           'TeacherDashboard', 'TeacherSchedule', 'MyClasses', 'AttendanceTaking', 'Gradebook', 'BehaviorTracking',
           'StudentProgressTracking', 'ClassroomResources', 'AILessonPlanner', 'EventCalendar', 'TeacherAssignmentManager',
           'TeacherAssignments', 'TeacherTests', 'QuestionBank', 'ExamCreator', 'ExamManagement', 'ExamCommandCenter',
-          'DetailedExamAnalytics', 'ExamResults', 'ExamAttemptReview', 'GradeExam', 'UserProfile', 'AssignmentBuilder'
+          'DetailedExamAnalytics', 'ExamResults', 'ExamAttemptReview', 'GradeExam', 'UserProfile', 'AssignmentBuilder', 'StaffClocking'
         ];
         
         const studentPages = [
@@ -167,6 +179,11 @@ export default function Layout({ children, currentPageName }) {
         if (currentPageName === 'Dashboard' || currentPageName === 'AIGradingAssistant') {
           navigate(createPageUrl(defaultDashboard));
           return;
+        }
+
+        // Allow StaffClocking page if user has permission
+        if (currentPageName === 'StaffClocking' && clockingPermissions?.length > 0) {
+          allowedPages.push('StaffClocking');
         }
 
         // Check if current page is allowed for this user role
@@ -328,6 +345,8 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'SYSTEM',
         items: [
           { name: 'User Management', icon: Users, path: 'UserManagement' },
+          { name: 'Clocking Permissions', icon: Clock, path: 'ClockingPermissions' },
+          { name: 'Staff Clocking', icon: Clock, path: 'StaffClocking' },
           { name: 'Settings Hub', icon: Settings, path: 'SettingsHub' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
