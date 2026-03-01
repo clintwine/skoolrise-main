@@ -10,9 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { AlertCircle, Users, Key, CheckCircle, XCircle, Mail, Copy, Check, Power, MoreVertical, Shield, UserCog, Search, Filter } from 'lucide-react';
+import { AlertCircle, Users, Key, CheckCircle, XCircle, Mail, Copy, Check, Power, MoreVertical, Shield, UserCog, Search, Filter, Settings, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '../utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PermissionsManager from '@/components/security/PermissionsManager';
 
 export default function UserManagement() {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export default function UserManagement() {
   const [editingUserType, setEditingUserType] = useState('');
   const [existingProfiles, setExistingProfiles] = useState(null);
   const [showConflictDialog, setShowConflictDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState('users');
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -258,11 +261,24 @@ export default function UserManagement() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-            <p className="text-gray-600">Manage user access and roles (1 role per user)</p>
+            <p className="text-gray-600">Manage user access, roles, and permissions</p>
           </div>
         </div>
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="users" className="gap-2">
+            <Users className="h-4 w-4" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="permissions" className="gap-2">
+            <Lock className="h-4 w-4" />
+            Permissions
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users" className="mt-6 space-y-6">
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -595,6 +611,12 @@ export default function UserManagement() {
           </DialogContent>
         </Dialog>
       )}
+        </TabsContent>
+
+        <TabsContent value="permissions" className="mt-6">
+          <PermissionsManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
