@@ -39,7 +39,10 @@ import {
   Camera,
   DoorOpen,
   Search,
-  Clock
+  Clock,
+  Shield,
+  Database,
+  Trophy
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -127,7 +130,8 @@ export default function Layout({ children, currentPageName }) {
           'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
           'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
-          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions', 'NotificationsPage'
+          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions', 'NotificationsPage',
+          'StudentLeaderboard'
         ];
         
         const teacherPages = [
@@ -139,7 +143,7 @@ export default function Layout({ children, currentPageName }) {
         
         const studentPages = [
           'StudentDashboard', 'StudentClasses', 'StudentAssignments', 'StudentTests', 'StudentGrades',
-          'RewardsStore', 'StudentAttendance', 'UserProfile', 'TakeExam', 'StudentAssignmentDashboard', 'NotificationsPage'
+          'RewardsStore', 'StudentLeaderboard', 'StudentAttendance', 'UserProfile', 'TakeExam', 'StudentAssignmentDashboard', 'NotificationsPage'
         ];
         
         const parentPages = [
@@ -354,6 +358,9 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Settings Hub', icon: Settings, path: 'SettingsHub' },
           { name: 'Scanner Settings', icon: Camera, path: 'ScannerSettings' },
           { name: 'Room Access', icon: DoorOpen, path: 'RoomAccessManagement' },
+          { name: 'Security Settings', icon: Shield, path: 'SecuritySettings' },
+          { name: 'Audit Logs', icon: FileText, path: 'AuditLogs' },
+          { name: 'Backup Settings', icon: Database, path: 'BackupSettings' },
         ]
       }
     ];
@@ -428,6 +435,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Tests', icon: FileText, path: 'StudentTests' },
           { name: 'Grades', icon: Award, path: 'StudentGrades' },
           { name: 'Rewards Store', icon: Gift, path: 'RewardsStore' },
+          { name: 'Leaderboard', icon: Trophy, path: 'StudentLeaderboard' },
           { name: 'Attendance', icon: CheckSquare, path: 'StudentAttendance' },
           { name: 'Profile', icon: UserCircle, path: 'UserProfile' },
         ]
