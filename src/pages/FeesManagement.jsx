@@ -63,78 +63,78 @@ export default function FeesManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-text">Fees Management</h1>
-          <p className="text-text-secondary mt-2">Manage student invoices and payments</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-text">Fees Management</h1>
+          <p className="text-sm sm:text-base text-text-secondary mt-1 sm:mt-2">Manage student invoices and payments</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => navigate(createPageUrl('FeePolicies'))}>
-            <FileText className="w-4 h-4 mr-2" />
-            Fee Policies
+        <div className="flex flex-wrap gap-2 sm:gap-3">
+          <Button variant="outline" onClick={() => navigate(createPageUrl('FeePolicies'))} size="sm" className="text-xs sm:text-sm">
+            <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Fee </span>Policies
           </Button>
-          <Button variant="outline" onClick={() => navigate(createPageUrl('InstalmentPlans'))}>
-            <Calendar className="w-4 h-4 mr-2" />
-            Instalment Plans
+          <Button variant="outline" onClick={() => navigate(createPageUrl('InstalmentPlans'))} size="sm" className="text-xs sm:text-sm">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Instalment </span>Plans
           </Button>
-          <Button variant="outline" onClick={() => setIsImportOpen(true)}>
-            <Upload className="w-4 h-4 mr-2" />
-            Bulk Import
+          <Button variant="outline" onClick={() => setIsImportOpen(true)} size="sm" className="text-xs sm:text-sm">
+            <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            Import
           </Button>
-          <Button onClick={() => navigate(createPageUrl('CreateInvoice'))} className="bg-accent hover:bg-accent-hover">
-            <Plus className="w-4 h-4 mr-2" />
-            New Invoice
+          <Button onClick={() => navigate(createPageUrl('CreateInvoice'))} className="bg-accent hover:bg-accent-hover" size="sm">
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">New </span>Invoice
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700">Total Invoiced</p>
-                <p className="text-3xl font-bold text-blue-900 mt-2">{formatAmount(totalInvoiced)}</p>
+                <p className="text-xs sm:text-sm font-medium text-blue-700">Total Invoiced</p>
+                <p className="text-lg sm:text-3xl font-bold text-blue-900 mt-1 sm:mt-2">{formatAmount(totalInvoiced)}</p>
               </div>
-              <DollarSign className="w-12 h-12 text-blue-600 opacity-50" />
+              <DollarSign className="w-8 h-8 sm:w-12 sm:h-12 text-blue-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-50 to-green-100">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700">Total Paid</p>
-                <p className="text-3xl font-bold text-green-900 mt-2">{formatAmount(totalPaid)}</p>
+                <p className="text-xs sm:text-sm font-medium text-green-700">Total Paid</p>
+                <p className="text-lg sm:text-3xl font-bold text-green-900 mt-1 sm:mt-2">{formatAmount(totalPaid)}</p>
               </div>
-              <TrendingUp className="w-12 h-12 text-green-600 opacity-50" />
+              <TrendingUp className="w-8 h-8 sm:w-12 sm:h-12 text-green-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-orange-700">Outstanding</p>
-                <p className="text-3xl font-bold text-orange-900 mt-2">{formatAmount(totalOutstanding)}</p>
+                <p className="text-xs sm:text-sm font-medium text-orange-700">Outstanding</p>
+                <p className="text-lg sm:text-3xl font-bold text-orange-900 mt-1 sm:mt-2">{formatAmount(totalOutstanding)}</p>
               </div>
-              <Users className="w-12 h-12 text-orange-600 opacity-50" />
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-orange-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-red-50 to-red-100">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-red-700">Overdue</p>
-                <p className="text-3xl font-bold text-red-900 mt-2">{overdueInvoices}</p>
+                <p className="text-xs sm:text-sm font-medium text-red-700">Overdue</p>
+                <p className="text-lg sm:text-3xl font-bold text-red-900 mt-1 sm:mt-2">{overdueInvoices}</p>
               </div>
-              <AlertCircle className="w-12 h-12 text-red-600 opacity-50" />
+              <AlertCircle className="w-8 h-8 sm:w-12 sm:h-12 text-red-600 opacity-50" />
             </div>
           </CardContent>
         </Card>

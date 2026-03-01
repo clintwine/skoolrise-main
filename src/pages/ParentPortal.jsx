@@ -131,15 +131,16 @@ export default function ParentPortal() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
+        className="px-2 sm:px-0"
       >
-        <h1 className="text-4xl font-bold text-text">Parent Portal</h1>
-        <p className="text-text-secondary mt-2">Welcome, {user?.full_name}</p>
+        <h1 className="text-2xl sm:text-4xl font-bold text-text">Parent Portal</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1 sm:mt-2">Welcome, {user?.full_name}</p>
       </motion.div>
 
       {/* My Children Section */}
-      <div>
-        <h2 className="text-2xl font-semibold text-text mb-4">My Children</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="px-2 sm:px-0">
+        <h2 className="text-xl sm:text-2xl font-semibold text-text mb-3 sm:mb-4">My Children</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {students.length === 0 ? (
             <Card className="col-span-full bg-white rounded-2xl shadow-md">
               <CardContent className="p-12 text-center">
@@ -197,9 +198,9 @@ export default function ParentPortal() {
       </div>
 
       {/* Dashboard Cards with Expandable Details */}
-      <div>
-        <h2 className="text-2xl font-semibold text-text mb-4">Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="px-2 sm:px-0">
+        <h2 className="text-xl sm:text-2xl font-semibold text-text mb-3 sm:mb-4">Overview</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {dashboardCards.map((card) => {
             const Icon = card.icon;
             return (
@@ -209,20 +210,20 @@ export default function ParentPortal() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Card 
-                  className="bg-white shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                  className="bg-white shadow-md rounded-xl sm:rounded-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
                   onClick={() => setExpandedCard(card.id)}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center`}>
-                        <Icon className={`w-6 h-6 ${card.color}`} />
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-start justify-between mb-2 sm:mb-4">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 ${card.bg} rounded-lg sm:rounded-xl flex items-center justify-center`}>
+                        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${card.color}`} />
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     </div>
-                    <h3 className="text-sm font-medium text-text-secondary mb-1">{card.title}</h3>
-                    <p className="text-3xl font-bold text-text mb-1">{card.value}</p>
-                    <p className="text-sm text-text-secondary flex items-center gap-1">
-                      {card.alert && <AlertCircle className="w-4 h-4 text-orange-600" />}
+                    <h3 className="text-xs sm:text-sm font-medium text-text-secondary mb-1">{card.title}</h3>
+                    <p className="text-xl sm:text-3xl font-bold text-text mb-1">{card.value}</p>
+                    <p className="text-xs sm:text-sm text-text-secondary flex items-center gap-1">
+                      {card.alert && <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600" />}
                       {card.subtitle}
                     </p>
                   </CardContent>
@@ -235,7 +236,7 @@ export default function ParentPortal() {
 
       {/* Dialogs */}
       <Dialog open={expandedCard === 'fees'} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="w-6 h-6 text-orange-600" />
@@ -283,7 +284,7 @@ export default function ParentPortal() {
       </Dialog>
 
       <Dialog open={expandedCard === 'attendance'} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle className="w-6 h-6 text-green-600" />
@@ -291,24 +292,24 @@ export default function ParentPortal() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-green-50 rounded-xl">
-                <p className="text-3xl font-bold text-green-600">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+              <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg sm:rounded-xl">
+                <p className="text-xl sm:text-3xl font-bold text-green-600">
                   {attendance.filter(a => a.status === 'Present').length}
                 </p>
-                <p className="text-sm text-text-secondary">Present</p>
+                <p className="text-xs sm:text-sm text-text-secondary">Present</p>
               </div>
-              <div className="text-center p-4 bg-red-50 rounded-xl">
-                <p className="text-3xl font-bold text-red-600">
+              <div className="text-center p-3 sm:p-4 bg-red-50 rounded-lg sm:rounded-xl">
+                <p className="text-xl sm:text-3xl font-bold text-red-600">
                   {attendance.filter(a => a.status === 'Absent').length}
                 </p>
-                <p className="text-sm text-text-secondary">Absent</p>
+                <p className="text-xs sm:text-sm text-text-secondary">Absent</p>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-xl">
-                <p className="text-3xl font-bold text-yellow-600">
+              <div className="text-center p-3 sm:p-4 bg-yellow-50 rounded-lg sm:rounded-xl">
+                <p className="text-xl sm:text-3xl font-bold text-yellow-600">
                   {attendance.filter(a => a.status === 'Late').length}
                 </p>
-                <p className="text-sm text-text-secondary">Late</p>
+                <p className="text-xs sm:text-sm text-text-secondary">Late</p>
               </div>
             </div>
             <Button 
@@ -322,7 +323,7 @@ export default function ParentPortal() {
       </Dialog>
 
       <Dialog open={expandedCard === 'reports'} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="w-6 h-6 text-blue-600" />
@@ -363,7 +364,7 @@ export default function ParentPortal() {
       </Dialog>
 
       <Dialog open={expandedCard === 'behavior'} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Award className="w-6 h-6 text-purple-600" />

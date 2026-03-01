@@ -193,7 +193,7 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] bg-white">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-purple-600" />
@@ -210,18 +210,18 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg mb-4">
-              <div className="flex items-center gap-2 text-sm text-blue-800">
-                <Info className="h-4 w-4" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-blue-50 p-3 rounded-lg mb-4 gap-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-blue-800">
+                <Info className="h-4 w-4 shrink-0" />
                 <span>Role: <Badge variant="outline" className="ml-1 capitalize">{userRole}</Badge></span>
               </div>
-              <Button variant="ghost" size="sm" onClick={resetToRoleDefaults}>
+              <Button variant="ghost" size="sm" onClick={resetToRoleDefaults} className="text-xs sm:text-sm">
                 <RefreshCw className="h-3 w-3 mr-1" />
                 Reset to Defaults
               </Button>
             </div>
 
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="h-[50vh] sm:h-[400px] pr-2 sm:pr-4">
               <div className="space-y-6">
                 {Object.entries(groupedPermissions).map(([category, perms]) => {
                   const Icon = categoryIcons[category] || Shield;
@@ -231,13 +231,13 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
                         <Icon className="h-4 w-4" />
                         {category}
                       </h4>
-                      <div className="space-y-3">
+                      <div className="space-y-2 sm:space-y-3">
                         {perms.map(perm => {
                           const state = getPermissionState(perm.name);
                           return (
                             <div 
                               key={perm.id} 
-                              className={`flex items-center justify-between p-3 rounded-lg ${
+                              className={`flex items-center justify-between p-2 sm:p-3 rounded-lg ${
                                 state.isOverride 
                                   ? state.isGranted 
                                     ? 'bg-green-50 border border-green-200' 
@@ -245,27 +245,27 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
                                   : 'bg-gray-50'
                               }`}
                             >
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium text-sm">{perm.display_name}</p>
+                              <div className="flex-1 min-w-0 mr-2">
+                                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                  <p className="font-medium text-xs sm:text-sm">{perm.display_name}</p>
                                   {state.isOverride && (
                                     <Badge 
                                       variant="outline" 
-                                      className={`text-xs ${
+                                      className={`text-[10px] sm:text-xs ${
                                         state.isGranted 
                                           ? 'border-green-300 text-green-700 bg-green-100' 
                                           : 'border-red-300 text-red-700 bg-red-100'
                                       }`}
                                     >
                                       {state.isGranted ? (
-                                        <><CheckCircle className="h-3 w-3 mr-1" /> Granted</>
+                                        <><CheckCircle className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5" /> Granted</>
                                       ) : (
-                                        <><XCircle className="h-3 w-3 mr-1" /> Revoked</>
+                                        <><XCircle className="h-2 w-2 sm:h-3 sm:w-3 mr-0.5" /> Revoked</>
                                       )}
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">{perm.description}</p>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{perm.description}</p>
                               </div>
                               <Switch
                                 checked={state.isGranted}
@@ -283,31 +283,32 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
 
             <Separator />
 
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 gap-3">
+              <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded bg-green-100 border border-green-300"></div>
-                  Granted Override
+                  Granted
                 </span>
                 <span className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded bg-red-100 border border-red-300"></div>
-                  Revoked Override
+                  Revoked
                 </span>
                 <span className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded bg-gray-100"></div>
-                  Role Default
+                  Default
                 </span>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none text-sm">
                   Cancel
                 </Button>
                 <Button 
                   onClick={() => saveMutation.mutate()}
                   disabled={!hasChanges || saveMutation.isPending}
+                  className="flex-1 sm:flex-none text-sm"
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  <Save className="h-4 w-4 mr-1 sm:mr-2" />
+                  {saveMutation.isPending ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>
