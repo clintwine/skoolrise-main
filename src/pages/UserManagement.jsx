@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { createPageUrl } from '../utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PermissionsManager from '@/components/security/PermissionsManager';
+import UserPermissionsDialog from '@/components/security/UserPermissionsDialog';
 
 export default function UserManagement() {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ export default function UserManagement() {
   const [existingProfiles, setExistingProfiles] = useState(null);
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
+  const [permissionsDialogUser, setPermissionsDialogUser] = useState(null);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -434,6 +436,10 @@ export default function UserManagement() {
                                 <UserCog className="w-4 h-4 mr-2" />
                                 Edit User Type
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setPermissionsDialogUser(user)}>
+                                <Shield className="w-4 h-4 mr-2" />
+                                Manage Permissions
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleToggleActivation(user)}>
                                 <Power className="w-4 h-4 mr-2" />
                                 {user.is_activated ? 'Deactivate' : 'Activate'}
@@ -617,6 +623,13 @@ export default function UserManagement() {
           <PermissionsManager />
         </TabsContent>
       </Tabs>
+
+      {/* User Permissions Dialog */}
+      <UserPermissionsDialog 
+        user={permissionsDialogUser}
+        open={!!permissionsDialogUser}
+        onOpenChange={(open) => !open && setPermissionsDialogUser(null)}
+      />
     </div>
   );
 }
