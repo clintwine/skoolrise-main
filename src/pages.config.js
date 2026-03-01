@@ -99,6 +99,7 @@ import InvoiceDetail from './pages/InvoiceDetail';
 import LandingPage from './pages/LandingPage';
 import MessagingCenter from './pages/MessagingCenter';
 import MyClasses from './pages/MyClasses';
+import NotificationsPage from './pages/NotificationsPage';
 import NotificationsSettings from './pages/NotificationsSettings';
 import ParentActivities from './pages/ParentActivities';
 import ParentAssignmentView from './pages/ParentAssignmentView';
@@ -162,7 +163,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import NotificationsPage from './pages/NotificationsPage';
 import __Layout from './Layout.jsx';
 
 
@@ -219,6 +219,7 @@ export const PAGES = {
     "LandingPage": LandingPage,
     "MessagingCenter": MessagingCenter,
     "MyClasses": MyClasses,
+    "NotificationsPage": NotificationsPage,
     "NotificationsSettings": NotificationsSettings,
     "ParentActivities": ParentActivities,
     "ParentAssignmentView": ParentAssignmentView,
@@ -282,7 +283,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "NotificationsPage": NotificationsPage,
 }
 
 export const pagesConfig = {
