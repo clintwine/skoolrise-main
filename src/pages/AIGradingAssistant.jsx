@@ -106,19 +106,19 @@ Provide your response as a JSON object with:
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Setup Grading Parameters</CardTitle>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Setup Grading Parameters</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Assignment</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Select Assignment</label>
             <Select value={selectedAssignment} onValueChange={setSelectedAssignment}>
-              <SelectTrigger>
+              <SelectTrigger className="text-sm">
                 <SelectValue placeholder="Choose an assignment" />
               </SelectTrigger>
               <SelectContent>
                 {assignments.map((assignment) => (
-                  <SelectItem key={assignment.id} value={assignment.id}>
+                  <SelectItem key={assignment.id} value={assignment.id} className="text-sm">
                     {assignment.title} - {assignment.class_name}
                   </SelectItem>
                 ))}
@@ -127,29 +127,41 @@ Provide your response as a JSON object with:
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Grading Rubric</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Grading Rubric</label>
             <Textarea
               value={rubric}
               onChange={(e) => setRubric(e.target.value)}
-              rows={6}
-              placeholder="Enter your grading rubric here... e.g.,&#10;&#10;Content Quality (40 points):&#10;- Demonstrates understanding of key concepts&#10;- Provides relevant examples&#10;&#10;Organization (30 points):&#10;- Clear structure and flow&#10;- Proper formatting&#10;&#10;Accuracy (30 points):&#10;- Factually correct information&#10;- Proper citations"
+              rows={5}
+              className="text-sm"
+              placeholder="Enter your grading rubric here...
+
+Content Quality (40 points):
+- Demonstrates understanding of key concepts
+- Provides relevant examples
+
+Organization (30 points):
+- Clear structure and flow
+
+Accuracy (30 points):
+- Factually correct information"
             />
           </div>
 
           <Button 
             onClick={handleAnalyze}
             disabled={analyzing || !selectedAssignment || !rubric}
-            className="w-full bg-purple-600 hover:bg-purple-700"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-sm sm:text-base py-3"
           >
             {analyzing ? (
               <>
-                <Loader className="w-5 h-5 mr-2 animate-spin" />
-                Analyzing Submissions...
+                <Loader className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                <span className="hidden sm:inline">Analyzing Submissions...</span>
+                <span className="sm:hidden">Analyzing...</span>
               </>
             ) : (
               <>
-                <Brain className="w-5 h-5 mr-2" />
-                Analyze {submissions.length} Submissions
+                <Brain className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                Analyze {submissions.length} Submission{submissions.length !== 1 ? 's' : ''}
               </>
             )}
           </Button>
