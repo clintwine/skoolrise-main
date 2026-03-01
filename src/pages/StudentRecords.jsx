@@ -159,7 +159,7 @@ export default function StudentRecords() {
                 Add Student
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white z-50">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto bg-white z-50 p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>
                 {selectedStudent ? 'Edit Student' : 'Add New Student'}
@@ -281,11 +281,11 @@ export default function StudentRecords() {
                       </Badge>
                     </td>
                     <td className="px-6 py-3 text-right">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-1 sm:gap-2 justify-end">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2"
                           onClick={() => {
                             setSelectedStudent(student);
                             setIsDetailsOpen(true);
@@ -297,7 +297,7 @@ export default function StudentRecords() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50 hidden sm:flex"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedStudent(student);
@@ -315,6 +315,7 @@ export default function StudentRecords() {
                             setSelectedStudent(student);
                             setIsFormOpen(true);
                           }}
+                          className="text-xs sm:text-sm"
                         >
                           Edit
                         </Button>
@@ -331,7 +332,7 @@ export default function StudentRecords() {
 
       {/* Link Parent Dialog */}
       <Dialog open={isLinkParentOpen} onOpenChange={setIsLinkParentOpen}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Link Parent to {selectedStudent?.first_name} {selectedStudent?.last_name}</DialogTitle>
           </DialogHeader>
@@ -369,7 +370,7 @@ export default function StudentRecords() {
 
       {/* Student Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white z-50">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto bg-white z-50 p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Student Details</DialogTitle>
           </DialogHeader>

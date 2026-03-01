@@ -255,15 +255,15 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-purple-600" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-            <p className="text-gray-600">Manage user access, roles, and permissions</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">User Management</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage user access, roles, and permissions</p>
           </div>
         </div>
       </div>
@@ -281,56 +281,56 @@ export default function UserManagement() {
         </TabsList>
 
         <TabsContent value="users" className="mt-6 space-y-6">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Users</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{users.length}</p>
               </div>
-              <Users className="w-8 h-8 text-blue-600" />
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{users.filter(u => u.is_activated).length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Active</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{users.filter(u => u.is_activated).length}</p>
               </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
+              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Inactive</p>
-                <p className="text-2xl font-bold text-red-600">{users.filter(u => !u.is_activated).length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Inactive</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">{users.filter(u => !u.is_activated).length}</p>
               </div>
-              <XCircle className="w-8 h-8 text-red-600" />
+              <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Filtered</p>
-                <p className="text-2xl font-bold text-gray-900">{filteredUsers.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Filtered</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{filteredUsers.length}</p>
               </div>
-              <Filter className="w-8 h-8 text-gray-600" />
+              <Filter className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
-        <CardContent className="p-4">
-          <div className="flex gap-4">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -341,7 +341,7 @@ export default function UserManagement() {
               />
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -464,7 +464,7 @@ export default function UserManagement() {
 
       {/* Edit User Type Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCog className="w-5 h-5 text-blue-600" />
@@ -517,7 +517,7 @@ export default function UserManagement() {
 
       {/* Conflict Warning Dialog */}
       <Dialog open={showConflictDialog} onOpenChange={setShowConflictDialog}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <AlertCircle className="w-5 h-5" />
@@ -556,7 +556,7 @@ export default function UserManagement() {
       {/* Activation Code Dialog */}
       {selectedUser && generatedCode && (
         <Dialog open={!!generatedCode} onOpenChange={() => setGeneratedCode('')}>
-          <DialogContent className="max-w-md bg-white">
+          <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
