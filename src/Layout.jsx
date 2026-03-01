@@ -8,6 +8,7 @@ import NoRoleScreen from './components/NoRoleScreen';
 import MobileBottomNav from './components/MobileBottomNav';
 import OfflineIndicator from './components/OfflineIndicator';
 import { CurrencyProvider } from './components/CurrencyProvider';
+import NotificationCenter from './components/NotificationCenter';
 import {
   GraduationCap,
   Users,
@@ -126,25 +127,25 @@ export default function Layout({ children, currentPageName }) {
           'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
           'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
-          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions'
+          'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions', 'NotificationsPage'
         ];
         
         const teacherPages = [
           'TeacherDashboard', 'TeacherSchedule', 'MyClasses', 'AttendanceTaking', 'Gradebook', 'BehaviorTracking',
           'StudentProgressTracking', 'ClassroomResources', 'AILessonPlanner', 'EventCalendar', 'TeacherAssignmentManager',
           'TeacherAssignments', 'TeacherTests', 'QuestionBank', 'ExamCreator', 'ExamManagement', 'ExamCommandCenter',
-          'DetailedExamAnalytics', 'ExamResults', 'ExamAttemptReview', 'GradeExam', 'UserProfile', 'AssignmentBuilder', 'StaffClocking'
+          'DetailedExamAnalytics', 'ExamResults', 'ExamAttemptReview', 'GradeExam', 'UserProfile', 'AssignmentBuilder', 'StaffClocking', 'NotificationsPage'
         ];
         
         const studentPages = [
           'StudentDashboard', 'StudentClasses', 'StudentAssignments', 'StudentTests', 'StudentGrades',
-          'RewardsStore', 'StudentAttendance', 'UserProfile', 'TakeExam', 'StudentAssignmentDashboard'
+          'RewardsStore', 'StudentAttendance', 'UserProfile', 'TakeExam', 'StudentAssignmentDashboard', 'NotificationsPage'
         ];
         
         const parentPages = [
           'ParentPortal', 'ParentStudentView', 'ParentSchoolShop', 'ParentActivities', 'ParentCalendar',
           'ParentHomework', 'ParentFees', 'ParentAttendance', 'ParentReports',
-          'ParentBehavior', 'ParentLinkingRequests', 'ParentAssignmentView', 'UserProfile'
+          'ParentBehavior', 'ParentLinkingRequests', 'ParentAssignmentView', 'UserProfile', 'NotificationsPage'
         ];
         
         const vendorPages = [
@@ -534,6 +535,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-sm text-text-secondary">Search</span>
               <kbd className="px-2 py-0.5 text-xs bg-white rounded border text-text-secondary">⌘K</kbd>
             </button>
+            <NotificationCenter userId={user?.id} />
             <Link 
               to={createPageUrl('UserProfile')} 
               className="text-right hidden sm:block hover:bg-gray-100 p-2 rounded-xl transition-all"
