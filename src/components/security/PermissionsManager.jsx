@@ -21,64 +21,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const DEFAULT_PERMISSIONS = [
-  // Students
-  { name: 'view_students', display_name: 'View Students', category: 'students', description: 'View student records' },
-  { name: 'manage_students', display_name: 'Manage Students', category: 'students', description: 'Create, edit, delete students' },
-  { name: 'view_student_grades', display_name: 'View Student Grades', category: 'students', description: 'View student grades and progress' },
-  
-  // Teachers
-  { name: 'view_teachers', display_name: 'View Teachers', category: 'teachers', description: 'View teacher records' },
-  { name: 'manage_teachers', display_name: 'Manage Teachers', category: 'teachers', description: 'Create, edit, delete teachers' },
-  
-  // Academics
-  { name: 'view_classes', display_name: 'View Classes', category: 'academics', description: 'View class information' },
-  { name: 'manage_classes', display_name: 'Manage Classes', category: 'academics', description: 'Create, edit, delete classes' },
-  { name: 'take_attendance', display_name: 'Take Attendance', category: 'academics', description: 'Record student attendance' },
-  { name: 'manage_assignments', display_name: 'Manage Assignments', category: 'academics', description: 'Create and grade assignments' },
-  { name: 'view_report_cards', display_name: 'View Report Cards', category: 'academics', description: 'View report cards' },
-  { name: 'manage_report_cards', display_name: 'Manage Report Cards', category: 'academics', description: 'Create and edit report cards' },
-  
-  // Fees
-  { name: 'view_fees', display_name: 'View Fees', category: 'fees', description: 'View fee invoices and payments' },
-  { name: 'manage_fees', display_name: 'Manage Fees', category: 'fees', description: 'Create invoices and record payments' },
-  { name: 'view_financial_reports', display_name: 'View Financial Reports', category: 'fees', description: 'View financial summaries' },
-  
-  // Exams
-  { name: 'view_exams', display_name: 'View Exams', category: 'exams', description: 'View exam information' },
-  { name: 'create_exams', display_name: 'Create Exams', category: 'exams', description: 'Create and manage exams' },
-  { name: 'grade_exams', display_name: 'Grade Exams', category: 'exams', description: 'Grade exam submissions' },
-  { name: 'view_question_bank', display_name: 'View Question Bank', category: 'exams', description: 'Access question bank' },
-  { name: 'manage_question_bank', display_name: 'Manage Question Bank', category: 'exams', description: 'Add/edit questions' },
-  
-  // Reports
-  { name: 'view_reports', display_name: 'View Reports', category: 'reports', description: 'View analytics and reports' },
-  { name: 'export_data', display_name: 'Export Data', category: 'reports', description: 'Export data to files' },
-  { name: 'view_audit_logs', display_name: 'View Audit Logs', category: 'reports', description: 'View system audit logs' },
-  
-  // Communication
-  { name: 'send_messages', display_name: 'Send Messages', category: 'communication', description: 'Send messages to users' },
-  { name: 'send_bulk_messages', display_name: 'Send Bulk Messages', category: 'communication', description: 'Send messages to multiple users' },
-  { name: 'manage_announcements', display_name: 'Manage Announcements', category: 'communication', description: 'Create school announcements' },
-  
-  // Settings
-  { name: 'manage_users', display_name: 'Manage Users', category: 'settings', description: 'Manage user accounts' },
-  { name: 'manage_school_settings', display_name: 'Manage School Settings', category: 'settings', description: 'Edit school configuration' },
-  { name: 'manage_security', display_name: 'Manage Security', category: 'settings', description: 'Manage security settings' },
-];
-
-const ROLE_DEFAULT_PERMISSIONS = {
-  admin: DEFAULT_PERMISSIONS.map(p => p.name),
-  teacher: [
-    'view_students', 'view_student_grades', 'view_classes', 'take_attendance', 
-    'manage_assignments', 'view_report_cards', 'view_exams', 'create_exams', 
-    'grade_exams', 'view_question_bank', 'manage_question_bank', 'send_messages'
-  ],
-  student: ['view_exams'],
-  parent: ['view_students', 'view_student_grades', 'view_fees', 'view_report_cards', 'send_messages'],
-  vendor: []
-};
+import { Award, Calendar, BookMarked } from 'lucide-react';
+import { DEFAULT_PERMISSIONS, ROLE_DEFAULT_PERMISSIONS } from './permissionsConfig';
 
 const categoryIcons = {
   students: Users,
@@ -86,8 +30,11 @@ const categoryIcons = {
   academics: BookOpen,
   fees: DollarSign,
   exams: GraduationCap,
+  behavior: Award,
   reports: FileText,
   communication: MessageSquare,
+  activities: Calendar,
+  bookshop: BookMarked,
   settings: Settings
 };
 
@@ -101,10 +48,13 @@ export default function PermissionsManager() {
     queryKey: ['permissions'],
     queryFn: async () => {
       const existing = await base44.entities.Permission.list();
-      if (existing.length === 0) {
-        // Seed default permissions
+      const existingNames = existing.map(p => p.name);
+      const missingPerms = DEFAULT_PERMISSIONS.filter(p => !existingNames.includes(p.name));
+      
+      if (missingPerms.length > 0) {
+        // Create missing permissions
         await base44.entities.Permission.bulkCreate(
-          DEFAULT_PERMISSIONS.map(p => ({ ...p, is_system: true }))
+          missingPerms.map(p => ({ ...p, is_system: true }))
         );
         return base44.entities.Permission.list();
       }
