@@ -142,6 +142,7 @@ import StudentAttendance from './pages/StudentAttendance';
 import StudentClasses from './pages/StudentClasses';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentGrades from './pages/StudentGrades';
+import StudentLeaderboard from './pages/StudentLeaderboard';
 import StudentManagement from './pages/StudentManagement';
 import StudentProfile from './pages/StudentProfile';
 import StudentProgressTracking from './pages/StudentProgressTracking';
@@ -163,7 +164,6 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import StudentLeaderboard from './pages/StudentLeaderboard';
 import __Layout from './Layout.jsx';
 
 
@@ -263,6 +263,7 @@ export const PAGES = {
     "StudentClasses": StudentClasses,
     "StudentDashboard": StudentDashboard,
     "StudentGrades": StudentGrades,
+    "StudentLeaderboard": StudentLeaderboard,
     "StudentManagement": StudentManagement,
     "StudentProfile": StudentProfile,
     "StudentProgressTracking": StudentProgressTracking,
@@ -284,7 +285,6 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "StudentLeaderboard": StudentLeaderboard,
 }
 
 export const pagesConfig = {

@@ -96,13 +96,13 @@ Provide your response as a JSON object with:
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Brain className="w-8 h-8 text-purple-600" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
           AI Grading Assistant
         </h1>
-        <p className="text-gray-600 mt-1">Get intelligent grading suggestions based on your rubric</p>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Get intelligent grading suggestions based on your rubric</p>
       </div>
 
       <Card>
@@ -158,13 +158,13 @@ Provide your response as a JSON object with:
 
       {suggestions.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900">AI Grading Suggestions</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">AI Grading Suggestions</h2>
           {suggestions.map((suggestion) => (
             <Card key={suggestion.submissionId}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                   <div>
-                    <CardTitle>{suggestion.studentName}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">{suggestion.studentName}</CardTitle>
                     <Badge className="mt-2 bg-purple-100 text-purple-800">
                       Suggested Grade: {suggestion.suggested_grade}
                     </Badge>
@@ -172,33 +172,33 @@ Provide your response as a JSON object with:
                   <Button
                     onClick={() => handleApplyGrade(suggestion)}
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Apply Grade
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Feedback:</h3>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{suggestion.feedback}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Feedback:</h3>
+                  <p className="text-sm sm:text-base text-gray-700 bg-gray-50 p-3 rounded-lg">{suggestion.feedback}</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <h3 className="font-semibold text-green-700 mb-2">Strengths:</h3>
+                    <h3 className="font-semibold text-green-700 mb-2 text-sm sm:text-base">Strengths:</h3>
                     <ul className="space-y-1">
                       {suggestion.strengths?.map((strength, idx) => (
-                        <li key={idx} className="text-sm text-gray-700">✓ {strength}</li>
+                        <li key={idx} className="text-xs sm:text-sm text-gray-700">✓ {strength}</li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-orange-700 mb-2">Areas for Improvement:</h3>
+                    <h3 className="font-semibold text-orange-700 mb-2 text-sm sm:text-base">Areas for Improvement:</h3>
                     <ul className="space-y-1">
                       {suggestion.improvements?.map((improvement, idx) => (
-                        <li key={idx} className="text-sm text-gray-700">• {improvement}</li>
+                        <li key={idx} className="text-xs sm:text-sm text-gray-700">• {improvement}</li>
                       ))}
                     </ul>
                   </div>
