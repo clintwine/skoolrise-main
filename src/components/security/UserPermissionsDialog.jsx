@@ -21,9 +21,13 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Info
+  Info,
+  Award,
+  Calendar,
+  BookMarked
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { DEFAULT_PERMISSIONS, ROLE_DEFAULT_PERMISSIONS } from './permissionsConfig';
 
 const categoryIcons = {
   students: Users,
@@ -31,24 +35,12 @@ const categoryIcons = {
   academics: BookOpen,
   fees: DollarSign,
   exams: GraduationCap,
+  behavior: Award,
   reports: FileText,
   communication: MessageSquare,
+  activities: Calendar,
+  bookshop: BookMarked,
   settings: Settings
-};
-
-const ROLE_DEFAULT_PERMISSIONS = {
-  admin: ['view_students', 'manage_students', 'view_student_grades', 'view_teachers', 'manage_teachers', 
-          'view_classes', 'manage_classes', 'take_attendance', 'manage_assignments', 'view_report_cards', 
-          'manage_report_cards', 'view_fees', 'manage_fees', 'view_financial_reports', 'view_exams', 
-          'create_exams', 'grade_exams', 'view_question_bank', 'manage_question_bank', 'view_reports', 
-          'export_data', 'view_audit_logs', 'send_messages', 'send_bulk_messages', 'manage_announcements',
-          'manage_users', 'manage_school_settings', 'manage_security'],
-  teacher: ['view_students', 'view_student_grades', 'view_classes', 'take_attendance', 
-            'manage_assignments', 'view_report_cards', 'view_exams', 'create_exams', 
-            'grade_exams', 'view_question_bank', 'manage_question_bank', 'send_messages'],
-  student: ['view_exams'],
-  parent: ['view_students', 'view_student_grades', 'view_fees', 'view_report_cards', 'send_messages'],
-  vendor: []
 };
 
 export default function UserPermissionsDialog({ user, open, onOpenChange }) {
@@ -61,7 +53,21 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
 
   const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
     queryKey: ['permissions'],
-    queryFn: () => base44.entities.Permission.list(),
+    queryFn: async () => {
+      const existing = await base44.entities.Permission.list();
+      // Merge with DEFAULT_PERMISSIONS to ensure all permissions are available
+      const existingNames = existing.map(p => p.name);
+      const missingPerms = DEFAULT_PERMISSIONS.filter(p => !existingNames.includes(p.name));
+      
+      if (missingPerms.length > 0) {
+        // Create missing permissions
+        await base44.entities.Permission.bulkCreate(
+          missingPerms.map(p => ({ ...p, is_system: true }))
+        );
+        return base44.entities.Permission.list();
+      }
+      return existing;
+    },
     enabled: open
   });
 
