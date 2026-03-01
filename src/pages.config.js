@@ -69,6 +69,7 @@ import BiometricAttendance from './pages/BiometricAttendance';
 import BookshopManager from './pages/BookshopManager';
 import BookshopReports from './pages/BookshopReports';
 import ClassroomResources from './pages/ClassroomResources';
+import ClockingPermissions from './pages/ClockingPermissions';
 import ClubsManagement from './pages/ClubsManagement';
 import ConferenceScheduling from './pages/ConferenceScheduling';
 import ContactLists from './pages/ContactLists';
@@ -133,6 +134,7 @@ import SchoolShopManagement from './pages/SchoolShopManagement';
 import SecuritySettings from './pages/SecuritySettings';
 import Settings from './pages/Settings';
 import SettingsHub from './pages/SettingsHub';
+import StaffClocking from './pages/StaffClocking';
 import StudentAssignmentDashboard from './pages/StudentAssignmentDashboard';
 import StudentAssignments from './pages/StudentAssignments';
 import StudentAttendance from './pages/StudentAttendance';
@@ -160,8 +162,7 @@ import UserProfile from './pages/UserProfile';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorManagement from './pages/VendorManagement';
 import VendorProfile from './pages/VendorProfile';
-import StaffClocking from './pages/StaffClocking';
-import ClockingPermissions from './pages/ClockingPermissions';
+import NotificationsPage from './pages/NotificationsPage';
 import __Layout from './Layout.jsx';
 
 
@@ -188,6 +189,7 @@ export const PAGES = {
     "BookshopManager": BookshopManager,
     "BookshopReports": BookshopReports,
     "ClassroomResources": ClassroomResources,
+    "ClockingPermissions": ClockingPermissions,
     "ClubsManagement": ClubsManagement,
     "ConferenceScheduling": ConferenceScheduling,
     "ContactLists": ContactLists,
@@ -252,6 +254,7 @@ export const PAGES = {
     "SecuritySettings": SecuritySettings,
     "Settings": Settings,
     "SettingsHub": SettingsHub,
+    "StaffClocking": StaffClocking,
     "StudentAssignmentDashboard": StudentAssignmentDashboard,
     "StudentAssignments": StudentAssignments,
     "StudentAttendance": StudentAttendance,
@@ -279,8 +282,7 @@ export const PAGES = {
     "VendorDashboard": VendorDashboard,
     "VendorManagement": VendorManagement,
     "VendorProfile": VendorProfile,
-    "StaffClocking": StaffClocking,
-    "ClockingPermissions": ClockingPermissions,
+    "NotificationsPage": NotificationsPage,
 }
 
 export const pagesConfig = {
