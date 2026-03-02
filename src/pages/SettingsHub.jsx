@@ -48,33 +48,33 @@ export default function SettingsHub() {
   ];
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-200px)]">
-      {/* Vertical Sidebar */}
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-[calc(100vh-200px)] px-2 sm:px-0">
+      {/* Horizontal tabs on mobile, vertical sidebar on desktop */}
       <motion.div 
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="w-64 flex-shrink-0"
+        className="w-full lg:w-64 flex-shrink-0"
       >
-        <Card className="glass-morphism shadow-md rounded-2xl h-full">
-          <CardContent className="p-4">
-            <h2 className="text-lg font-semibold text-text mb-6 flex items-center gap-2">
-              <Settings className="w-5 h-5" />
+        <Card className="glass-morphism shadow-md rounded-xl lg:rounded-2xl lg:h-full">
+          <CardContent className="p-3 sm:p-4">
+            <h2 className="text-base sm:text-lg font-semibold text-text mb-3 sm:mb-6 flex items-center gap-2">
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
               Settings
             </h2>
-            <nav className="space-y-2">
+            <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 hide-scrollbar">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg lg:rounded-xl transition-all duration-200 whitespace-nowrap text-sm lg:text-base ${
                       activeTab === tab.id
-                        ? 'bg-accent text-white shadow-lg scale-105'
-                        : 'text-text hover:bg-gray-100 hover:scale-102'
-                    }`}
+                        ? 'bg-accent text-white shadow-lg lg:scale-105'
+                        : 'text-text hover:bg-gray-100 bg-gray-50 lg:bg-transparent'
+                    } ${activeTab === tab.id ? '' : 'lg:w-full'}`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                     <span className="font-medium">{tab.label}</span>
                   </button>
                 );
@@ -170,10 +170,10 @@ function GeneralSettingsContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">General Settings</h1>
-        <p className="text-gray-600 mt-1">Configure general application settings</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">General Settings</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Configure general application settings</p>
       </div>
 
       <Card className="bg-white shadow-md">
@@ -270,10 +270,10 @@ function GeneralSettingsContent() {
 
 function SecuritySettingsContent() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-text">Security Settings</h1>
-        <p className="text-text-secondary mt-2">Manage authentication, permissions, and security policies</p>
+        <h1 className="text-2xl sm:text-4xl font-bold text-text">Security Settings</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1 sm:mt-2">Manage authentication, permissions, and security policies</p>
       </div>
       
       <Card className="bg-white rounded-2xl shadow-md">
@@ -307,10 +307,10 @@ function DemoDataSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-text">Demo Data</h1>
-        <p className="text-text-secondary mt-2">Populate your system with demonstration data for testing</p>
+        <h1 className="text-2xl sm:text-4xl font-bold text-text">Demo Data</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1 sm:mt-2">Populate your system with demonstration data for testing</p>
       </div>
       
       <Card className="bg-white rounded-2xl shadow-md">

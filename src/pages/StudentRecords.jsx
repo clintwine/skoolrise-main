@@ -137,26 +137,27 @@ export default function StudentRecords() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Student Records</h1>
-          <p className="text-gray-600 mt-1">Manage student information and profiles</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Student Records</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Manage student information and profiles</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setBulkImportOpen(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
-            <Upload className="w-4 h-4 mr-2" />
-            Bulk Import
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button onClick={() => setBulkImportOpen(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50 flex-1 sm:flex-none text-xs sm:text-sm" size="sm">
+            <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            Import
           </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button
                 onClick={() => setSelectedStudent(null)}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none text-xs sm:text-sm"
+                size="sm"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Student
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                Add<span className="hidden sm:inline"> Student</span>
               </Button>
             </DialogTrigger>
           <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto bg-white z-50 p-4 sm:p-6">
@@ -180,14 +181,14 @@ export default function StudentRecords() {
 
       {/* Search */}
       <Card className="bg-white border-0 shadow-md">
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <Input
-              placeholder="Search students by name, ID, or email..."
+              placeholder="Search students..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-9 sm:pl-10 text-sm"
             />
           </div>
         </CardContent>

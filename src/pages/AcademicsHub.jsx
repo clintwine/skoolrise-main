@@ -65,47 +65,54 @@ export default function AcademicsHub() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       <div>
-        <h1 className="text-3xl font-bold text-text">Academics Hub</h1>
-        <p className="text-text-secondary mt-1">Manage school structure, curriculum, and teacher allocations.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-text">Academics Hub</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">Manage school structure, curriculum, and teacher allocations.</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="inline-flex bg-gray-100 rounded-full p-1 gap-1">
-          <TabsTrigger value="classes" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <GraduationCap className="w-4 h-4" />
-            Classes
+        <TabsList className="flex flex-wrap bg-gray-100 rounded-xl sm:rounded-full p-1 gap-1 w-full sm:w-auto sm:inline-flex">
+          <TabsTrigger value="classes" className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-full px-2 sm:px-4 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-none justify-center">
+            <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Classes</span>
+            <span className="sm:hidden">Class</span>
           </TabsTrigger>
-          <TabsTrigger value="subjects" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <BookOpen className="w-4 h-4" />
-            Subjects
+          <TabsTrigger value="subjects" className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-full px-2 sm:px-4 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-none justify-center">
+            <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Subjects</span>
+            <span className="sm:hidden">Subj</span>
           </TabsTrigger>
-          <TabsTrigger value="allocations" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <Users className="w-4 h-4" />
-            Allocations
+          <TabsTrigger value="allocations" className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-full px-2 sm:px-4 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-none justify-center">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Allocations</span>
+            <span className="sm:hidden">Alloc</span>
           </TabsTrigger>
-          <TabsTrigger value="sessions" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <Calendar className="w-4 h-4" />
-            Sessions
+          <TabsTrigger value="sessions" className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-full px-2 sm:px-4 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-none justify-center">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Sessions</span>
+            <span className="sm:hidden">Sess</span>
           </TabsTrigger>
-          <TabsTrigger value="grading" className="flex items-center gap-2 rounded-full px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <Award className="w-4 h-4" />
-            Grading
+          <TabsTrigger value="grading" className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-full px-2 sm:px-4 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-none justify-center">
+            <Award className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Grading</span>
+            <span className="sm:hidden">Grade</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Classes Tab */}
-        <TabsContent value="classes" className="space-y-4 mt-6">
+        <TabsContent value="classes" className="space-y-4 mt-4 sm:mt-6">
           <Card className="bg-white rounded-xl shadow-sm border">
-            <CardHeader className="flex flex-row items-start justify-between pb-2">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-2">
               <div>
-                <CardTitle className="text-lg font-semibold">Class Structures</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">Define grade levels and arms (e.g., JSS1 A, JSS1 B)</p>
+                <CardTitle className="text-base sm:text-lg font-semibold">Class Structures</CardTitle>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Define grade levels and arms</p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
+                  className="text-xs sm:text-sm"
                   onClick={() => setBulkImport({
                     open: true,
                     entity: 'ClassArm',
@@ -122,12 +129,12 @@ export default function AcademicsHub() {
                     template: [{ arm_name: 'A', grade_level: 'JSS1', max_students: 40, room: '101' }]
                   })}
                 >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Bulk Import
+                  <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Bulk </span>Import
                 </Button>
-                <Button onClick={() => setClassDialog({ open: true, editing: null })} className="bg-gray-900 hover:bg-gray-800 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Class Arm
+                <Button onClick={() => setClassDialog({ open: true, editing: null })} className="bg-gray-900 hover:bg-gray-800 text-white text-xs sm:text-sm" size="sm">
+                  <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">New Class </span>Add
                 </Button>
               </div>
             </CardHeader>

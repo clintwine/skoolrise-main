@@ -142,16 +142,16 @@ export default function FeesManagement() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Input
-              placeholder="Search by student name or invoice number..."
+              placeholder="Search invoices..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
+              className="flex-1 text-sm"
             />
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -166,7 +166,7 @@ export default function FeesManagement() {
         </CardContent>
       </Card>
 
-      {/* Invoices Table */}
+      {/* Invoices - Cards on mobile, Table on desktop */}
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -174,51 +174,86 @@ export default function FeesManagement() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Invoice #</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Student</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Due Date</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Amount</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Paid</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Balance</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Status</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoice_number}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.student_name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{invoice.invoice_date}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{invoice.due_date}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">{formatAmount(invoice.total_amount)}</td>
-                      <td className="px-6 py-4 text-sm text-green-600 font-medium text-right">{formatAmount(invoice.paid_amount)}</td>
-                      <td className="px-6 py-4 text-sm text-orange-600 font-medium text-right">{formatAmount(invoice.balance)}</td>
-                      <td className="px-6 py-4 text-center">
-                        <Badge className={`${
-                          invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
-                          invoice.status === 'Partially Paid' ? 'bg-blue-100 text-blue-800' :
-                          invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {invoice.status}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
-                          <Button variant="outline" size="sm">View</Button>
-                        </Link>
-                      </td>
+            <>
+              {/* Mobile view - Cards */}
+              <div className="sm:hidden divide-y">
+                {filteredInvoices.map((invoice) => (
+                  <div key={invoice.id} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm">{invoice.student_name}</p>
+                        <p className="text-xs text-gray-500">#{invoice.invoice_number}</p>
+                      </div>
+                      <Badge className={`text-xs ${
+                        invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                        invoice.status === 'Partially Paid' ? 'bg-blue-100 text-blue-800' :
+                        invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {invoice.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-gray-600 mb-2">
+                      <span>Due: {invoice.due_date}</span>
+                      <span className="font-medium text-orange-600">{formatAmount(invoice.balance)} due</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold">{formatAmount(invoice.total_amount)}</span>
+                      <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
+                        <Button variant="outline" size="sm" className="text-xs">View</Button>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Desktop view - Table */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-900">Invoice #</th>
+                      <th className="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-900">Student</th>
+                      <th className="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-900 hidden lg:table-cell">Date</th>
+                      <th className="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-900">Due Date</th>
+                      <th className="px-4 lg:px-6 py-3 text-right text-xs font-semibold text-gray-900">Amount</th>
+                      <th className="px-4 lg:px-6 py-3 text-right text-xs font-semibold text-gray-900 hidden lg:table-cell">Paid</th>
+                      <th className="px-4 lg:px-6 py-3 text-right text-xs font-semibold text-gray-900">Balance</th>
+                      <th className="px-4 lg:px-6 py-3 text-center text-xs font-semibold text-gray-900">Status</th>
+                      <th className="px-4 lg:px-6 py-3 text-center text-xs font-semibold text-gray-900">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredInvoices.map((invoice) => (
+                      <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 lg:px-6 py-3 text-xs font-medium text-gray-900">{invoice.invoice_number}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs text-gray-900">{invoice.student_name}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs text-gray-600 hidden lg:table-cell">{invoice.invoice_date}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs text-gray-600">{invoice.due_date}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs font-medium text-gray-900 text-right">{formatAmount(invoice.total_amount)}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs text-green-600 font-medium text-right hidden lg:table-cell">{formatAmount(invoice.paid_amount)}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs text-orange-600 font-medium text-right">{formatAmount(invoice.balance)}</td>
+                        <td className="px-4 lg:px-6 py-3 text-center">
+                          <Badge className={`text-xs ${
+                            invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                            invoice.status === 'Partially Paid' ? 'bg-blue-100 text-blue-800' :
+                            invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {invoice.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 lg:px-6 py-3 text-center">
+                          <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
+                            <Button variant="outline" size="sm" className="text-xs">View</Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
