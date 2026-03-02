@@ -10,6 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileDialog from '../components/mobile/MobileDialog';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import { MobileStatCard } from '../components/mobile/MobileCard';
+import { MobileInput, MobileSelect, MobileTextarea, MobileFormActions, MobileSwitchField } from '../components/mobile/MobileForm';
 
 export default function BehaviorManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -143,6 +149,61 @@ export default function BehaviorManagement() {
     Reward: 'bg-purple-100 text-purple-800',
   };
 
+  const isMobile = useIsMobile();
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Behavior"
+          subtitle="Student behavior records"
+          onAdd={() => setIsFormOpen(true)}
+          addLabel="Record"
+          showSearch
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <MobileStatCard title="Merits" value={meritCount} icon={TrendingUp} color="green" subtitle={`${totalMeritPoints} pts`} />
+          <MobileStatCard title="Demerits" value={demeritCount} icon={TrendingDown} color="red" subtitle={`${totalDemeritPoints} pts`} />
+          <MobileStatCard title="Net" value={totalMeritPoints - totalDemeritPoints} icon={Award} color="blue" />
+        </div>
+
+        <MobileTable
+          data={filteredBehaviors}
+          emptyMessage="No behavior records found"
+          renderItem={(behavior) => (
+            <MobileTableRow
+              key={behavior.id}
+              primary={behavior.student_name}
+              secondary={behavior.description?.substring(0, 50) + (behavior.description?.length > 50 ? '...' : '')}
+              tertiary={`${behavior.teacher_name} • ${new Date(behavior.date).toLocaleDateString()}`}
+              badge={behavior.type}
+              badgeVariant={behavior.type === 'Merit' || behavior.type === 'Reward' ? 'default' : 'destructive'}
+              icon={behavior.type === 'Merit' ? TrendingUp : TrendingDown}
+            />
+          )}
+        />
+
+        <BehaviorFormDialog
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleSubmit}
+          students={students}
+          teachers={teachers}
+          classArms={classArms}
+          isMobile={true}
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -272,128 +333,195 @@ export default function BehaviorManagement() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl bg-white">
-          <DialogHeader>
-            <DialogTitle>Record Behavior Incident</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Student *</Label>
-                <Select value={formData.student_id} onValueChange={(value) => setFormData({...formData, student_id: value})} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students.map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.first_name} {student.last_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Teacher *</Label>
-                <Select value={formData.teacher_id} onValueChange={(value) => setFormData({...formData, teacher_id: value})} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select teacher" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teachers.map((teacher) => (
-                      <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.first_name} {teacher.last_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Date *</Label>
-                <Input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} required />
-              </div>
-              <div>
-                <Label>Class</Label>
-                <Select value={formData.class_id} onValueChange={(value) => setFormData({...formData, class_id: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select class (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classArms.map((arm) => (
-                      <SelectItem key={arm.id} value={arm.id}>
-                        {arm.grade_level} - {arm.arm_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Type *</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})} required>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Merit">Merit</SelectItem>
-                    <SelectItem value="Demerit">Demerit</SelectItem>
-                    <SelectItem value="Detention">Detention</SelectItem>
-                    <SelectItem value="Warning">Warning</SelectItem>
-                    <SelectItem value="Reward">Reward</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Points</Label>
-                <Input type="number" value={formData.points} onChange={(e) => setFormData({...formData, points: parseInt(e.target.value)})} />
-              </div>
-              <div>
-                <Label>Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})} required>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Academic Excellence">Academic Excellence</SelectItem>
-                    <SelectItem value="Good Conduct">Good Conduct</SelectItem>
-                    <SelectItem value="Leadership">Leadership</SelectItem>
-                    <SelectItem value="Participation">Participation</SelectItem>
-                    <SelectItem value="Disruption">Disruption</SelectItem>
-                    <SelectItem value="Tardiness">Tardiness</SelectItem>
-                    <SelectItem value="Incomplete Work">Incomplete Work</SelectItem>
-                    <SelectItem value="Disrespect">Disrespect</SelectItem>
-                    <SelectItem value="Bullying">Bullying</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Label>Description *</Label>
-                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} required />
-              </div>
-              <div className="col-span-2">
-                <Label>Action Taken</Label>
-                <Textarea value={formData.action_taken} onChange={(e) => setFormData({...formData, action_taken: e.target.value})} rows={2} />
-              </div>
-              <div className="col-span-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.parent_notified}
-                    onChange={(e) => setFormData({...formData, parent_notified: e.target.checked})}
-                    className="w-4 h-4"
-                  />
-                  <Label>Parent Notified</Label>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Record</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <BehaviorFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        students={students}
+        teachers={teachers}
+        classArms={classArms}
+        isMobile={false}
+      />
     </div>
+  );
+}
+
+function BehaviorFormDialog({ open, onOpenChange, formData, setFormData, onSubmit, students, teachers, classArms, isMobile }) {
+  const typeOptions = [
+    { value: 'Merit', label: 'Merit' },
+    { value: 'Demerit', label: 'Demerit' },
+    { value: 'Detention', label: 'Detention' },
+    { value: 'Warning', label: 'Warning' },
+    { value: 'Reward', label: 'Reward' },
+  ];
+
+  const categoryOptions = [
+    { value: 'Academic Excellence', label: 'Academic Excellence' },
+    { value: 'Good Conduct', label: 'Good Conduct' },
+    { value: 'Leadership', label: 'Leadership' },
+    { value: 'Participation', label: 'Participation' },
+    { value: 'Disruption', label: 'Disruption' },
+    { value: 'Tardiness', label: 'Tardiness' },
+    { value: 'Incomplete Work', label: 'Incomplete Work' },
+    { value: 'Disrespect', label: 'Disrespect' },
+    { value: 'Bullying', label: 'Bullying' },
+    { value: 'Other', label: 'Other' },
+  ];
+
+  const handleSubmit = (e) => {
+    e?.preventDefault?.();
+    onSubmit(e);
+  };
+
+  if (isMobile) {
+    return (
+      <MobileDialog open={open} onOpenChange={onOpenChange} title="Record Behavior">
+        <div className="space-y-4">
+          <MobileSelect
+            label="Student"
+            required
+            value={formData.student_id}
+            onValueChange={(value) => setFormData({...formData, student_id: value})}
+            placeholder="Select student"
+            options={students.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name}` }))}
+          />
+          <MobileSelect
+            label="Type"
+            required
+            value={formData.type}
+            onValueChange={(value) => setFormData({...formData, type: value})}
+            options={typeOptions}
+          />
+          <MobileSelect
+            label="Category"
+            required
+            value={formData.category}
+            onValueChange={(value) => setFormData({...formData, category: value})}
+            options={categoryOptions}
+          />
+          <MobileInput
+            label="Points"
+            type="number"
+            value={formData.points}
+            onChange={(e) => setFormData({...formData, points: parseInt(e.target.value)})}
+          />
+          <MobileTextarea
+            label="Description"
+            required
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+          />
+          <MobileSwitchField
+            label="Parent Notified"
+            checked={formData.parent_notified}
+            onCheckedChange={(checked) => setFormData({...formData, parent_notified: checked})}
+          />
+          <MobileFormActions
+            onCancel={() => onOpenChange(false)}
+            onSubmit={handleSubmit}
+            submitLabel="Save"
+          />
+        </div>
+      </MobileDialog>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl bg-white">
+        <DialogHeader>
+          <DialogTitle>Record Behavior Incident</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Student *</Label>
+              <Select value={formData.student_id} onValueChange={(value) => setFormData({...formData, student_id: value})} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select student" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.first_name} {student.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Teacher *</Label>
+              <Select value={formData.teacher_id} onValueChange={(value) => setFormData({...formData, teacher_id: value})} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select teacher" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teachers.map((teacher) => (
+                    <SelectItem key={teacher.id} value={teacher.id}>
+                      {teacher.first_name} {teacher.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Date *</Label>
+              <Input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} required />
+            </div>
+            <div>
+              <Label>Type *</Label>
+              <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})} required>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {typeOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Category *</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})} required>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Points</Label>
+              <Input type="number" value={formData.points} onChange={(e) => setFormData({...formData, points: parseInt(e.target.value)})} />
+            </div>
+            <div className="col-span-2">
+              <Label>Description *</Label>
+              <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} required />
+            </div>
+            <div className="col-span-2">
+              <Label>Action Taken</Label>
+              <Textarea value={formData.action_taken} onChange={(e) => setFormData({...formData, action_taken: e.target.value})} rows={2} />
+            </div>
+            <div className="col-span-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.parent_notified}
+                  onChange={(e) => setFormData({...formData, parent_notified: e.target.checked})}
+                  className="w-4 h-4"
+                />
+                <Label>Parent Notified</Label>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Record</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
