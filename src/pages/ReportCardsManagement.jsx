@@ -11,6 +11,10 @@ import { Search, Plus, FileText, Download, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import BulkReportCardGenerator from '../components/reports/BulkReportCardGenerator';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import MobileFilterSheet, { MobileFilterSection, MobileFilterChips } from '../components/mobile/MobileFilterSheet';
 
 export default function ReportCardsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,6 +56,71 @@ export default function ReportCardsManagement() {
 
   const currentSession = sessions.find(s => s.id === selectedSession);
 
+  const isMobile = useIsMobile();
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Report Cards"
+          subtitle="Student transcripts"
+          showSearch
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          onFilter={() => setFilterSheetOpen(true)}
+          actions={
+            <Link to={createPageUrl('CreateReportCard')}>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </Link>
+          }
+        />
+
+        <MobileTable
+          data={filteredReports}
+          loading={isLoading}
+          emptyMessage="No report cards found"
+          renderItem={(report) => (
+            <MobileTableRow
+              key={report.id}
+              primary={report.student_name}
+              secondary={`Average: ${report.average_score}% • Grade: ${report.grade}`}
+              tertiary={`Position: ${report.position || 'N/A'}`}
+              badge={report.status}
+              badgeVariant={report.status === 'Published' ? 'default' : 'secondary'}
+              icon={FileText}
+              onClick={() => window.location.href = createPageUrl(`ReportCardView?id=${report.id}`)}
+            />
+          )}
+        />
+
+        <MobileFilterSheet
+          open={filterSheetOpen}
+          onOpenChange={setFilterSheetOpen}
+          activeFiltersCount={selectedSession ? 1 : 0}
+          onReset={() => setSelectedSession('')}
+        >
+          <MobileFilterSection title="Academic Session">
+            <MobileFilterChips
+              options={[{ value: '', label: 'All' }, ...sessions.map(s => ({ value: s.id, label: s.session_name }))]}
+              value={selectedSession}
+              onChange={setSelectedSession}
+            />
+          </MobileFilterSection>
+        </MobileFilterSheet>
+
+        <BulkReportCardGenerator 
+          open={bulkGeneratorOpen} 
+          onOpenChange={setBulkGeneratorOpen} 
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

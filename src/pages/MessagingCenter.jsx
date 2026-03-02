@@ -14,9 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X, Clock, Users } from 'lucide-react';
+import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X, Clock, Users, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTabs from '../components/mobile/MobileTabs';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import MobileDialog from '../components/mobile/MobileDialog';
+import { MobileSelect, MobileInput, MobileTextarea, MobileFormActions } from '../components/mobile/MobileForm';
 
 export default function MessagingCenter() {
   const [formData, setFormData] = useState({
@@ -256,6 +262,113 @@ export default function MessagingCenter() {
     Failed: 'bg-red-100 text-red-800',
   };
 
+  const isMobile = useIsMobile();
+  const [mobileTab, setMobileTab] = useState('compose');
+  const [composeDialogOpen, setComposeDialogOpen] = useState(false);
+
+  const mobileTabs = [
+    { id: 'compose', label: 'Compose', icon: Send },
+    { id: 'history', label: 'History', icon: MessageSquare, count: notifications.length },
+  ];
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Messaging"
+          subtitle="Send notifications"
+          onAdd={() => setComposeDialogOpen(true)}
+          addLabel="New"
+        />
+
+        <MobileTabs tabs={mobileTabs} activeTab={mobileTab} onTabChange={setMobileTab} />
+
+        {mobileTab === 'compose' && (
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <MobileSelect
+                label="Recipients"
+                value={formData.recipient_type}
+                onValueChange={(value) => setFormData({ ...formData, recipient_type: value })}
+                options={[
+                  { value: 'All Parents', label: 'All Parents' },
+                  { value: 'All Students', label: 'All Students' },
+                  { value: 'All Teachers', label: 'All Teachers' },
+                  { value: 'Specific Emails', label: 'Specific Emails' },
+                ]}
+              />
+              <p className="text-xs text-gray-500">{getRecipientCount()} recipient(s)</p>
+              
+              {formData.recipient_type === 'Specific Emails' && (
+                <MobileTextarea
+                  label="Email Addresses"
+                  placeholder="Separate by commas"
+                  value={formData.specific_emails}
+                  onChange={(e) => setFormData({ ...formData, specific_emails: e.target.value })}
+                />
+              )}
+
+              <MobileSelect
+                label="Channel"
+                value={formData.channel}
+                onValueChange={(value) => setFormData({ ...formData, channel: value })}
+                options={[
+                  { value: 'Email', label: 'Email' },
+                  { value: 'SMS', label: 'SMS' },
+                  { value: 'WhatsApp', label: 'WhatsApp' },
+                ]}
+              />
+
+              <MobileInput
+                label="Subject"
+                value={formData.subject}
+                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                placeholder="Message subject"
+              />
+
+              <MobileTextarea
+                label="Message"
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                placeholder="Type your message..."
+              />
+
+              <Button
+                onClick={handleSend}
+                className="w-full bg-blue-600 hover:bg-blue-700 h-12"
+                disabled={sendMutation.isPending}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {sendMutation.isPending ? 'Sending...' : `Send to ${getRecipientCount()}`}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {mobileTab === 'history' && (
+          <MobileTable
+            data={notifications}
+            loading={isLoading}
+            emptyMessage="No messages sent yet"
+            renderItem={(notification) => (
+              <MobileTableRow
+                key={notification.id}
+                primary={notification.subject}
+                secondary={`To: ${notification.recipient_type}`}
+                tertiary={notification.sent_date ? format(new Date(notification.sent_date), 'MMM d, HH:mm') : 'Scheduled'}
+                badge={notification.status}
+                badgeVariant={notification.status === 'Sent' ? 'default' : notification.status === 'Failed' ? 'destructive' : 'secondary'}
+                icon={Mail}
+              />
+            )}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div>

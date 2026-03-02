@@ -8,9 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Plus, CheckCircle, Clock } from 'lucide-react';
+import { DollarSign, Plus, CheckCircle, Clock, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrency } from '@/components/CurrencyProvider';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import { MobileStatCard } from '../components/mobile/MobileCard';
+import MobileDialog from '../components/mobile/MobileDialog';
+import { MobileInput, MobileSelect, MobileFormActions } from '../components/mobile/MobileForm';
 
 export default function SalaryManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -67,6 +73,66 @@ export default function SalaryManagement() {
   const totalPending = salaries.filter(s => s.status === 'Pending').reduce((sum, s) => sum + s.net_salary, 0);
   const totalPaid = salaries.filter(s => s.status === 'Paid').reduce((sum, s) => sum + s.net_salary, 0);
 
+  const isMobile = useIsMobile();
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Salaries"
+          subtitle={format(new Date(selectedMonth + '-01'), 'MMMM yyyy')}
+          onAdd={() => { setEditingSalary(null); setIsFormOpen(true); }}
+          addLabel="Add"
+        />
+
+        {/* Month Selector */}
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="w-full px-4 py-3 border rounded-lg mb-4 text-base"
+        />
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <MobileStatCard title="Pending" value={formatAmount(totalPending)} icon={Clock} color="orange" />
+          <MobileStatCard title="Paid" value={formatAmount(totalPaid)} icon={CheckCircle} color="green" />
+          <MobileStatCard title="Total" value={formatAmount(totalPending + totalPaid)} icon={DollarSign} color="blue" />
+        </div>
+
+        <MobileTable
+          data={salaries}
+          emptyMessage="No salary records for this month"
+          renderItem={(salary) => (
+            <MobileTableRow
+              key={salary.id}
+              primary={salary.teacher_name}
+              secondary={`Net: ${formatAmount(salary.net_salary)}`}
+              tertiary={salary.payment_date ? `Paid: ${format(new Date(salary.payment_date), 'MMM d')}` : 'Pending'}
+              badge={salary.status}
+              badgeVariant={salary.status === 'Paid' ? 'default' : 'secondary'}
+              icon={DollarSign}
+              actions={[
+                { label: 'Edit', icon: Edit, onClick: () => { setEditingSalary(salary); setIsFormOpen(true); } },
+              ]}
+            />
+          )}
+        />
+
+        <SalaryFormDialog
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          salary={editingSalary}
+          teachers={teachers}
+          onSubmit={handleSubmit}
+          isMobile={true}
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -182,7 +248,7 @@ export default function SalaryManagement() {
   );
 }
 
-function SalaryFormDialog({ open, onOpenChange, salary, teachers, onSubmit }) {
+function SalaryFormDialog({ open, onOpenChange, salary, teachers, onSubmit, isMobile = false }) {
   const [formData, setFormData] = React.useState(salary || {
     teacher_id: '',
     teacher_name: '',
@@ -214,9 +280,60 @@ function SalaryFormDialog({ open, onOpenChange, salary, teachers, onSubmit }) {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     onSubmit(formData);
   };
+
+  if (isMobile) {
+    return (
+      <MobileDialog open={open} onOpenChange={onOpenChange} title={salary ? 'Edit Salary' : 'Add Salary'}>
+        <div className="space-y-4">
+          <MobileSelect
+            label="Teacher"
+            required
+            value={formData.teacher_id}
+            onValueChange={handleTeacherChange}
+            placeholder="Select teacher"
+            options={teachers.map(t => ({ value: t.id, label: `${t.first_name} ${t.last_name}` }))}
+          />
+          <MobileInput
+            label="Basic Salary"
+            required
+            type="number"
+            value={formData.basic_salary}
+            onChange={(e) => setFormData({ ...formData, basic_salary: parseFloat(e.target.value) })}
+          />
+          <MobileInput
+            label="Allowances"
+            type="number"
+            value={formData.allowances}
+            onChange={(e) => setFormData({ ...formData, allowances: parseFloat(e.target.value) })}
+          />
+          <MobileInput
+            label="Deductions"
+            type="number"
+            value={formData.deductions}
+            onChange={(e) => setFormData({ ...formData, deductions: parseFloat(e.target.value) })}
+          />
+          <MobileSelect
+            label="Status"
+            value={formData.status}
+            onValueChange={(value) => setFormData({ ...formData, status: value })}
+            options={[
+              { value: 'Pending', label: 'Pending' },
+              { value: 'Paid', label: 'Paid' },
+              { value: 'Cancelled', label: 'Cancelled' },
+            ]}
+          />
+          <MobileFormActions
+            onCancel={() => onOpenChange(false)}
+            onSubmit={handleSubmit}
+            submitLabel={salary ? 'Update' : 'Create'}
+          />
+        </div>
+      </MobileDialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -262,19 +379,6 @@ function SalaryFormDialog({ open, onOpenChange, salary, teachers, onSubmit }) {
             <div>
               <Label>Payment Date</Label>
               <Input type="date" value={formData.payment_date} onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })} />
-            </div>
-            <div>
-              <Label>Payment Method</Label>
-              <Select value={formData.payment_method} onValueChange={(value) => setFormData({ ...formData, payment_method: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="Cheque">Cheque</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <Label>Status</Label>
