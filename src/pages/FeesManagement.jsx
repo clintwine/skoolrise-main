@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import BulkPaymentImport from '../components/fees/BulkPaymentImport';
 import { useCurrency } from '../components/CurrencyProvider';
+import EmptyState from '../components/common/EmptyState';
 
 export default function FeesManagement() {
   const navigate = useNavigate();
@@ -43,20 +44,28 @@ export default function FeesManagement() {
     enabled: !isLoadingUser && isAuthorized,
   });
 
-  const filteredInvoices = invoices.filter(invoice => {
+  // Memoized filtered invoices
+  const filteredInvoices = useMemo(() => invoices.filter(invoice => {
     const matchesSearch = invoice.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || invoice.status === filterStatus;
     return matchesSearch && matchesStatus;
-  });
+  }), [invoices, searchTerm, filterStatus]);
 
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
-  const totalPaid = invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
-  const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
-  const overdueInvoices = invoices.filter(inv => 
-    inv.status === 'Overdue' || 
-    (inv.status === 'Partially Paid' && inv.due_date && new Date(inv.due_date) < new Date())
-  ).length;
+  // Memoized financial metrics
+  const financialMetrics = useMemo(() => ({
+    totalInvoiced: invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0),
+    totalPaid: invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0),
+    totalOutstanding: invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0),
+    overdueInvoices: invoices.filter(inv => 
+      inv.status === 'Overdue' || 
+      (inv.status === 'Partially Paid' && inv.due_date && new Date(inv.due_date) < new Date())
+    ).length
+  }), [invoices]);
+
+  const { totalInvoiced, totalPaid, totalOutstanding, overdueInvoices } = financialMetrics;
+  const isFiltered = searchTerm || filterStatus !== 'all';
+  const clearFilters = () => { setSearchTerm(''); setFilterStatus('all'); };
 
   if (isLoadingUser) {
     return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div></div>;
@@ -175,6 +184,18 @@ export default function FeesManagement() {
             </div>
           ) : (
             <>
+              {filteredInvoices.length === 0 ? (
+                <EmptyState
+                  icon={DollarSign}
+                  title="No invoices yet"
+                  description="Create your first invoice to get started."
+                  actionLabel="Create Invoice"
+                  onAction={() => navigate(createPageUrl('CreateInvoice'))}
+                  isFiltered={isFiltered}
+                  onClearFilters={clearFilters}
+                />
+              ) : (
+              <>
               {/* Mobile view - Cards */}
               <div className="sm:hidden divide-y">
                 {filteredInvoices.map((invoice) => (
@@ -253,6 +274,8 @@ export default function FeesManagement() {
                   </tbody>
                 </table>
               </div>
+              </>
+              )}
             </>
           )}
         </CardContent>

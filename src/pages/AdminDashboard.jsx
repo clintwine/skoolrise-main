@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,8 @@ import { useCurrency } from '@/components/CurrencyProvider';
 import AIInsightsWidget from '../components/dashboard/AIInsightsWidget';
 import PredictiveAlerts from '../components/dashboard/PredictiveAlerts';
 import DashboardWidgetGrid from '../components/dashboard/DashboardWidgetGrid';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { DashboardSkeleton } from '../components/SkeletonLoader';
 
 export default function AdminDashboard() {
   const { formatAmount } = useCurrency();
@@ -45,39 +47,42 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.ReportCard.list(),
   });
 
-  const activeStudents = students.filter(s => s.status === 'Active').length;
-  const activeTeachers = teachers.filter(t => t.status === 'Active').length;
-  const activeClasses = classes.filter(c => c.status === 'Active').length;
+  // Memoized calculations for performance
+  const metrics = useMemo(() => {
+    const activeStudents = students.filter(s => s.status === 'Active').length;
+    const activeTeachers = teachers.filter(t => t.status === 'Active').length;
+    const activeClasses = classes.filter(c => c.status === 'Active').length;
 
-  // Financial metrics
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
-  const totalCollected = invoices.reduce((sum, inv) => sum + ((inv.amount || 0) - (inv.balance || 0)), 0);
-  const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
+    // Financial metrics
+    const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+    const totalCollected = invoices.reduce((sum, inv) => sum + ((inv.amount || 0) - (inv.balance || 0)), 0);
+    const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
 
-  // Attendance metrics
-  const presentCount = attendance.filter(a => a.status === 'Present').length;
-  const attendanceRate = attendance.length > 0 ? ((presentCount / attendance.length) * 100).toFixed(1) : 0;
+    // Attendance metrics
+    const presentCount = attendance.filter(a => a.status === 'Present').length;
+    const attendanceRate = attendance.length > 0 ? ((presentCount / attendance.length) * 100).toFixed(1) : 0;
 
-  // Performance metrics
-  const avgScore = reportCards.length > 0 ? 
-    (reportCards.reduce((sum, rc) => sum + (rc.average_score || 0), 0) / reportCards.length).toFixed(1) : 0;
+    // Performance metrics
+    const avgScore = reportCards.length > 0 ? 
+      (reportCards.reduce((sum, rc) => sum + (rc.average_score || 0), 0) / reportCards.length).toFixed(1) : 0;
 
-  // At-risk students (simulated AI prediction)
-  const atRiskStudents = students.filter(s => {
-    const studentReports = reportCards.filter(rc => rc.student_id === s.id);
-    if (studentReports.length === 0) return false;
-    const avgPerformance = studentReports.reduce((sum, rc) => sum + (rc.average_score || 0), 0) / studentReports.length;
-    return avgPerformance < 60;
-  });
+    return {
+      activeStudents, activeTeachers, activeClasses,
+      totalInvoiced, totalCollected, totalOutstanding,
+      presentCount, attendanceRate, avgScore
+    };
+  }, [students, teachers, classes, invoices, attendance, reportCards]);
 
-  // Performance distribution
-  const performanceData = [
+  const { activeStudents, activeTeachers, activeClasses, totalInvoiced, totalCollected, totalOutstanding, presentCount, attendanceRate, avgScore } = metrics;
+
+  // Memoized performance distribution
+  const performanceData = useMemo(() => [
     { range: '90-100%', count: reportCards.filter(rc => rc.average_score >= 90).length },
     { range: '80-89%', count: reportCards.filter(rc => rc.average_score >= 80 && rc.average_score < 90).length },
     { range: '70-79%', count: reportCards.filter(rc => rc.average_score >= 70 && rc.average_score < 80).length },
     { range: '60-69%', count: reportCards.filter(rc => rc.average_score >= 60 && rc.average_score < 70).length },
     { range: 'Below 60%', count: reportCards.filter(rc => rc.average_score < 60).length },
-  ];
+  ], [reportCards]);
 
   const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -88,7 +93,14 @@ export default function AdminDashboard() {
     { title: 'Avg Performance', value: `${avgScore}%`, icon: Award, color: 'bg-orange-500', link: null, clickable: false },
   ];
 
+  const isLoading = !students.length && !teachers.length && !classes.length;
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
+    <ErrorBoundary fallbackMessage="Unable to load dashboard. Please refresh the page.">
     <DashboardWidgetGrid onLayoutChange={setWidgetLayout}>
       {({ isWidgetEnabled }) => (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
@@ -255,5 +267,6 @@ export default function AdminDashboard() {
     </div>
       )}
     </DashboardWidgetGrid>
+    </ErrorBoundary>
   );
 }

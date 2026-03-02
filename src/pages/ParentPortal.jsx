@@ -34,44 +34,57 @@ export default function ParentPortal() {
 
   const studentIds = students.map(s => s.id);
 
+  // Optimized: Fetch data for each student using server-side filtering
   const { data: invoices = [] } = useQuery({
     queryKey: ['parent-invoices', studentIds],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
-      const allInvoices = await base44.entities.FeeInvoice.list();
-      return allInvoices.filter(inv => studentIds.includes(inv.student_id));
+      const results = await Promise.all(
+        studentIds.map(id => base44.entities.FeeInvoice.filter({ student_id: id }))
+      );
+      return results.flat();
     },
     enabled: studentIds.length > 0,
+    staleTime: 30000,
   });
 
   const { data: attendance = [] } = useQuery({
     queryKey: ['parent-attendance', studentIds],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
-      const allAttendance = await base44.entities.Attendance.list();
-      return allAttendance.filter(att => studentIds.includes(att.student_id));
+      const results = await Promise.all(
+        studentIds.map(id => base44.entities.Attendance.filter({ student_id: id }, '-date', 50))
+      );
+      return results.flat();
     },
     enabled: studentIds.length > 0,
+    staleTime: 30000,
   });
 
   const { data: reportCards = [] } = useQuery({
     queryKey: ['parent-reports', studentIds],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
-      const allReports = await base44.entities.ReportCard.list();
-      return allReports.filter(rep => studentIds.includes(rep.student_id));
+      const results = await Promise.all(
+        studentIds.map(id => base44.entities.ReportCard.filter({ student_id: id }))
+      );
+      return results.flat();
     },
     enabled: studentIds.length > 0,
+    staleTime: 30000,
   });
 
   const { data: behaviors = [] } = useQuery({
     queryKey: ['parent-behaviors', studentIds],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
-      const allBehaviors = await base44.entities.Behavior.list();
-      return allBehaviors.filter(beh => studentIds.includes(beh.student_id));
+      const results = await Promise.all(
+        studentIds.map(id => base44.entities.Behavior.filter({ student_id: id }, '-date', 20))
+      );
+      return results.flat();
     },
     enabled: studentIds.length > 0,
+    staleTime: 30000,
   });
 
   const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0);
