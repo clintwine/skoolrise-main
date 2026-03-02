@@ -8,9 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Search, Upload, UserCircle, LayoutGrid, Table as TableIcon } from 'lucide-react';
+import { Plus, Edit, Search, Upload, UserCircle, LayoutGrid, Table as TableIcon, Phone, Mail, Building } from 'lucide-react';
 import BulkImportDialog from '../components/admin/BulkImportDialog';
 import { createPageUrl } from '../utils';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileDialog from '../components/mobile/MobileDialog';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import { MobileInput, MobileSelect, MobileFormActions } from '../components/mobile/MobileForm';
 
 export default function TeacherManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -68,6 +73,77 @@ export default function TeacherManagement() {
     Inactive: 'bg-gray-100 text-gray-800',
   };
 
+  const isMobile = useIsMobile();
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Teachers"
+          subtitle="Manage teaching staff"
+          onAdd={() => { setEditingTeacher(null); setIsFormOpen(true); }}
+          addLabel="Add"
+          showSearch
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search teachers..."
+        />
+
+        <MobileTable
+          data={filteredTeachers}
+          emptyMessage="No teachers found"
+          renderItem={(teacher) => (
+            <MobileTableRow
+              key={teacher.id}
+              primary={`${teacher.first_name} ${teacher.last_name}`}
+              secondary={teacher.department || 'No department'}
+              tertiary={teacher.staff_id}
+              badge={teacher.status}
+              badgeVariant={teacher.status === 'Active' ? 'default' : 'secondary'}
+              icon={UserCircle}
+              onClick={() => window.location.href = createPageUrl('UserProfile') + `?id=${teacher.user_id}&role=teacher&edit=true`}
+              actions={[
+                { label: 'Edit', icon: Edit, onClick: () => handleEdit(teacher) },
+              ]}
+            />
+          )}
+        />
+
+        <TeacherFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} teacher={editingTeacher} onSubmit={handleSubmit} isMobile={true} />
+
+        <BulkImportDialog
+          open={isImportOpen}
+          onOpenChange={setIsImportOpen}
+          entityName="Teacher"
+          entitySchema={{
+            type: "object",
+            properties: {
+              first_name: { type: "string" },
+              last_name: { type: "string" },
+              staff_id: { type: "string" },
+              email: { type: "string", format: "email" },
+              phone: { type: "string" },
+              department: { type: "string" },
+              position: { type: "string" },
+              hire_date: { type: "string" },
+              status: { type: "string" },
+            },
+            required: ["first_name", "last_name", "staff_id", "email"]
+          }}
+          templateData={[
+            { first_name: "John", last_name: "Doe", staff_id: "T001", email: "john.doe@school.com", department: "Mathematics", status: "Active" }
+          ]}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ['teachers'] });
+            setIsImportOpen(false);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -221,7 +297,7 @@ export default function TeacherManagement() {
   );
 }
 
-function TeacherFormDialog({ open, onOpenChange, teacher, onSubmit }) {
+function TeacherFormDialog({ open, onOpenChange, teacher, onSubmit, isMobile = false }) {
   const [formData, setFormData] = React.useState(teacher || {
     first_name: '',
     last_name: '',
@@ -241,17 +317,67 @@ function TeacherFormDialog({ open, onOpenChange, teacher, onSubmit }) {
   }, [teacher, open]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     onSubmit(formData);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-gray-900">{teacher ? 'Edit Teacher' : 'Add Teacher'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {isMobile ? (
+        <div className="space-y-4">
+          <MobileInput
+            label="First Name"
+            required
+            value={formData.first_name}
+            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+          />
+          <MobileInput
+            label="Last Name"
+            required
+            value={formData.last_name}
+            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+          />
+          <MobileInput
+            label="Staff ID"
+            required
+            value={formData.staff_id}
+            onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })}
+          />
+          <MobileInput
+            label="Email"
+            required
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          />
+          <MobileInput
+            label="Phone"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          />
+          <MobileInput
+            label="Department"
+            value={formData.department}
+            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+          />
+          <MobileSelect
+            label="Status"
+            value={formData.status}
+            onValueChange={(value) => setFormData({ ...formData, status: value })}
+            options={[
+              { value: 'Active', label: 'Active' },
+              { value: 'On Leave', label: 'On Leave' },
+              { value: 'Inactive', label: 'Inactive' },
+            ]}
+          />
+          <MobileFormActions
+            onCancel={() => onOpenChange(false)}
+            onSubmit={handleSubmit}
+            submitLabel={teacher ? 'Update' : 'Create'}
+          />
+        </div>
+      ) : (
+        <>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>First Name *</Label>
@@ -299,7 +425,30 @@ function TeacherFormDialog({ open, onOpenChange, teacher, onSubmit }) {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" className="bg-orange-600 hover:bg-orange-700">{teacher ? 'Update' : 'Create'}</Button>
           </div>
-        </form>
+        </>
+      )}
+    </form>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title={teacher ? 'Edit Teacher' : 'Add Teacher'}
+      >
+        {formContent}
+      </MobileDialog>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl bg-white">
+        <DialogHeader>
+          <DialogTitle className="text-gray-900">{teacher ? 'Edit Teacher' : 'Add Teacher'}</DialogTitle>
+        </DialogHeader>
+        {formContent}
       </DialogContent>
     </Dialog>
   );

@@ -6,10 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Users, Upload, Download } from 'lucide-react';
+import { Plus, Users, Upload, Download, GraduationCap } from 'lucide-react';
 import { format } from 'date-fns';
 import BulkImportDialog from '../components/admin/BulkImportDialog';
 import { toast } from 'sonner';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileDialog from '../components/mobile/MobileDialog';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import { MobileSelect, MobileFormActions } from '../components/mobile/MobileForm';
 
 export default function EnrollmentManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -60,6 +65,58 @@ export default function EnrollmentManagement() {
     Withdrawn: 'bg-gray-100 text-gray-800',
   };
 
+  const isMobile = useIsMobile();
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Enrollments"
+          subtitle="Student class enrollments"
+          onAdd={() => setIsFormOpen(true)}
+          addLabel="Enroll"
+        />
+
+        <MobileTable
+          data={enrollments}
+          emptyMessage="No enrollments found"
+          renderItem={(enrollment) => (
+            <MobileTableRow
+              key={enrollment.id}
+              primary={enrollment.student_name}
+              secondary={enrollment.class_name}
+              tertiary={enrollment.enrollment_date ? format(new Date(enrollment.enrollment_date), 'MMM d, yyyy') : 'N/A'}
+              badge={enrollment.status}
+              badgeVariant={enrollment.status === 'Enrolled' ? 'default' : 'secondary'}
+              icon={GraduationCap}
+            />
+          )}
+        />
+
+        <EnrollmentFormDialog
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          students={students}
+          classArms={classArms}
+          subjects={subjects}
+          onSubmit={handleSubmit}
+          isMobile={true}
+        />
+
+        <BulkEnrollmentImportDialog
+          open={bulkImportOpen}
+          onOpenChange={setBulkImportOpen}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+            queryClient.invalidateQueries({ queryKey: ['students'] });
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -376,7 +433,7 @@ function BulkEnrollmentImportDialog({ open, onOpenChange, onImportComplete }) {
   );
 }
 
-function EnrollmentFormDialog({ open, onOpenChange, students, classArms, subjects, onSubmit }) {
+function EnrollmentFormDialog({ open, onOpenChange, students, classArms, subjects, onSubmit, isMobile = false }) {
   const [formData, setFormData] = React.useState({
     student_id: '',
     student_name: '',
@@ -398,25 +455,39 @@ function EnrollmentFormDialog({ open, onOpenChange, students, classArms, subject
     setFormData({ ...formData, class_id: classArmId, class_name: arm ? `${arm.grade_level} - ${arm.arm_name}` : '' });
   };
 
-  const handleSubjectChange = (subjectId) => {
-    const subject = subjects.find(s => s.id === subjectId);
-    setFormData({ ...formData, subject_id: subjectId, subject_name: subject ? subject.subject_name : '' });
-  };
-
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     onSubmit(formData);
   };
 
-  const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-gray-900">Enroll Student</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {isMobile ? (
+        <div className="space-y-4">
+          <MobileSelect
+            label="Student"
+            required
+            value={formData.student_id}
+            onValueChange={handleStudentChange}
+            placeholder="Select student"
+            options={students.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name}` }))}
+          />
+          <MobileSelect
+            label="Class"
+            required
+            value={formData.class_id}
+            onValueChange={handleClassChange}
+            placeholder="Select class"
+            options={classArms.map(c => ({ value: c.id, label: `${c.grade_level} - ${c.arm_name}` }))}
+          />
+          <MobileFormActions
+            onCancel={() => onOpenChange(false)}
+            onSubmit={handleSubmit}
+            submitLabel="Enroll"
+          />
+        </div>
+      ) : (
+        <>
           <div>
             <label className="text-sm font-medium">Student *</label>
             <Select value={formData.student_id} onValueChange={handleStudentChange} required>
@@ -443,27 +514,34 @@ function EnrollmentFormDialog({ open, onOpenChange, students, classArms, subject
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <label className="text-sm font-medium">Subject (Optional - for special subjects)</label>
-            <Select value={formData.subject_id} onValueChange={handleSubjectChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select subject (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>None</SelectItem>
-                {subjects.map(s => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.subject_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Enroll</Button>
           </div>
-        </form>
+        </>
+      )}
+    </form>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Enroll Student"
+      >
+        {formContent}
+      </MobileDialog>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md bg-white">
+        <DialogHeader>
+          <DialogTitle className="text-gray-900">Enroll Student</DialogTitle>
+        </DialogHeader>
+        {formContent}
       </DialogContent>
     </Dialog>
   );
