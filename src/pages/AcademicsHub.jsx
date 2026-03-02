@@ -745,7 +745,7 @@ function ClassArmDialog({ open, editing, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{editing ? 'Edit' : 'Add'} Class Arm</DialogTitle>
         </DialogHeader>
@@ -810,7 +810,7 @@ function SubjectDialog({ open, editing, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{editing ? 'Edit' : 'Add'} Subject</DialogTitle>
         </DialogHeader>
@@ -887,7 +887,7 @@ function AllocationDialog({ open, editing, classArms, subjects, teachers, onOpen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{editing ? 'Edit' : 'Add'} Allocation</DialogTitle>
         </DialogHeader>
@@ -980,7 +980,7 @@ function SessionDialog({ open, editing, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{editing ? 'Edit' : 'Add'} Academic Session</DialogTitle>
         </DialogHeader>
@@ -1044,7 +1044,7 @@ function TermDialog({ open, editing, sessions, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{editing ? 'Edit' : 'Add'} Term</DialogTitle>
         </DialogHeader>
@@ -1129,7 +1129,7 @@ function GradeScaleDialog({ open, editing, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="w-[95vw] max-w-md bg-white p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{editing ? 'Edit' : 'Add'} Grade Scale</DialogTitle>
         </DialogHeader>
