@@ -5,10 +5,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Eye, Edit, Users, FileText } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Users, FileText, Clock, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import MobileTabs from '../components/mobile/MobileTabs';
 
 export default function ExamManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,6 +70,66 @@ export default function ExamManagement() {
     return { total: examAttempts.length, completed, inProgress };
   };
 
+  const isMobile = useIsMobile();
+
+  const statusTabs = [
+    { id: 'all', label: 'All', count: exams.length },
+    { id: 'Draft', label: 'Draft', count: exams.filter(e => e.status === 'Draft').length },
+    { id: 'Published', label: 'Published', count: exams.filter(e => e.status === 'Published').length },
+    { id: 'Active', label: 'Active', count: exams.filter(e => e.status === 'Active').length },
+    { id: 'Completed', label: 'Done', count: exams.filter(e => e.status === 'Completed').length },
+  ];
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Exams"
+          subtitle="Manage exams & grades"
+          showSearch
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          actions={
+            <Link to={createPageUrl('ExamCreator')}>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </Link>
+          }
+        />
+
+        <MobileTabs tabs={statusTabs} activeTab={filterStatus} onTabChange={setFilterStatus} />
+
+        <MobileTable
+          data={filteredExams}
+          loading={isLoading}
+          emptyMessage="No exams found"
+          renderItem={(exam) => {
+            const stats = getExamStats(exam.id);
+            return (
+              <MobileTableRow
+                key={exam.id}
+                primary={exam.title}
+                secondary={`${exam.subject} • ${exam.class_name}`}
+                tertiary={`${exam.duration_minutes} min • ${stats.total} attempts`}
+                badge={exam.status}
+                badgeVariant={exam.status === 'Active' ? 'default' : 'secondary'}
+                icon={BookOpen}
+                onClick={() => window.location.href = createPageUrl(`GradeExam?id=${exam.id}`)}
+                actions={[
+                  { label: 'Grade', icon: Eye, onClick: () => window.location.href = createPageUrl(`GradeExam?id=${exam.id}`) },
+                  { label: 'Results', icon: FileText, onClick: () => window.location.href = createPageUrl(`ExamResults?id=${exam.id}`) },
+                ]}
+              />
+            );
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

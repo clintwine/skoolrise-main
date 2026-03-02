@@ -22,6 +22,10 @@ import {
 } from '@/components/ui/select';
 import { Plus, Search, Filter, BookOpen, Edit, Trash2 } from 'lucide-react';
 import CreateQuestionDialog from '../components/CreateQuestionDialog';
+import useIsMobile from '../components/hooks/useIsMobile';
+import MobileHeader from '../components/mobile/MobileHeader';
+import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
+import MobileFilterSheet, { MobileFilterSection, MobileFilterChips } from '../components/mobile/MobileFilterSheet';
 
 export default function QuestionBank() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -92,6 +96,85 @@ export default function QuestionBank() {
     'Theory': 'bg-pink-100 text-pink-800',
   };
 
+  const isMobile = useIsMobile();
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+
+  // Mobile View
+  if (isMobile) {
+    const activeFiltersCount = (filterSubject !== 'all' ? 1 : 0) + (filterDifficulty !== 'all' ? 1 : 0);
+    
+    return (
+      <div className="p-4 pb-24">
+        <MobileHeader
+          title="Question Bank"
+          subtitle="Manage exam questions"
+          onAdd={() => { setEditingQuestion(null); setIsFormOpen(true); }}
+          addLabel="Add"
+          showSearch
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          onFilter={() => setFilterSheetOpen(true)}
+        />
+
+        <MobileTable
+          data={filteredQuestions}
+          loading={isLoading}
+          emptyMessage="No questions found"
+          renderItem={(question) => (
+            <MobileTableRow
+              key={question.id}
+              primary={question.question_text?.substring(0, 60) + (question.question_text?.length > 60 ? '...' : '')}
+              secondary={`${question.subject} • ${question.topic || 'No topic'}`}
+              tertiary={`${question.points} pts • ${question.question_type}`}
+              badge={question.difficulty}
+              badgeVariant={question.difficulty === 'Easy' ? 'default' : question.difficulty === 'Hard' ? 'destructive' : 'secondary'}
+              icon={BookOpen}
+              actions={[
+                { label: 'Edit', icon: Edit, onClick: () => { setEditingQuestion(question); setIsFormOpen(true); } },
+                { label: 'Delete', icon: Trash2, onClick: () => { if (confirm('Delete?')) deleteMutation.mutate(question.id); }, destructive: true },
+              ]}
+            />
+          )}
+        />
+
+        <MobileFilterSheet
+          open={filterSheetOpen}
+          onOpenChange={setFilterSheetOpen}
+          activeFiltersCount={activeFiltersCount}
+          onReset={() => { setFilterSubject('all'); setFilterDifficulty('all'); }}
+        >
+          <MobileFilterSection title="Subject">
+            <MobileFilterChips
+              options={[{ value: 'all', label: 'All' }, ...subjects.map(s => ({ value: s, label: s }))]}
+              value={filterSubject}
+              onChange={setFilterSubject}
+            />
+          </MobileFilterSection>
+          <MobileFilterSection title="Difficulty">
+            <MobileFilterChips
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'Easy', label: 'Easy' },
+                { value: 'Medium', label: 'Medium' },
+                { value: 'Hard', label: 'Hard' },
+              ]}
+              value={filterDifficulty}
+              onChange={setFilterDifficulty}
+            />
+          </MobileFilterSection>
+        </MobileFilterSheet>
+
+        <CreateQuestionDialog
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          question={editingQuestion}
+          onSubmit={handleSubmit}
+        />
+      </div>
+    );
+  }
+
+  // Desktop View
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
