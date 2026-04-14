@@ -28,39 +28,42 @@ export default function LandingPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const urlToken = new URLSearchParams(window.location.search).get('token');
+      const localToken = localStorage.getItem('base44_token');
+
+      if (!urlToken && !localToken) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const isAuthenticated = await base44.auth.isAuthenticated();
         if (isAuthenticated) {
           const user = await base44.auth.me();
           
-          // Check activation status
           if (!user.is_activated) {
             navigate(createPageUrl('ActivationPage'));
             return;
           }
           
-          // Check profile completion
           if (!user.profile_completed) {
             navigate(createPageUrl('ProfileSetupPage'));
             return;
           }
           
-          // Redirect to appropriate dashboard
-          const userTypes = user.user_types || [];
-          const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+          const userType = user.user_type || '';
+          const isAdmin = user.role === 'admin' || userType === 'admin';
 
           if (isAdmin) {
             navigate(createPageUrl('AdminDashboard'));
-          } else if (userTypes.includes('vendor')) {
+          } else if (userType === 'vendor') {
             navigate(createPageUrl('VendorDashboard'));
-          } else if (userTypes.includes('parent')) {
+          } else if (userType === 'parent') {
             navigate(createPageUrl('ParentPortal'));
-          } else if (userTypes.includes('student')) {
+          } else if (userType === 'student') {
             navigate(createPageUrl('StudentDashboard'));
-          } else if (userTypes.includes('teacher')) {
+          } else if (userType === 'teacher') {
             navigate(createPageUrl('TeacherDashboard'));
-          } else {
-            navigate(createPageUrl('AdminDashboard'));
           }
         }
       } catch (error) {
@@ -540,9 +543,9 @@ export default function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link to={createPageUrl('Dashboard')} className="text-gray-400 hover:text-white transition-colors">
+                  <button onClick={() => base44.auth.redirectToLogin()} className="text-gray-400 hover:text-white transition-colors">
                     Login
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>

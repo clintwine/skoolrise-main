@@ -37,15 +37,25 @@ export const AuthProvider = ({ children }) => {
         const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
         setAppPublicSettings(publicSettings);
         
-        // If we got the app public settings successfully, check if user is authenticated
+        // Only check user auth when a token exists
         if (appParams.token) {
           await checkUserAuth();
         } else {
+          setUser(null);
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
+        // Public apps can fail this endpoint without auth in preview, so fall back safely
+        if (!appParams.token) {
+          setAppPublicSettings({ id: appParams.appId, public_settings: 'public_without_login' });
+          setUser(null);
+          setIsLoadingPublicSettings(false);
+          setIsLoadingAuth(false);
+          setIsAuthenticated(false);
+          return;
+        }
         console.error('App state check failed:', appError);
         
         // Handle app-level errors
