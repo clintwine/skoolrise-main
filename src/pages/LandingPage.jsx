@@ -15,11 +15,17 @@ import {
   BarChart3,
   Calendar,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Shield,
+  MessageSquare,
+  GraduationCap,
+  ClipboardList,
+  Trophy
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
+import SchoolInquiryDialog from '@/components/landing/SchoolInquiryDialog';
 
 function getDashboardUrl(currentUser) {
   const userType = currentUser.user_type || '';
@@ -35,6 +41,7 @@ function getDashboardUrl(currentUser) {
 export default function LandingPage() {
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,23 +88,43 @@ export default function LandingPage() {
   const features = [
     {
       icon: DollarSign,
-      title: "Fees & Revenue Control",
-      description: "Track every payment, partial payment, and outstanding balance effortlessly.",
+      title: "Fees, invoices and instalments",
+      description: "Run fee collection with invoices, instalment plans, reminders, payment tracking and clear outstanding balances."
     },
     {
       icon: FileText,
-      title: "Smart Results Management",
-      description: "Generate professional report cards and results in minutes, not days.",
+      title: "Report cards and academic records",
+      description: "Generate polished report cards, manage grades, and keep complete student records across terms and sessions."
     },
     {
-      icon: Bell,
-      title: "Automated Notifications",
-      description: "Keep parents informed with SMS alerts for results, payments, and updates.",
+      icon: ClipboardList,
+      title: "Assignments, tests and exams",
+      description: "Create assignments, question banks, online tests, exam workflows and grading from one place."
     },
     {
-      icon: Calendar,
-      title: "Complete Records",
-      description: "Maintain accurate history across sessions, terms, and years.",
+      icon: MessageSquare,
+      title: "Parent communication",
+      description: "Keep families informed with messaging, notifications, attendance updates and school-wide communication tools."
+    },
+    {
+      icon: GraduationCap,
+      title: "Teacher and class management",
+      description: "Manage teachers, subject allocations, classes, attendance, timetables and classroom resources."
+    },
+    {
+      icon: Trophy,
+      title: "Behavior, rewards and engagement",
+      description: "Track behavior, points, leaderboards, achievements and student motivation in one connected system."
+    },
+    {
+      icon: BarChart3,
+      title: "Reports and analytics",
+      description: "See performance, finance and operational insights with dashboards, scheduled reports and analytics."
+    },
+    {
+      icon: Shield,
+      title: "Security and audit trails",
+      description: "Protect your school with permissions, session controls, audit logs and security settings built in."
     }
   ];
 
@@ -135,9 +162,36 @@ export default function LandingPage() {
     "Manual calculations",
     "Late reports",
     "Poor communication",
-    "Lost files",
+    "Scattered data",
     "Parent complaints",
     "Staff overwhelm"
+  ];
+
+  const featureGaps = [
+    {
+      title: 'Automated parent outreach hub',
+      description: 'Add stronger multi-channel communication with scheduled SMS, email campaigns, payment reminders, and urgent alert workflows to improve parent response rates and reduce admin follow-up.'
+    },
+    {
+      title: 'Predictive student risk alerts',
+      description: 'Use attendance, grades, behavior and fee signals to flag students needing intervention early, helping school leaders act before performance or retention drops.'
+    },
+    {
+      title: 'Branch and multi-campus control',
+      description: 'Expand the system for school groups with branch-level reporting, centralized oversight, and branch-specific settings so growing schools can scale cleanly.'
+    },
+    {
+      title: 'Admissions and conversion pipeline',
+      description: 'Turn inquiries and applicants into enrolled students with a complete admissions CRM that tracks stages, interviews, follow-ups and conversion performance.'
+    },
+    {
+      title: 'Deeper finance automation',
+      description: 'Add richer reconciliation, payment gateway sync, cashier workflows and finance exports to make SkoolRise stronger for bursars and owners.'
+    },
+    {
+      title: 'Executive intelligence dashboard',
+      description: 'Create a leadership cockpit for school owners with rollup KPIs, branch comparisons, churn risk, collection forecasts and academic trend summaries.'
+    }
   ];
 
   // Show a loading spinner while checking auth to prevent flash of landing page
@@ -175,9 +229,7 @@ export default function LandingPage() {
               >
                 Login
               </Button>
-              <Link to={createPageUrl('PublicApplicationForm')}>
-                <Button className="bg-black hover:bg-gray-800 text-white">Get Started</Button>
-              </Link>
+              <Button className="bg-black hover:bg-gray-800 text-white" onClick={() => setInquiryOpen(true)}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -200,12 +252,13 @@ export default function LandingPage() {
             Take full control of fees, records, results, and communication. Built specifically for Nigerian school owners.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <Link to={createPageUrl('PublicApplicationForm')}>
-              <Button size="lg" className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full">
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <Button size="lg" className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
+              Start Free Trial
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full border-gray-300" onClick={() => setInquiryOpen(true)}>
+              Book a Demo
+            </Button>
           </div>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
             <div className="flex -space-x-2">
@@ -334,6 +387,26 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white/70 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <Badge className="mb-4 bg-orange-100 text-orange-700 border-0">What makes this a top-tier platform</Badge>
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">High-impact upgrades to become top 5%</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">SkoolRise already has a strong foundation. These are the next strategic features that would make it exceptional in its niche.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featureGaps.map((item, index) => (
+              <Card key={index} className="border-2 border-gray-200 hover:shadow-lg transition-all">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">{item.title}</h3>
+                  <p className="text-sm text-gray-600 leading-6">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Wave Goodbye Section */}
       <section className="py-20 bg-black text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -417,9 +490,7 @@ export default function LandingPage() {
                     <span className="text-sm text-gray-700">Email support</span>
                   </li>
                 </ul>
-                <Link to={createPageUrl('PublicApplicationForm')}>
-                  <Button variant="outline" className="w-full">Get Started</Button>
-                </Link>
+                <Button variant="outline" className="w-full" onClick={() => setInquiryOpen(true)}>Get Started</Button>
               </CardContent>
             </Card>
 
@@ -452,9 +523,7 @@ export default function LandingPage() {
                     <span className="text-sm text-gray-700">Priority support</span>
                   </li>
                 </ul>
-                <Link to={createPageUrl('PublicApplicationForm')}>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">Start Free Trial</Button>
-                </Link>
+                <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => setInquiryOpen(true)}>Start Free Trial</Button>
               </CardContent>
             </Card>
 
@@ -483,9 +552,7 @@ export default function LandingPage() {
                     <span className="text-sm text-gray-700">Custom integrations</span>
                   </li>
                 </ul>
-                <Link to={createPageUrl('PublicApplicationForm')}>
-                  <Button variant="outline" className="w-full">Contact Sales</Button>
-                </Link>
+                <Button variant="outline" className="w-full" onClick={() => setInquiryOpen(true)}>Contact Sales</Button>
               </CardContent>
             </Card>
           </div>
@@ -503,12 +570,10 @@ export default function LandingPage() {
               Join hundreds of Nigerian schools saving time and earning parent trust
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to={createPageUrl('PublicApplicationForm')}>
-                <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg rounded-full">
-                  Start Free Trial
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
             </div>
             <p className="text-sm text-white/80 mt-6">
               ✓ No credit card required  ✓ Setup in 15 minutes  ✓ Cancel anytime
@@ -542,9 +607,9 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link to={createPageUrl('PublicApplicationForm')} className="text-gray-400 hover:text-white transition-colors">
+                  <button onClick={() => setInquiryOpen(true)} className="text-gray-400 hover:text-white transition-colors">
                     Apply Now
-                  </Link>
+                  </button>
                 </li>
                 <li>
                   <button onClick={() => base44.auth.redirectToLogin(window.location.origin + '/LandingPage')} className="text-gray-400 hover:text-white transition-colors">
@@ -576,6 +641,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <SchoolInquiryDialog open={inquiryOpen} onOpenChange={setInquiryOpen} />
 
       <style>{`
         @keyframes scroll {

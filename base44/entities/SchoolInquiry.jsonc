@@ -1,0 +1,96 @@
+{
+  "name": "SchoolInquiry",
+  "type": "object",
+  "properties": {
+    "contact_name": {
+      "type": "string",
+      "description": "Full name of the person making the inquiry"
+    },
+    "email": {
+      "type": "string",
+      "description": "Work email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "school_name": {
+      "type": "string",
+      "description": "Name of the school"
+    },
+    "school_type": {
+      "type": "string",
+      "enum": [
+        "Primary",
+        "Secondary",
+        "Mixed",
+        "Nursery",
+        "College",
+        "Other"
+      ],
+      "description": "Type of school"
+    },
+    "student_count_range": {
+      "type": "string",
+      "enum": [
+        "1-100",
+        "101-300",
+        "301-700",
+        "701-1500",
+        "1500+"
+      ],
+      "description": "Approximate student count"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Owner",
+        "Administrator",
+        "Principal",
+        "Head Teacher",
+        "Bursar",
+        "ICT Lead",
+        "Other"
+      ],
+      "description": "Role of the contact"
+    },
+    "primary_goal": {
+      "type": "string",
+      "enum": [
+        "Improve fee collection",
+        "Automate report cards",
+        "Manage assignments and exams",
+        "Parent communication",
+        "Attendance and behavior tracking",
+        "Full school digitization"
+      ],
+      "description": "Main reason for interest"
+    },
+    "current_tools": {
+      "type": "string",
+      "description": "Current system or tools being used"
+    },
+    "go_live_timeline": {
+      "type": "string",
+      "enum": [
+        "Immediately",
+        "Within 30 days",
+        "1-3 months",
+        "Just exploring"
+      ],
+      "description": "When the school wants to start"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Extra notes or requirements"
+    }
+  },
+  "required": [
+    "contact_name",
+    "email",
+    "phone",
+    "school_name",
+    "student_count_range",
+    "primary_goal"
+  ]
+}
