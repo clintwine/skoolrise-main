@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import NotificationsSettings from './NotificationsSettings';
 import BackupSettings from './BackupSettings';
 import AuditLogs from './AuditLogs';
+import WorkflowRulesPanel from '../components/settings/WorkflowRulesPanel';
 
 function AuditLogsContent() {
   return <AuditLogs />;
@@ -42,6 +43,7 @@ export default function SettingsHub() {
     { id: 'general', label: 'General', icon: Settings },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
+    { id: 'workflow', label: 'Workflow Rules', icon: Users },
     { id: 'backup', label: 'Backup & Restore', icon: HardDrive },
     { id: 'audit', label: 'Audit Logs', icon: Database },
     { id: 'demo', label: 'Demo Data', icon: Database },
@@ -97,6 +99,7 @@ export default function SettingsHub() {
             {activeTab === 'general' && <GeneralSettingsContent />}
             {activeTab === 'notifications' && <NotificationsSettings />}
             {activeTab === 'security' && <SecuritySettingsContent />}
+            {activeTab === 'workflow' && <WorkflowRulesContent />}
             {activeTab === 'backup' && <BackupSettings />}
             {activeTab === 'audit' && <AuditLogsContent />}
             {activeTab === 'demo' && <DemoDataSettings />}
@@ -288,6 +291,63 @@ function SecuritySettingsContent() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function WorkflowRulesContent() {
+  const queryClient = useQueryClient();
+  const [rules, setRules] = useState([]);
+
+  const { data: school } = useQuery({
+    queryKey: ['school-workflow-rules'],
+    queryFn: async () => {
+      const schools = await base44.entities.School.list();
+      return schools[0];
+    },
+  });
+
+  useEffect(() => {
+    if (school?.workflow_rules) {
+      setRules(JSON.parse(school.workflow_rules));
+    }
+  }, [school]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (school?.id) {
+        await base44.entities.School.update(school.id, { workflow_rules: JSON.stringify(rules) });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-workflow-rules'] });
+      toast.success('Workflow rules saved successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to save workflow rules: ' + error.message);
+    },
+  });
+
+  const addRule = () => {
+    setRules((prev) => [...prev, { name: '', area: 'fees', trigger: 'record_created', action: 'notify_admin' }]);
+  };
+
+  const updateRule = (index, field, value) => {
+    setRules((prev) => prev.map((rule, i) => (i === index ? { ...rule, [field]: value } : rule)));
+  };
+
+  const deleteRule = (index) => {
+    setRules((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <WorkflowRulesPanel
+      rules={rules}
+      onAddRule={addRule}
+      onUpdateRule={updateRule}
+      onDeleteRule={deleteRule}
+      onSave={() => saveMutation.mutate()}
+      saving={saveMutation.isPending}
+    />
   );
 }
 

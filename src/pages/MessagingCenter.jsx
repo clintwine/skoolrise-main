@@ -293,6 +293,7 @@ export default function MessagingCenter() {
         ...prev,
         subject: shouldUpdateSubject ? template.subject : prev.subject,
         message: shouldUpdateMessage ? template.message : prev.message,
+        priority: template.priority || prev.priority,
       };
     });
   }, [formData.template_type]);
@@ -539,6 +540,8 @@ export default function MessagingCenter() {
                       <SelectItem value="Emergency Alert">Emergency Alert</SelectItem>
                       <SelectItem value="Fee Reminder">Fee Reminder</SelectItem>
                       <SelectItem value="Attendance Notice">Attendance Notice</SelectItem>
+                      <SelectItem value="Fee Overdue Alert">Fee Overdue Alert</SelectItem>
+                      <SelectItem value="Event Reminder">Event Reminder</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
