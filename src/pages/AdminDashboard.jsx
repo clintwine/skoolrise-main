@@ -11,6 +11,7 @@ import AIInsightsWidget from '../components/dashboard/AIInsightsWidget';
 import PredictiveAlerts from '../components/dashboard/PredictiveAlerts';
 import DashboardWidgetGrid from '../components/dashboard/DashboardWidgetGrid';
 import AcademicRiskBoard from '../components/analytics/AcademicRiskBoard';
+import RiskSummaryCards from '../components/analytics/RiskSummaryCards';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { DashboardSkeleton } from '../components/SkeletonLoader';
 import ImplementationPriorityBoard from '../components/admin/ImplementationPriorityBoard';
@@ -123,10 +124,24 @@ export default function AdminDashboard() {
       if (riskSignals === 0) return null;
 
       const reasonParts = [];
-      if (attendanceRate < 75) reasonParts.push('low attendance');
-      if (averageScore < 60) reasonParts.push('low academic performance');
-      if (outstandingBalance > 0) reasonParts.push('fee balance outstanding');
-      if (negativeBehaviorCount >= 3) reasonParts.push('repeat behavior incidents');
+      const recommendedActions = [];
+
+      if (attendanceRate < 75) {
+        reasonParts.push('low attendance');
+        recommendedActions.push('Contact parent about attendance');
+      }
+      if (averageScore < 60) {
+        reasonParts.push('low academic performance');
+        recommendedActions.push('Schedule academic intervention');
+      }
+      if (outstandingBalance > 0) {
+        reasonParts.push('fee balance outstanding');
+        recommendedActions.push('Send fee reminder');
+      }
+      if (negativeBehaviorCount >= 3) {
+        reasonParts.push('repeat behavior incidents');
+        recommendedActions.push('Book behavior follow-up');
+      }
 
       return {
         id: student.id,
@@ -136,9 +151,17 @@ export default function AdminDashboard() {
         outstandingBalance: formatAmount(outstandingBalance),
         riskLevel: riskSignals >= 3 ? 'High' : 'Medium',
         reason: reasonParts.join(', '),
+        riskSignals,
+        recommendedAction: recommendedActions[0],
       };
     }).filter(Boolean).sort((a, b) => (a.riskLevel === 'High' ? -1 : 1)).slice(0, 6);
   }, [students, attendance, reportCards, invoices, behaviors, formatAmount]);
+
+  const riskStats = {
+    total: academicRiskStudents.length,
+    high: academicRiskStudents.filter((student) => student.riskLevel === 'High').length,
+    medium: academicRiskStudents.filter((student) => student.riskLevel === 'Medium').length,
+  };
 
   const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -294,7 +317,10 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <AcademicRiskBoard students={academicRiskStudents} />
+      <div className="space-y-4">
+        <RiskSummaryCards stats={riskStats} />
+        <AcademicRiskBoard students={academicRiskStudents} />
+      </div>
 
       <ImplementationPriorityBoard epics={implementationEpics.slice(0, 6)} />
 
