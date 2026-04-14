@@ -14,7 +14,6 @@ import CurriculumStats from '../components/curriculum/CurriculumStats';
 export default function CurriculumMapping() {
   const [showStandardForm, setShowStandardForm] = useState(false);
   const [showMappingForm, setShowMappingForm] = useState(false);
-  const [editingStandard, setEditingStandard] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedGrade, setSelectedGrade] = useState('all');
   
