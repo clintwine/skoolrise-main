@@ -18,6 +18,7 @@ import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X, Clock, U
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import MessageSummaryCards from '../components/messaging/MessageSummaryCards';
+import MessageHistoryItem from '../components/messaging/MessageHistoryItem';
 import { MESSAGE_TEMPLATES } from '../components/messaging/messageTemplates';
 import useIsMobile from '../components/hooks/useIsMobile';
 import MobileHeader from '../components/mobile/MobileHeader';
@@ -40,6 +41,7 @@ export default function MessagingCenter() {
   });
 
   const [attachments, setAttachments] = useState([]);
+  const [expandedHistoryId, setExpandedHistoryId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading } = useQuery({
@@ -221,9 +223,20 @@ export default function MessagingCenter() {
         status: isScheduled ? 'Scheduled' : 'Sending',
         delivery_count: 0,
         failure_count: 0,
+        recipient_count: sendableTargets.length,
+        delivery_details: JSON.stringify([]),
       });
 
       if (isScheduled) {
+        await base44.entities.Notification.update(notification.id, {
+          delivery_details: JSON.stringify(sendableTargets.map((target) => ({
+            name: target.name,
+            destination: data.channel === 'Email' ? target.email : target.phone,
+            channel: data.channel,
+            status: 'scheduled',
+            timestamp: data.scheduled_date,
+          }))),
+        });
         return { notification, scheduled: true, count: sendableTargets.length };
       }
 
@@ -352,12 +365,8 @@ export default function MessagingCenter() {
     return !!target.email || !!target.phone;
   }).length;
 
-  const statusColors = {
-    Draft: 'bg-gray-100 text-gray-800',
-    Scheduled: 'bg-blue-100 text-blue-800',
-    Sending: 'bg-yellow-100 text-yellow-800',
-    Sent: 'bg-green-100 text-green-800',
-    Failed: 'bg-red-100 text-red-800',
+  const toggleHistoryDetails = (notificationId) => {
+    setExpandedHistoryId((current) => current === notificationId ? null : notificationId);
   };
 
   const messageStats = {
@@ -731,46 +740,12 @@ export default function MessagingCenter() {
             ) : (
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-start justify-between mb-2 gap-3">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{notification.subject}</h4>
-                        <p className="text-sm text-gray-600">To: {notification.recipient_type}</p>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {notification.template_type && <Badge variant="outline">{notification.template_type}</Badge>}
-                          {notification.priority && <Badge className={notification.priority === 'Critical' ? 'bg-red-100 text-red-700' : notification.priority === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}>{notification.priority}</Badge>}
-                        </div>
-                      </div>
-                      <Badge className={statusColors[notification.status]}>
-                        {notification.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{notification.message}</p>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        {notification.channel}
-                        {notification.sent_date && (
-                          <span className="ml-2">
-                            {format(new Date(notification.sent_date), 'MMM d, HH:mm')}
-                          </span>
-                        )}
-                      </span>
-                      <span className="flex items-center gap-2">
-                        {notification.delivery_count > 0 && (
-                          <span className="flex items-center gap-1 text-green-600">
-                            <CheckCircle className="w-3 h-3" />
-                            {notification.delivery_count}
-                          </span>
-                        )}
-                        {notification.failure_count > 0 && (
-                          <span className="flex items-center gap-1 text-red-600">
-                            <XCircle className="w-3 h-3" />
-                            {notification.failure_count}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
+                  <MessageHistoryItem
+                    key={notification.id}
+                    notification={notification}
+                    showDetails={expandedHistoryId === notification.id}
+                    onToggleDetails={toggleHistoryDetails}
+                  />
                 ))}
               </div>
             )}
