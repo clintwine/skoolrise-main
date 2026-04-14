@@ -32,15 +32,25 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
+
+      const storedToken = typeof window !== 'undefined' ? window.localStorage?.getItem('base44_access_token') : null;
+      const activeToken = appParams.token || storedToken;
+
+      if (!activeToken) {
+        setAppPublicSettings({ id: appParams.appId, public_settings: 'public_without_login' });
+        setUser(null);
+        setIsAuthenticated(false);
+        setIsLoadingAuth(false);
+        setIsLoadingPublicSettings(false);
+        return;
+      }
       
-      // First, check app public settings (with token if available)
-      // This will tell us if auth is required, user not registered, etc.
       const appClient = createAxiosClient({
         baseURL: `/api/apps/public`,
         headers: {
           'X-App-Id': appParams.appId
         },
-        token: appParams.token, // Include token if available
+        token: activeToken,
         interceptResponses: true
       });
       
@@ -48,14 +58,7 @@ export const AuthProvider = ({ children }) => {
         const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
         setAppPublicSettings(publicSettings);
         
-        // Only check user auth when a token exists
-        if (appParams.token) {
-          await checkUserAuth();
-        } else {
-          setUser(null);
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-        }
+        await checkUserAuth(activeToken);
         setIsLoadingPublicSettings(false);
       } catch (appError) {
         const isAuthRequiredError = appError?.status === 422 && appError?.message?.includes('Authentication required');
@@ -110,9 +113,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const checkUserAuth = async () => {
+  const checkUserAuth = async (activeToken) => {
     try {
-      // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
