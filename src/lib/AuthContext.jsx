@@ -14,6 +14,17 @@ export const AuthProvider = ({ children }) => {
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
 
   useEffect(() => {
+    const hasToken = appParams.token || (typeof window !== 'undefined' && window.localStorage?.getItem('base44_access_token'));
+
+    if (!hasToken) {
+      setAppPublicSettings({ id: appParams.appId, public_settings: 'public_without_login' });
+      setUser(null);
+      setIsAuthenticated(false);
+      setIsLoadingAuth(false);
+      setIsLoadingPublicSettings(false);
+      return;
+    }
+
     checkAppState();
   }, []);
 

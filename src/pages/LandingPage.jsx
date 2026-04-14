@@ -28,8 +28,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const urlToken = new URLSearchParams(window.location.search).get('token');
-      const localToken = localStorage.getItem('base44_token');
+      const urlToken = new URLSearchParams(window.location.search).get('access_token');
+      const localToken = localStorage.getItem('base44_access_token');
 
       if (!urlToken && !localToken) {
         setLoading(false);
