@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import ResourceFilters from '../components/resources/ResourceFilters';
+import ResourceVersionBadge from '../components/resources/ResourceVersionBadge';
 import { Plus, FileText, Link as LinkIcon, Download, Trash2, Share2, Users, GraduationCap, ExternalLink } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -18,6 +20,8 @@ export default function ClassroomResources() {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [resourceData, setResourceData] = useState({
     title: '',
     description: '',
@@ -145,7 +149,8 @@ export default function ClassroomResources() {
       teacher_id: teacherProfile?.id || '',
       shared_with_teachers: false,
       shared_with_students: false,
-      shared_class_ids: ''
+      shared_class_ids: '',
+      version_number: 1,
     });
   };
 
@@ -186,6 +191,16 @@ export default function ClassroomResources() {
     }
   };
 
+  const filteredMyResources = useMemo(() => {
+    return myResources.filter((resource) => {
+      const matchesSearch = !search || [resource.title, resource.description, resource.subject, resource.grade_level]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(search.toLowerCase()));
+      const matchesType = typeFilter === 'all' || resource.resource_type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [myResources, search, typeFilter]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -203,8 +218,14 @@ export default function ClassroomResources() {
         <CardHeader>
           <CardTitle>My Resources</CardTitle>
         </CardHeader>
-        <CardContent>
-          {myResources.length === 0 ? (
+        <CardContent className="space-y-4">
+          <ResourceFilters
+            search={search}
+            onSearchChange={setSearch}
+            type={typeFilter}
+            onTypeChange={setTypeFilter}
+          />
+          {filteredMyResources.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No resources yet. Click "Add Resource" to upload teaching materials.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -240,6 +261,19 @@ export default function ClassroomResources() {
                     >
                       <ExternalLink className="w-3 h-3 mr-1" />
                       Open
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        updateResourceMutation.mutate({
+                          id: resource.id,
+                          data: { version_number: (resource.version_number || 1) + 1 }
+                        });
+                      }}
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      New Version
                     </Button>
                     <Button
                       size="sm"
