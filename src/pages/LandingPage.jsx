@@ -387,26 +387,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white/70 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <Badge className="mb-4 bg-orange-100 text-orange-700 border-0">What makes this a top-tier platform</Badge>
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">High-impact upgrades to become top 5%</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">SkoolRise already has a strong foundation. These are the next strategic features that would make it exceptional in its niche.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featureGaps.map((item, index) => (
-              <Card key={index} className="border-2 border-gray-200 hover:shadow-lg transition-all">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-6">{item.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Wave Goodbye Section */}
       <section className="py-20 bg-black text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
