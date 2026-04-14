@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +40,6 @@ export default function MessagingCenter() {
   });
 
   const [attachments, setAttachments] = useState([]);
-  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading } = useQuery({
@@ -81,57 +80,129 @@ export default function MessagingCenter() {
     queryFn: () => base44.auth.me(),
   });
 
-  const getRecipientEmails = (type, classId, contactListId, specificEmails) => {
-    const emails = [];
-    
+  const getRecipientTargets = (type, classId, contactListId, specificEmails) => {
+    const targets = [];
+
     if (type === 'Specific Emails') {
-      return specificEmails.split(',').map(e => e.trim()).filter(Boolean);
-    } else if (type === 'All Parents') {
-      students.forEach(s => {
-        if (s.parent_email) emails.push(s.parent_email);
+      return specificEmails
+        .split(',')
+        .map((email) => email.trim())
+        .filter(Boolean)
+        .map((email) => ({ email, phone: null, name: email }));
+    }
+
+    if (type === 'All Parents') {
+      students.forEach((student) => {
+        if (student.parent_email || student.parent_phone) {
+          targets.push({
+            email: student.parent_email || null,
+            phone: student.parent_phone || null,
+            name: `${student.first_name || ''} ${student.last_name || ''}`.trim() || student.student_id_number || 'Parent'
+          });
+        }
       });
-    } else if (type === 'All Teachers') {
-      teachers.forEach(t => {
-        if (t.email) emails.push(t.email);
+    }
+
+    if (type === 'All Teachers') {
+      teachers.forEach((teacher) => {
+        if (teacher.email || teacher.phone) {
+          targets.push({
+            email: teacher.email || null,
+            phone: teacher.phone || null,
+            name: `${teacher.first_name || ''} ${teacher.last_name || ''}`.trim() || teacher.staff_id || 'Teacher'
+          });
+        }
       });
-    } else if (type === 'All Students') {
-      students.forEach(s => {
-        if (s.email) emails.push(s.email);
+    }
+
+    if (type === 'All Students') {
+      students.forEach((student) => {
+        if (student.email || student.phone) {
+          targets.push({
+            email: student.email || null,
+            phone: student.phone || null,
+            name: `${student.first_name || ''} ${student.last_name || ''}`.trim() || student.student_id_number || 'Student'
+          });
+        }
       });
-    } else if (type === 'Specific Class' && classId) {
-      const arm = classArms.find(a => a.id === classId);
+    }
+
+    if (type === 'Specific Class' && classId) {
+      const arm = classArms.find((item) => item.id === classId);
       if (arm) {
-        students.filter(s => s.grade_level === arm.grade_level).forEach(s => {
-          if (s.parent_email) emails.push(s.parent_email);
-        });
-      }
-    } else if (type === 'Custom List' && contactListId) {
-      const list = contactLists.find(cl => cl.id === contactListId);
-      if (list?.contact_ids) {
-        const contactIds = list.contact_ids.split(',').map((item) => item.trim()).filter(Boolean);
-        students.filter((student) => contactIds.includes(student.id)).forEach((student) => {
-          if (student.parent_email) emails.push(student.parent_email);
-        });
-        teachers.filter((teacher) => contactIds.includes(teacher.id) && teacher.email).forEach((teacher) => {
-          emails.push(teacher.email);
-        });
+        students
+          .filter((student) => student.grade_level === arm.grade_level)
+          .forEach((student) => {
+            if (student.parent_email || student.parent_phone) {
+              targets.push({
+                email: student.parent_email || null,
+                phone: student.parent_phone || null,
+                name: `${student.first_name || ''} ${student.last_name || ''}`.trim() || student.student_id_number || 'Parent'
+              });
+            }
+          });
       }
     }
-    
-    return [...new Set(emails)];
+
+    if (type === 'Custom List' && contactListId) {
+      const list = contactLists.find((item) => item.id === contactListId);
+      if (list?.contact_ids) {
+        const contactIds = list.contact_ids.split(',').map((item) => item.trim()).filter(Boolean);
+        students
+          .filter((student) => contactIds.includes(student.id))
+          .forEach((student) => {
+            if (student.parent_email || student.parent_phone) {
+              targets.push({
+                email: student.parent_email || null,
+                phone: student.parent_phone || null,
+                name: `${student.first_name || ''} ${student.last_name || ''}`.trim() || student.student_id_number || 'Parent'
+              });
+            }
+          });
+        teachers
+          .filter((teacher) => contactIds.includes(teacher.id))
+          .forEach((teacher) => {
+            if (teacher.email || teacher.phone) {
+              targets.push({
+                email: teacher.email || null,
+                phone: teacher.phone || null,
+                name: `${teacher.first_name || ''} ${teacher.last_name || ''}`.trim() || teacher.staff_id || 'Teacher'
+              });
+            }
+          });
+      }
+    }
+
+    const uniqueTargets = [];
+    const seen = new Set();
+
+    targets.forEach((target) => {
+      const key = `${target.email || ''}-${target.phone || ''}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueTargets.push(target);
+      }
+    });
+
+    return uniqueTargets;
   };
 
   const sendMutation = useMutation({
     mutationFn: async (data) => {
       const isScheduled = data.scheduled_date && new Date(data.scheduled_date) > new Date();
-      const recipientEmails = getRecipientEmails(
-        data.recipient_type, 
-        data.recipient_ids, 
-        data.contact_list_id, 
+      const recipientTargets = getRecipientTargets(
+        data.recipient_type,
+        data.recipient_ids,
+        data.contact_list_id,
         data.specific_emails
       );
+      const sendableTargets = recipientTargets.filter((target) => {
+        if (data.channel === 'Email') return !!target.email;
+        if (data.channel === 'SMS' || data.channel === 'WhatsApp') return !!target.phone;
+        return !!target.email || !!target.phone;
+      });
 
-      if (recipientEmails.length === 0) {
+      if (sendableTargets.length === 0) {
         throw new Error('No recipients found for the selected criteria');
       }
 
@@ -153,39 +224,55 @@ export default function MessagingCenter() {
       });
 
       if (isScheduled) {
-        return { notification, scheduled: true, count: recipientEmails.length };
+        return { notification, scheduled: true, count: sendableTargets.length };
       }
 
-      // Send emails
       let successCount = 0;
       let failureCount = 0;
       const deliveryDetails = [];
 
-      for (const email of recipientEmails) {
+      for (const target of sendableTargets) {
+        const destination = data.channel === 'Email' ? target.email : target.phone;
         try {
-          await base44.integrations.Core.SendEmail({
-            to: email,
-            subject: data.subject,
-            body: data.message,
-            from_name: school?.school_name || 'SkoolRise',
-          });
+          if (data.channel === 'Email') {
+            await base44.integrations.Core.SendEmail({
+              to: target.email,
+              subject: data.subject,
+              body: data.message,
+              from_name: school?.school_name || 'SkoolRise',
+            });
+          }
+
           successCount++;
-          deliveryDetails.push({ email, status: 'sent', timestamp: new Date().toISOString() });
+          deliveryDetails.push({
+            name: target.name,
+            destination,
+            channel: data.channel,
+            status: data.channel === 'Email' ? 'sent' : 'queued',
+            timestamp: new Date().toISOString()
+          });
         } catch (error) {
           failureCount++;
-          deliveryDetails.push({ email, status: 'failed', error: error.message, timestamp: new Date().toISOString() });
+          deliveryDetails.push({
+            name: target.name,
+            destination,
+            channel: data.channel,
+            status: 'failed',
+            error: error.message,
+            timestamp: new Date().toISOString()
+          });
         }
       }
 
       // Update notification with delivery results
       await base44.entities.Notification.update(notification.id, {
-        status: failureCount === recipientEmails.length ? 'Failed' : 'Sent',
+        status: failureCount === sendableTargets.length ? 'Failed' : 'Sent',
         delivery_count: successCount,
         failure_count: failureCount,
         delivery_details: JSON.stringify(deliveryDetails),
       });
 
-      return { notification, successCount, failureCount, total: recipientEmails.length };
+      return { notification, successCount, failureCount, total: sendableTargets.length };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -252,15 +339,18 @@ export default function MessagingCenter() {
     sendMutation.mutate(formData);
   };
 
-  const getRecipientCount = () => {
-    const emails = getRecipientEmails(
-      formData.recipient_type,
-      formData.recipient_ids,
-      formData.contact_list_id,
-      formData.specific_emails
-    );
-    return emails.length;
-  };
+  const recipientTargets = useMemo(() => getRecipientTargets(
+    formData.recipient_type,
+    formData.recipient_ids,
+    formData.contact_list_id,
+    formData.specific_emails
+  ), [formData.recipient_type, formData.recipient_ids, formData.contact_list_id, formData.specific_emails, students, teachers, classArms, contactLists]);
+
+  const getRecipientCount = () => recipientTargets.filter((target) => {
+    if (formData.channel === 'Email') return !!target.email;
+    if (formData.channel === 'SMS' || formData.channel === 'WhatsApp') return !!target.phone;
+    return !!target.email || !!target.phone;
+  }).length;
 
   const statusColors = {
     Draft: 'bg-gray-100 text-gray-800',
@@ -330,8 +420,8 @@ export default function MessagingCenter() {
                   { value: 'Specific Emails', label: 'Specific Emails' },
                 ]}
               />
-              <p className="text-xs text-gray-500">{getRecipientCount()} recipient(s)</p>
-              
+              <p className="text-xs text-gray-500">{getRecipientCount()} recipient(s) available for {formData.channel}</p>
+
               {formData.recipient_type === 'Specific Emails' && (
                 <MobileTextarea
                   label="Email Addresses"
@@ -444,7 +534,7 @@ export default function MessagingCenter() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  {getRecipientCount()} recipient(s) selected
+                  {getRecipientCount()} recipient(s) available for {formData.channel}
                 </p>
               </div>
 
