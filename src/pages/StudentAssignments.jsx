@@ -80,18 +80,16 @@ export default function StudentAssignments() {
       if (!selectedAssignment?.id) return [];
       const links = await base44.entities.AssignmentQuestion.filter({ assignment_id: selectedAssignment.id });
       if (links.length === 0) return [];
-      const questions = [];
-      for (const link of links) {
-        if (link.question_bank_id) {
-          try {
-            const q = await base44.entities.QuestionBank.get(link.question_bank_id);
-            if (q) questions.push({ ...q, order: link.order });
-          } catch (e) {
-            console.error('Failed to fetch question:', link.question_bank_id);
-          }
-        }
-      }
-      return questions.sort((a, b) => a.order - b.order);
+      const validLinks = links.filter(l => l.question_bank_id);
+      if (validLinks.length === 0) return [];
+      const fetched = await Promise.all(
+        validLinks.map(link =>
+          base44.entities.QuestionBank.get(link.question_bank_id)
+            .then(q => q ? { ...q, order: link.order } : null)
+            .catch(() => null)
+        )
+      );
+      return fetched.filter(Boolean).sort((a, b) => a.order - b.order);
     },
     enabled: !!selectedAssignment?.id && selectedAssignment.type === 'Quiz',
   });

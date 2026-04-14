@@ -891,29 +891,33 @@ Return as JSON array with this exact structure:
 
       {/* Instructions Dialog */}
       <Dialog open={instructionsDialogOpen} onOpenChange={setInstructionsDialogOpen}>
-        <DialogContent className="bg-white max-w-2xl">
+        <DialogContent className="bg-white max-w-2xl overflow-visible" style={{ overflow: 'visible' }}>
           <DialogHeader>
             <DialogTitle>Assignment Instructions</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {instructionsDialogOpen && (
-              <ReactQuill
-                value={assignmentData.instructions}
-                onChange={(value) => setAssignmentData({ ...assignmentData, instructions: value })}
-                className="bg-white"
-                style={{ minHeight: '200px' }}
-                placeholder="Enter instructions for students..."
-                modules={{
-                  toolbar: [
-                    [{ header: [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline'],
-                    [{ list: 'ordered' }, { list: 'bullet' }],
-                    ['clean']
-                  ]
-                }}
-              />
+              <div className="quill-dialog-wrapper" style={{ position: 'relative', zIndex: 50 }}>
+                <ReactQuill
+                  key="instructions-editor"
+                  theme="snow"
+                  value={assignmentData.instructions || ''}
+                  onChange={(value) => setAssignmentData(prev => ({ ...prev, instructions: value }))}
+                  placeholder="Enter instructions for students..."
+                  style={{ minHeight: '200px', background: 'white' }}
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                      ['link'],
+                      ['clean']
+                    ]
+                  }}
+                />
+              </div>
             )}
-            <div className="flex justify-end pt-10">
+            <div className="flex justify-end pt-12">
               <Button onClick={() => setInstructionsDialogOpen(false)}>
                 Done
               </Button>
