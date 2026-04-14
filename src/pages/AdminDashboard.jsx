@@ -322,7 +322,6 @@ export default function AdminDashboard() {
         <AcademicRiskBoard students={academicRiskStudents} />
       </div>
 
-      <ImplementationPriorityBoard epics={implementationEpics.slice(0, 6)} />
 
       {isWidgetEnabled('quick-actions') && (
       <Card>

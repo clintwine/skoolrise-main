@@ -26,7 +26,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import SchoolInquiryDialog from '@/components/landing/SchoolInquiryDialog';
-import RoadmapPreview from '@/components/landing/RoadmapPreview';
 
 function getDashboardUrl(currentUser) {
   const userType = currentUser.user_type || '';
@@ -43,7 +42,6 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [inquiryOpen, setInquiryOpen] = useState(false);
-  const [roadmapTasks, setRoadmapTasks] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,13 +79,7 @@ export default function LandingPage() {
       }
     };
 
-    const loadRoadmap = async () => {
-      const tasks = await base44.entities.ProductRoadmapTask.list('order_index');
-      if (!cancelled) setRoadmapTasks(tasks);
-    };
-
     redirectAuthenticatedUser();
-    loadRoadmap();
     return () => { cancelled = true; };
   }, [navigate]);
 
@@ -364,17 +356,6 @@ export default function LandingPage() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-orange-100 text-orange-700 border-0">Implementation tracker</Badge>
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Gap features now broken into tracked delivery</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">I’ve converted the strategic gaps into tracked feature work and started implementation with progress visibility already live.</p>
-          </div>
-          <RoadmapPreview tasks={roadmapTasks} />
         </div>
       </section>
 
