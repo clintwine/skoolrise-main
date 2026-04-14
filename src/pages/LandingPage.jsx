@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,11 +18,54 @@ import {
   BookOpen,
   Sparkles
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const redirectAuthenticatedUser = async () => {
+      const storedToken = localStorage.getItem('base44_access_token');
+      const urlToken = new URLSearchParams(window.location.search).get('access_token');
+
+      if (!storedToken && !urlToken) return;
+
+      try {
+        const currentUser = await base44.auth.me();
+
+        if (!currentUser.is_activated) {
+          navigate(createPageUrl('ActivationPage'));
+          return;
+        }
+
+        if (!currentUser.profile_completed) {
+          navigate(createPageUrl('ProfileSetupPage'));
+          return;
+        }
+
+        const userType = currentUser.user_type || '';
+        const isAdmin = currentUser.role === 'admin' || userType === 'admin';
+
+        if (isAdmin) {
+          navigate(createPageUrl('AdminDashboard'));
+        } else if (userType === 'teacher') {
+          navigate(createPageUrl('TeacherDashboard'));
+        } else if (userType === 'student') {
+          navigate(createPageUrl('StudentDashboard'));
+        } else if (userType === 'parent') {
+          navigate(createPageUrl('ParentPortal'));
+        } else if (userType === 'vendor') {
+          navigate(createPageUrl('VendorDashboard'));
+        }
+      } catch (error) {
+        console.log('User not authenticated on landing page');
+      }
+    };
+
+    redirectAuthenticatedUser();
+  }, [navigate]);
 
   const features = [
     {
