@@ -17,6 +17,8 @@ import {
 import { Mail, Send, MessageSquare, CheckCircle, XCircle, Paperclip, X, Clock, Users, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import MessageSummaryCards from '../components/messaging/MessageSummaryCards';
+import { MESSAGE_TEMPLATES } from '../components/messaging/messageTemplates';
 import useIsMobile from '../components/hooks/useIsMobile';
 import MobileHeader from '../components/mobile/MobileHeader';
 import MobileTabs from '../components/mobile/MobileTabs';
@@ -268,9 +270,32 @@ export default function MessagingCenter() {
     Failed: 'bg-red-100 text-red-800',
   };
 
+  const messageStats = {
+    total: notifications.length,
+    scheduled: notifications.filter((item) => item.status === 'Scheduled').length,
+    sent: notifications.filter((item) => item.status === 'Sent').length,
+    failed: notifications.filter((item) => item.status === 'Failed').length,
+  };
+
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState('compose');
   const [composeDialogOpen, setComposeDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const template = MESSAGE_TEMPLATES[formData.template_type];
+    if (!template) return;
+
+    setFormData((prev) => {
+      const shouldUpdateSubject = !prev.subject || Object.values(MESSAGE_TEMPLATES).some((item) => item.subject === prev.subject);
+      const shouldUpdateMessage = !prev.message || Object.values(MESSAGE_TEMPLATES).some((item) => item.message === prev.message);
+
+      return {
+        ...prev,
+        subject: shouldUpdateSubject ? template.subject : prev.subject,
+        message: shouldUpdateMessage ? template.message : prev.message,
+      };
+    });
+  }, [formData.template_type]);
 
   const mobileTabs = [
     { id: 'compose', label: 'Compose', icon: Send },
@@ -389,6 +414,8 @@ export default function MessagingCenter() {
         <p className="text-gray-600 mt-1">Send notifications via Email, SMS, or WhatsApp</p>
       </div>
 
+      <MessageSummaryCards stats={messageStats} />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Compose Message */}
         <Card className="bg-white shadow-md">
@@ -467,6 +494,11 @@ export default function MessagingCenter() {
                   />
                 </div>
               )}
+
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-semibold text-blue-900">Smart template guidance</p>
+                <p className="text-sm text-blue-800 mt-1">Choose a template to prefill the message, then customize it before sending.</p>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>

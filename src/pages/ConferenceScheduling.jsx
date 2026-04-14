@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Clock, Video, Phone, Users, Plus, Settings } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import TeacherAvailabilityManager from '../components/conference/TeacherAvailabilityManager';
+import ConferenceStats from '../components/conference/ConferenceStats';
 
 export default function ConferenceScheduling() {
   const [user, setUser] = useState(null);
@@ -135,129 +136,14 @@ export default function ConferenceScheduling() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Scheduled</p>
-                <p className="text-2xl font-bold text-blue-600">{conferences.length}</p>
-              </div>
-              <Calendar className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Upcoming</p>
-                <p className="text-2xl font-bold text-green-600">{upcomingConferences.length}</p>
-              </div>
-              <Clock className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">This Month</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {conferences.filter(c => 
-                    new Date(c.scheduled_date) >= monthStart && new Date(c.scheduled_date) <= monthEnd
-                  ).length}
-                </p>
-              </div>
-              <Calendar className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-600">
-                  {conferences.filter(c => c.status === 'Completed').length}
-                </p>
-              </div>
-              <Users className="w-8 h-8 text-gray-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Calendar View - {format(currentDate, 'MMMM yyyy')}</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
-              >
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
-                Today
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center font-semibold text-gray-600 p-2">
-                {day}
-              </div>
-            ))}
-            {daysInMonth.map((day, idx) => {
-            const dayConferences = getConferencesForDay(day);
-            const isToday = isSameDay(day, new Date());
-            return (
-              <div
-                key={idx}
-                className={`min-h-24 border rounded-lg p-2 hover:bg-blue-50 cursor-pointer transition-colors ${isToday ? 'bg-blue-50 border-blue-300' : ''}`}
-                onClick={() => {
-                  setBookingForm({
-                    ...bookingForm,
-                    scheduled_date: format(day, "yyyy-MM-dd'T'09:00"),
-                  });
-                  setShowBookingForm(true);
-                }}
-              >
-                <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
-                  {format(day, 'd')}
-                </div>
-                <div className="space-y-1">
-                  {dayConferences.map(conf => (
-                    <div
-                      key={conf.id}
-                      className="text-xs p-1 rounded bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedConference(conf);
-                      }}
-                    >
-                      {format(new Date(conf.scheduled_date), 'h:mm a')}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <ConferenceStats
+        stats={{
+          total: conferences.length,
+          upcoming: upcomingConferences.length,
+          month: conferences.filter(c => new Date(c.scheduled_date) >= monthStart && new Date(c.scheduled_date) <= monthEnd).length,
+          completed: conferences.filter(c => c.status === 'Completed').length,
+        }}
+      />
 
       <Tabs defaultValue="upcoming" className="space-y-4">
         <TabsList>
@@ -272,62 +158,62 @@ export default function ConferenceScheduling() {
         </TabsList>
 
         <TabsContent value="upcoming">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Conferences</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {upcomingConferences.slice(0, 10).map(conf => (
-              <div key={conf.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-gray-900">{conf.student_name}</span>
-                      <Badge className={statusColors[conf.status]}>{conf.status}</Badge>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        {meetingIcons[conf.meeting_type]}
-                        <span>{conf.meeting_type}</span>
+          <Card className="bg-white shadow-md">
+            <CardHeader>
+              <CardTitle>Upcoming Conferences</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {upcomingConferences.slice(0, 10).map(conf => (
+                  <div key={conf.id} className="rounded-2xl border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-gray-900">{conf.student_name}</span>
+                          <Badge className={statusColors[conf.status]}>{conf.status}</Badge>
+                          <span className="inline-flex items-center gap-1 text-sm text-gray-600">
+                            {meetingIcons[conf.meeting_type]}
+                            {conf.meeting_type}
+                          </span>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3 text-sm text-gray-600">
+                          <p>Parent: {conf.parent_name} ({conf.parent_email})</p>
+                          <p>Date: {format(new Date(conf.scheduled_date), 'PPp')}</p>
+                          <p>Duration: {conf.duration_minutes} minutes</p>
+                          <p>Location: {conf.location || 'To be confirmed'}</p>
+                        </div>
+                        {conf.purpose && <p className="text-sm text-gray-600">Purpose: {conf.purpose}</p>}
+                      </div>
+                      <div className="flex gap-2">
+                        {conf.status === 'Scheduled' && (
+                          <Button
+                            size="sm"
+                            onClick={() => updateStatusMutation.mutate({ id: conf.id, status: 'Confirmed' })}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Confirm
+                          </Button>
+                        )}
+                        {(conf.status === 'Scheduled' || conf.status === 'Confirmed') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateStatusMutation.mutate({ id: conf.id, status: 'Completed' })}
+                          >
+                            Complete
+                          </Button>
+                        )}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>Parent: {conf.parent_name} ({conf.parent_email})</p>
-                      <p>Date: {format(new Date(conf.scheduled_date), 'PPp')}</p>
-                      <p>Duration: {conf.duration_minutes} minutes</p>
-                      {conf.purpose && <p>Purpose: {conf.purpose}</p>}
-                      {conf.location && <p>Location: {conf.location}</p>}
-                    </div>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    {conf.status === 'Scheduled' && (
-                      <Button
-                        size="sm"
-                        onClick={() => updateStatusMutation.mutate({ id: conf.id, status: 'Confirmed' })}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        Confirm
-                      </Button>
-                    )}
-                    {(conf.status === 'Scheduled' || conf.status === 'Confirmed') && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => updateStatusMutation.mutate({ id: conf.id, status: 'Completed' })}
-                      >
-                        Complete
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="calendar">
-          <Card>
+          <Card className="bg-white shadow-md">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Calendar View - {format(currentDate, 'MMMM yyyy')}</CardTitle>
