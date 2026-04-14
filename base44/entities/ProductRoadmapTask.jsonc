@@ -1,0 +1,59 @@
+{
+  "name": "ProductRoadmapTask",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Task or feature title"
+    },
+    "parent_feature": {
+      "type": "string",
+      "description": "Top-level feature this task belongs to"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "feature",
+        "subtask"
+      ],
+      "description": "Whether this record is a feature or a subtask"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "implemented"
+      ],
+      "default": "planned",
+      "description": "Implementation status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high",
+      "description": "Priority level"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this task covers"
+    },
+    "implementation_notes": {
+      "type": "string",
+      "description": "Progress notes and implementation details"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Ordering index"
+    }
+  },
+  "required": [
+    "title",
+    "task_type",
+    "status"
+  ]
+}

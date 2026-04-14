@@ -26,6 +26,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import SchoolInquiryDialog from '@/components/landing/SchoolInquiryDialog';
+import RoadmapPreview from '@/components/landing/RoadmapPreview';
 
 function getDashboardUrl(currentUser) {
   const userType = currentUser.user_type || '';
@@ -42,6 +43,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [roadmapTasks, setRoadmapTasks] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +57,6 @@ export default function LandingPage() {
         return;
       }
 
-      // If we have a URL token but it's not stored yet, wait briefly for the SDK to pick it up
       if (urlToken && !storedToken) {
         await new Promise(r => setTimeout(r, 500));
       }
@@ -76,12 +77,17 @@ export default function LandingPage() {
 
         navigate(getDashboardUrl(currentUser), { replace: true });
       } catch (error) {
-        console.log('User not authenticated on landing page');
         if (!cancelled) setCheckingAuth(false);
       }
     };
 
+    const loadRoadmap = async () => {
+      const tasks = await base44.entities.ProductRoadmapTask.list('order_index');
+      if (!cancelled) setRoadmapTasks(tasks);
+    };
+
     redirectAuthenticatedUser();
+    loadRoadmap();
     return () => { cancelled = true; };
   }, [navigate]);
 
@@ -167,32 +173,6 @@ export default function LandingPage() {
     "Staff overwhelm"
   ];
 
-  const featureGaps = [
-    {
-      title: 'Automated parent outreach hub',
-      description: 'Add stronger multi-channel communication with scheduled SMS, email campaigns, payment reminders, and urgent alert workflows to improve parent response rates and reduce admin follow-up.'
-    },
-    {
-      title: 'Predictive student risk alerts',
-      description: 'Use attendance, grades, behavior and fee signals to flag students needing intervention early, helping school leaders act before performance or retention drops.'
-    },
-    {
-      title: 'Branch and multi-campus control',
-      description: 'Expand the system for school groups with branch-level reporting, centralized oversight, and branch-specific settings so growing schools can scale cleanly.'
-    },
-    {
-      title: 'Admissions and conversion pipeline',
-      description: 'Turn inquiries and applicants into enrolled students with a complete admissions CRM that tracks stages, interviews, follow-ups and conversion performance.'
-    },
-    {
-      title: 'Deeper finance automation',
-      description: 'Add richer reconciliation, payment gateway sync, cashier workflows and finance exports to make SkoolRise stronger for bursars and owners.'
-    },
-    {
-      title: 'Executive intelligence dashboard',
-      description: 'Create a leadership cockpit for school owners with rollup KPIs, branch comparisons, churn risk, collection forecasts and academic trend summaries.'
-    }
-  ];
 
   // Show a loading spinner while checking auth to prevent flash of landing page
   if (checkingAuth) {
@@ -384,6 +364,17 @@ export default function LandingPage() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white/60 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-orange-100 text-orange-700 border-0">Implementation tracker</Badge>
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Gap features now broken into tracked delivery</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">I’ve converted the strategic gaps into tracked feature work and started implementation with progress visibility already live.</p>
+          </div>
+          <RoadmapPreview tasks={roadmapTasks} />
         </div>
       </section>
 
