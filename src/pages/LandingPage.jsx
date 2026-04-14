@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,70 +18,11 @@ import {
   BookOpen,
   Sparkles
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const urlToken = new URLSearchParams(window.location.search).get('access_token');
-      const localToken = localStorage.getItem('base44_access_token');
-
-      if (!urlToken && !localToken) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const isAuthenticated = await base44.auth.isAuthenticated();
-        if (isAuthenticated) {
-          const user = await base44.auth.me();
-          
-          if (!user.is_activated) {
-            navigate(createPageUrl('ActivationPage'));
-            return;
-          }
-          
-          if (!user.profile_completed) {
-            navigate(createPageUrl('ProfileSetupPage'));
-            return;
-          }
-          
-          const userType = user.user_type || '';
-          const isAdmin = user.role === 'admin' || userType === 'admin';
-
-          if (isAdmin) {
-            navigate(createPageUrl('AdminDashboard'));
-          } else if (userType === 'vendor') {
-            navigate(createPageUrl('VendorDashboard'));
-          } else if (userType === 'parent') {
-            navigate(createPageUrl('ParentPortal'));
-          } else if (userType === 'student') {
-            navigate(createPageUrl('StudentDashboard'));
-          } else if (userType === 'teacher') {
-            navigate(createPageUrl('TeacherDashboard'));
-          }
-        }
-      } catch (error) {
-        // User not authenticated, stay on landing page
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
-  }, [navigate]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   const features = [
     {

@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       } catch (appError) {
         const isAuthRequiredError = appError?.status === 422 && appError?.message?.includes('Authentication required');
 
-        if (!appParams.token || isAuthRequiredError) {
+        if (!activeToken || isAuthRequiredError) {
           setAppPublicSettings({ id: appParams.appId, public_settings: 'public_without_login' });
           setUser(null);
           setIsLoadingPublicSettings(false);
