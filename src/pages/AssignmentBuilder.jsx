@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -82,9 +82,26 @@ export default function AssignmentBuilder() {
     queryFn: () => base44.entities.ClassArm.list(),
   });
 
+  const selectedClass = useMemo(
+    () => classArms.find(c => c.id === assignmentData.class_id),
+    [classArms, assignmentData.class_id]
+  );
+
+  const selectedGrade = selectedClass?.grade_level;
+  const selectedSubject = assignmentData.subject_name;
+
   const { data: questionBank = [] } = useQuery({
-    queryKey: ['questions'],
-    queryFn: () => base44.entities.QuestionBank.list(),
+    queryKey: ['questions', selectedGrade, selectedSubject],
+    queryFn: async () => {
+      if (!selectedGrade && !selectedSubject) return [];
+      const allQuestions = await base44.entities.QuestionBank.list('-created_date');
+      return allQuestions.filter(q => {
+        const matchesGrade = !selectedGrade || q.class_level === selectedGrade;
+        const matchesSubject = !selectedSubject || q.subject === selectedSubject;
+        return matchesGrade && matchesSubject;
+      });
+    },
+    enabled: !!selectedGrade || !!selectedSubject,
   });
 
   const { data: rubrics = [] } = useQuery({
@@ -111,23 +128,21 @@ export default function AssignmentBuilder() {
     queryFn: async () => {
       if (!assignmentId) return [];
       const assignmentQuestions = await base44.entities.AssignmentQuestion.filter({ assignment_id: assignmentId }, 'order');
-      const questionsWithData = [];
-      for (const aq of assignmentQuestions) {
-        if (aq.question_bank_id) {
-          try {
-            const qData = await base44.entities.QuestionBank.get(aq.question_bank_id);
-            if (qData) {
-              questionsWithData.push(qData);
-            }
-          } catch (error) {
-            console.error('Failed to fetch question:', aq.question_bank_id, error);
-          }
-        }
-      }
-      return questionsWithData;
+      const validLinks = assignmentQuestions.filter(aq => aq.question_bank_id);
+      if (validLinks.length === 0) return [];
+
+      const questionsWithData = await Promise.all(
+        validLinks.map((aq) =>
+          base44.entities.QuestionBank.get(aq.question_bank_id)
+            .then((qData) => qData ? { ...qData, order: aq.order } : null)
+            .catch(() => null)
+        )
+      );
+
+      return questionsWithData.filter(Boolean).sort((a, b) => a.order - b.order);
     },
     enabled: !!assignmentId,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
     refetchOnMount: true,
   });
 
@@ -891,33 +906,21 @@ Return as JSON array with this exact structure:
 
       {/* Instructions Dialog */}
       <Dialog open={instructionsDialogOpen} onOpenChange={setInstructionsDialogOpen}>
-        <DialogContent className="bg-white max-w-2xl overflow-visible" style={{ overflow: 'visible' }}>
+        <DialogContent className="bg-white max-w-2xl">
           <DialogHeader>
             <DialogTitle>Assignment Instructions</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {instructionsDialogOpen && (
-              <div className="quill-dialog-wrapper" style={{ position: 'relative', zIndex: 50 }}>
-                <ReactQuill
-                  key="instructions-editor"
-                  theme="snow"
-                  value={assignmentData.instructions || ''}
-                  onChange={(value) => setAssignmentData(prev => ({ ...prev, instructions: value }))}
-                  placeholder="Enter instructions for students..."
-                  style={{ minHeight: '200px', background: 'white' }}
-                  modules={{
-                    toolbar: [
-                      [{ header: [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ list: 'ordered' }, { list: 'bullet' }],
-                      ['link'],
-                      ['clean']
-                    ]
-                  }}
-                />
-              </div>
+              <Textarea
+                value={assignmentData.instructions?.replace(/<[^>]+>/g, '') || ''}
+                onChange={(e) => setAssignmentData({ ...assignmentData, instructions: e.target.value })}
+                rows={12}
+                placeholder="Enter instructions for students..."
+                className="min-h-[300px]"
+              />
             )}
-            <div className="flex justify-end pt-12">
+            <div className="flex justify-end">
               <Button onClick={() => setInstructionsDialogOpen(false)}>
                 Done
               </Button>
@@ -935,22 +938,6 @@ Return as JSON array with this exact structure:
           </DialogHeader>
           <div className="space-y-4">
             {(() => {
-              // Get the selected class grade level
-              const selectedClass = classArms.find(c => c.id === assignmentData.class_id);
-              const selectedGrade = selectedClass?.grade_level;
-              const selectedSubject = assignmentData.subject_name;
-
-              console.log('🔍 Filtering questions for:', { selectedGrade, selectedSubject });
-
-              // Filter questions by grade and subject
-              const filteredQuestions = questionBank.filter(q => {
-                const matchesGrade = !selectedGrade || q.class_level === selectedGrade;
-                const matchesSubject = !selectedSubject || q.subject === selectedSubject;
-                return matchesGrade && matchesSubject;
-              });
-
-              console.log('📊 Filtered questions:', filteredQuestions.length, 'out of', questionBank.length);
-
               if (!assignmentData.class_id || !assignmentData.subject_name) {
                 return (
                   <div className="text-center py-12">
@@ -961,7 +948,15 @@ Return as JSON array with this exact structure:
                 );
               }
 
-              if (filteredQuestions.length === 0) {
+              if (questionsLoading) {
+                return (
+                  <div className="py-12 flex justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                  </div>
+                );
+              }
+
+              if (questionBank.length === 0) {
                 return (
                   <div className="text-center py-12">
                     <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -980,7 +975,7 @@ Return as JSON array with this exact structure:
                     </p>
                   </div>
                   <div className="grid gap-3">
-                    {filteredQuestions.map((q) => {
+                    {questionBank.map((q) => {
                       const alreadyAdded = selectedQuestions.some(sq => sq.id === q.id);
                       return (
                         <Card key={q.id} className={`${alreadyAdded ? 'bg-gray-50 opacity-60' : 'hover:shadow-md'} transition-all`}>
