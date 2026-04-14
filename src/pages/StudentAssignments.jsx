@@ -270,8 +270,9 @@ export default function StudentAssignments() {
               const submission = getSubmissionStatus(assignment.id);
               const TypeIcon = getTypeIcon(assignment.type);
               const now = new Date();
-              const dueDate = new Date(assignment.due_date);
-              const isOverdue = now > dueDate && !submission;
+              const dueDate = assignment.due_date ? new Date(assignment.due_date) : null;
+              const isValidDate = dueDate && !isNaN(dueDate.getTime());
+              const isOverdue = isValidDate && now > dueDate && !submission;
               
               return (
                 <motion.div
@@ -309,7 +310,7 @@ export default function StudentAssignments() {
                         <div className="flex items-center justify-between">
                           <span className="text-text-secondary flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            Due {formatDistanceToNow(dueDate, { addSuffix: true })}
+                            {isValidDate ? `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}` : 'No due date'}
                           </span>
                           <span className="font-medium text-text flex items-center gap-1">
                             <Award className="w-4 h-4" />
@@ -363,7 +364,9 @@ export default function StudentAssignments() {
                 <p className="text-sm text-text-secondary mb-1">Due Date</p>
                 <p className="font-medium text-text flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  {format(new Date(selectedAssignment.due_date), 'MMM d, yyyy h:mm a')}
+                  {selectedAssignment.due_date && !isNaN(new Date(selectedAssignment.due_date).getTime())
+                    ? format(new Date(selectedAssignment.due_date), 'MMM d, yyyy h:mm a')
+                    : 'No due date'}
                 </p>
               </div>
               
