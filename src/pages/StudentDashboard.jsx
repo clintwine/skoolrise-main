@@ -7,6 +7,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoader';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
+import PersonalizedFeedCard from '@/components/dashboard/PersonalizedFeedCard';
 
 export default function StudentDashboard() {
   const [user, setUser] = useState(null);
@@ -70,6 +71,26 @@ export default function StudentDashboard() {
     return tests.filter(test => !test.end_date || new Date(test.end_date) >= now).length;
   }, [tests]);
 
+  const studentFeedItems = useMemo(() => {
+    const assignmentItems = assignments.slice(0, 3).map((assignment) => ({
+      title: assignment.title,
+      subtitle: assignment.class_name,
+      description: assignment.due_date ? `Due ${format(new Date(assignment.due_date), 'MMM d')}` : 'No due date set',
+      badge: 'Assignment',
+      badgeClassName: 'bg-orange-100 text-orange-700',
+    }));
+
+    const testItems = tests.slice(0, 2).map((test) => ({
+      title: test.title,
+      subtitle: test.class_name || 'Upcoming test',
+      description: test.end_date ? `Closes ${format(new Date(test.end_date), 'MMM d')}` : 'Open schedule',
+      badge: 'Test',
+      badgeClassName: 'bg-purple-100 text-purple-700',
+    }));
+
+    return [...assignmentItems, ...testItems].slice(0, 5);
+  }, [assignments, tests]);
+
   const stats = [
     {
       title: 'Enrolled Classes',
@@ -105,6 +126,12 @@ export default function StudentDashboard() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Student Dashboard</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome back! Here's your learning overview</p>
       </div>
+
+      <PersonalizedFeedCard
+        title="My Personalized Feed"
+        items={studentFeedItems}
+        emptyText="You’re all caught up right now."
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">

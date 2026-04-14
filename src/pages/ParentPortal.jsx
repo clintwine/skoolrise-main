@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { useCurrency } from '@/components/CurrencyProvider';
 import { useParentStudents } from '@/components/hooks/useParentStudents';
+import PersonalizedFeedCard from '@/components/dashboard/PersonalizedFeedCard';
 
 export default function ParentPortal() {
   const [user, setUser] = useState(null);
@@ -94,6 +95,30 @@ export default function ParentPortal() {
     ? ((attendance.filter(a => a.status === 'Present').length / attendance.length) * 100).toFixed(1)
     : '0';
   const recentBehaviors = behaviors.slice(0, 5);
+
+  const parentFeedItems = [
+    ...overdueInvoices.slice(0, 2).map((invoice) => ({
+      title: `${invoice.student_name} fee balance due`,
+      subtitle: `Invoice #${invoice.invoice_number}`,
+      description: `Outstanding balance: ${formatAmount(invoice.balance || 0)}`,
+      badge: invoice.status,
+      badgeClassName: 'bg-red-100 text-red-700',
+    })),
+    ...reportCards.slice(0, 2).map((report) => ({
+      title: `${report.student_name} report available`,
+      subtitle: `Average score: ${report.average_score || 0}%`,
+      description: 'A new academic summary is ready for review.',
+      badge: report.status || 'Published',
+      badgeClassName: 'bg-blue-100 text-blue-700',
+    })),
+    ...recentBehaviors.slice(0, 2).map((behavior) => ({
+      title: `${behavior.student_name} behavior update`,
+      subtitle: behavior.category,
+      description: behavior.description,
+      badge: behavior.type,
+      badgeClassName: behavior.type === 'Merit' || behavior.type === 'Reward' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700',
+    })),
+  ].slice(0, 5);
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -209,6 +234,15 @@ export default function ParentPortal() {
             ))
           )}
         </div>
+      </div>
+
+      <div className="px-2 sm:px-0">
+        <h2 className="text-xl sm:text-2xl font-semibold text-text mb-3 sm:mb-4">Personalized Feed</h2>
+        <PersonalizedFeedCard
+          title="What needs your attention"
+          items={parentFeedItems}
+          emptyText="No urgent updates for your family right now."
+        />
       </div>
 
       {/* Dashboard Cards with Expandable Details */}
