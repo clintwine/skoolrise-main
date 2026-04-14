@@ -23,8 +23,7 @@ import useIsMobile from '../components/hooks/useIsMobile';
 import MobileHeader from '../components/mobile/MobileHeader';
 import MobileTabs from '../components/mobile/MobileTabs';
 import MobileTable, { MobileTableRow } from '../components/mobile/MobileTable';
-import MobileDialog from '../components/mobile/MobileDialog';
-import { MobileSelect, MobileInput, MobileTextarea, MobileFormActions } from '../components/mobile/MobileForm';
+import { MobileSelect, MobileInput, MobileTextarea } from '../components/mobile/MobileForm';
 
 export default function MessagingCenter() {
   const [formData, setFormData] = useState({
@@ -108,13 +107,14 @@ export default function MessagingCenter() {
       }
     } else if (type === 'Custom List' && contactListId) {
       const list = contactLists.find(cl => cl.id === contactListId);
-      if (list?.contacts) {
-        try {
-          const contacts = JSON.parse(list.contacts);
-          contacts.forEach(c => {
-            if (c.email) emails.push(c.email);
-          });
-        } catch {}
+      if (list?.contact_ids) {
+        const contactIds = list.contact_ids.split(',').map((item) => item.trim()).filter(Boolean);
+        students.filter((student) => contactIds.includes(student.id)).forEach((student) => {
+          if (student.parent_email) emails.push(student.parent_email);
+        });
+        teachers.filter((teacher) => contactIds.includes(teacher.id) && teacher.email).forEach((teacher) => {
+          emails.push(teacher.email);
+        });
       }
     }
     

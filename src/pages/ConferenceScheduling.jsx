@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, Video, Phone, Users, Plus, Settings } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
 import TeacherAvailabilityManager from '../components/conference/TeacherAvailabilityManager';
 import ConferenceStats from '../components/conference/ConferenceStats';
 
@@ -221,7 +221,7 @@ export default function ConferenceScheduling() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
+                    onClick={() => setCurrentDate(subMonths(currentDate, 1))}
                   >
                     Previous
                   </Button>
@@ -231,7 +231,7 @@ export default function ConferenceScheduling() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
+                    onClick={() => setCurrentDate(addMonths(currentDate, 1))}
                   >
                     Next
                   </Button>
@@ -264,7 +264,7 @@ export default function ConferenceScheduling() {
                         {format(day, 'd')}
                       </div>
                       <div className="space-y-1">
-                        {dayConferences.map(conf => (
+                        {dayConferences.slice(0, 3).map(conf => (
                           <div
                             key={conf.id}
                             className="text-xs p-1 rounded bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200"
@@ -276,6 +276,9 @@ export default function ConferenceScheduling() {
                             {format(new Date(conf.scheduled_date), 'h:mm a')}
                           </div>
                         ))}
+                        {dayConferences.length > 3 && (
+                          <div className="text-[11px] text-gray-500">+{dayConferences.length - 3} more</div>
+                        )}
                       </div>
                     </div>
                   );
