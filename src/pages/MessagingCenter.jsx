@@ -334,13 +334,20 @@ export default function MessagingCenter() {
                 placeholder="Type your message..."
               />
 
+              <MobileInput
+                label="Schedule Send"
+                type="datetime-local"
+                value={formData.scheduled_date}
+                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+              />
+
               <Button
                 onClick={handleSend}
                 className="w-full bg-blue-600 hover:bg-blue-700 h-12"
                 disabled={sendMutation.isPending}
               >
                 <Send className="w-4 h-4 mr-2" />
-                {sendMutation.isPending ? 'Sending...' : `Send to ${getRecipientCount()}`}
+                {sendMutation.isPending ? 'Sending...' : (formData.scheduled_date ? `Schedule for ${getRecipientCount()}` : `Send to ${getRecipientCount()}`)}
               </Button>
             </CardContent>
           </Card>

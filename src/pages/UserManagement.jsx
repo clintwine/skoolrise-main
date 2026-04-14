@@ -269,12 +269,12 @@ export default function UserManagement() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="users" className="gap-2">
+        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-auto">
+          <TabsTrigger value="users" className="gap-2 text-xs sm:text-sm">
             <Users className="h-4 w-4" />
             Users
           </TabsTrigger>
-          <TabsTrigger value="permissions" className="gap-2">
+          <TabsTrigger value="permissions" className="gap-2 text-xs sm:text-sm">
             <Lock className="h-4 w-4" />
             Permissions
           </TabsTrigger>
@@ -359,7 +359,7 @@ export default function UserManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Users className="w-5 h-5" />
             Users ({filteredUsers.length})
           </CardTitle>
@@ -377,20 +377,20 @@ export default function UserManagement() {
                 return (
                   <Card key={user.id} className="border-2 hover:border-blue-200 transition-colors">
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                               <span className="text-sm font-semibold text-blue-700">
                                 {user.title ? user.title.charAt(0) : (user.full_name?.charAt(0) || '?')}
                               </span>
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
                                 {user.title && <span className="text-sm text-gray-600">{user.title}</span>}
-                                <p className="font-semibold text-gray-900">{user.full_name || 'No name'}</p>
+                                <p className="font-semibold text-gray-900 break-words">{user.full_name || 'No name'}</p>
                               </div>
-                              <p className="text-sm text-gray-600">{user.email}</p>
+                              <p className="text-sm text-gray-600 break-all">{user.email}</p>
                               {linkedProfiles.length > 0 && (
                                 <div className="mt-1 flex gap-2 flex-wrap">
                                   {linkedProfiles.map((profile, idx) => (
@@ -404,7 +404,7 @@ export default function UserManagement() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           {user.user_type ? (
                             <Badge className={`${getUserTypeColor(user.user_type)} border capitalize`}>
                               {user.user_type}
@@ -427,7 +427,7 @@ export default function UserManagement() {
 
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" className="h-9 w-9">
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>

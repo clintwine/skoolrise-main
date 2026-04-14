@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,12 +38,6 @@ export default function FeesManagement() {
     enabled: !isLoadingUser && isAuthorized,
   });
 
-  // Redirect unauthorized users
-  if (!isLoadingUser && user && !isAuthorized) {
-    navigate(createPageUrl('TeacherDashboard'));
-    return null;
-  }
-
   // Memoized filtered invoices
   const filteredInvoices = useMemo(() => invoices.filter(invoice => {
     const matchesSearch = invoice.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,8 +61,18 @@ export default function FeesManagement() {
   const isFiltered = searchTerm || filterStatus !== 'all';
   const clearFilters = () => { setSearchTerm(''); setFilterStatus('all'); };
 
+  useEffect(() => {
+    if (!isLoadingUser && user && !isAuthorized) {
+      navigate(createPageUrl('TeacherDashboard'));
+    }
+  }, [isLoadingUser, user, isAuthorized, navigate]);
+
   if (isLoadingUser) {
     return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div></div>;
+  }
+
+  if (user && !isAuthorized) {
+    return null;
   }
 
   return (

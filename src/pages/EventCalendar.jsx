@@ -149,12 +149,12 @@ export default function EventCalendar() {
         />
 
         {/* Month Navigation */}
-        <div className="flex items-center justify-between mb-4 bg-white rounded-lg p-3 shadow-sm">
-          <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}>
+        <div className="flex items-center justify-between mb-4 bg-white rounded-lg p-3 shadow-sm gap-2">
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <span className="font-semibold">{format(currentDate, 'MMMM yyyy')}</span>
-          <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}>
+          <span className="font-semibold text-sm text-center flex-1">{format(currentDate, 'MMMM yyyy')}</span>
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}>
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>

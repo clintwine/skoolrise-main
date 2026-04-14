@@ -220,115 +220,91 @@ export default function StudentRecords() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="bg-white rounded-xl shadow-md">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Student</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Admission No</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Class</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                {filteredStudents.map((student) => (
-                  <tr 
-                    key={student.id} 
-                    className="hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-3">
-                      <div className="flex items-center gap-3">
-                        {student.photo_url ? (
-                          <img
-                            src={student.photo_url}
-                            alt={student.first_name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <UserCircle className="w-6 h-6 text-blue-600" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium text-text">{student.first_name} {student.last_name}</p>
-                        </div>
+        <div className="space-y-3">
+          {filteredStudents.map((student) => (
+            <Card key={student.id} className="bg-white rounded-xl shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  {student.photo_url ? (
+                    <img
+                      src={student.photo_url}
+                      alt={student.first_name}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <UserCircle className="w-7 h-7 text-blue-600" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-text break-words">{student.first_name} {student.last_name}</p>
+                        <p className="text-sm text-text-secondary">{student.student_id_number}</p>
+                        <p className="text-sm text-text-secondary">Class: {student.grade_level}</p>
                       </div>
-                    </td>
-                    <td className="px-6 py-3 text-sm font-medium text-text">{student.student_id_number}</td>
-                    <td className="px-6 py-3 text-sm text-text">{student.grade_level}</td>
-                    <td className="px-6 py-3">
-                      <div className="text-sm text-text-secondary space-y-1">
-                        {student.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            <span>{student.phone}</span>
-                          </div>
-                        )}
-                        {student.email && (
-                          <div className="flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            <span className="truncate max-w-[150px]">{student.email}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <Badge className={statusColors[student.status] || statusColors.Active}>
+                      <Badge className={`${statusColors[student.status] || statusColors.Active} w-fit`}>
                         {student.status}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-3 text-right">
-                      <div className="flex gap-1 sm:gap-2 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2"
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setIsDetailsOpen(true);
-                          }}
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-300 text-blue-700 hover:bg-blue-50 hidden sm:flex"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStudent(student);
-                            setIsLinkParentOpen(true);
-                          }}
-                        >
-                          <Link2 className="w-4 h-4 mr-1" />
-                          Link Parent
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStudent(student);
-                            setIsFormOpen(true);
-                          }}
-                          className="text-xs sm:text-sm"
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                    </div>
+                    <div className="text-sm text-text-secondary space-y-1 mt-3">
+                      {student.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-3 h-3 flex-shrink-0" />
+                          <span className="break-all">{student.phone}</span>
+                        </div>
+                      )}
+                      {student.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-3 h-3 flex-shrink-0" />
+                          <span className="break-all">{student.email}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        onClick={() => {
+                          setSelectedStudent(student);
+                          setIsDetailsOpen(true);
+                        }}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedStudent(student);
+                          setIsLinkParentOpen(true);
+                        }}
+                      >
+                        <Link2 className="w-4 h-4 mr-1" />
+                        Link Parent
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedStudent(student);
+                          setIsFormOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Link Parent Dialog */}

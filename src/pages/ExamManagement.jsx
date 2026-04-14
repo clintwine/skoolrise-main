@@ -83,7 +83,7 @@ export default function ExamManagement() {
   // Mobile View
   if (isMobile) {
     return (
-      <div className="p-4 pb-24">
+      <div className="p-4 pb-24 space-y-4">
         <MobileHeader
           title="Exams"
           subtitle="Manage exams & grades"
@@ -100,6 +100,11 @@ export default function ExamManagement() {
         />
 
         <MobileTabs tabs={statusTabs} activeTab={filterStatus} onTabChange={setFilterStatus} />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-blue-600">{filteredExams.length}</p><p className="text-xs text-gray-600">Visible Exams</p></CardContent></Card>
+          <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-green-600">{exams.filter(e => e.status === 'Active').length}</p><p className="text-xs text-gray-600">Active</p></CardContent></Card>
+        </div>
 
         <MobileTable
           data={filteredExams}
