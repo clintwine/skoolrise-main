@@ -124,7 +124,7 @@ export default function Layout({ children, currentPageName }) {
           'AdminDashboard', 'SchoolSettings', 'AcademicsHub', 'TeacherManagement', 'TimetableManagement',
           'AdmissionsManagement', 'StudentRecords', 'ParentManagement', 'EnrollmentManagement', 'AdminLinkingRequests',
           'UnifiedAttendance', 'AssignmentManagement', 'BehaviorManagement', 'BehaviorAnalytics', 'ReportCardsManagement',
-          'CurriculumMapping', 'ConferenceScheduling', 'ExamCommandCenter', 'ExamManagement', 'QuestionBank',
+          'CurriculumMapping', 'Gradebook', 'StudentProgressTracking', 'AILessonPlanner', 'ConferenceScheduling', 'ExamCommandCenter', 'ExamManagement', 'QuestionBank',
           'FeePolicies', 'FeesManagement', 'FeeReminderSystem', 'InstalmentPlans', 'PaymentProviders', 'SalaryManagement', 'ExpenseTracking',
           'BookshopManager', 'BookshopReports', 'VendorManagement', 'SchoolShopManagement', 'TripsManagement',
           'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
@@ -136,7 +136,7 @@ export default function Layout({ children, currentPageName }) {
         
         const teacherPages = [
           'TeacherDashboard', 'TeacherSchedule', 'MyClasses', 'AttendanceTaking', 'Gradebook', 'BehaviorTracking',
-          'StudentProgressTracking', 'ClassroomResources', 'AILessonPlanner', 'EventCalendar', 'TeacherAssignmentManager',
+          'StudentProgressTracking', 'ClassroomResources', 'AILessonPlanner', 'Gradebook', 'EventCalendar', 'TeacherAssignmentManager',
           'TeacherAssignments', 'TeacherTests', 'QuestionBank', 'ExamCreator', 'ExamManagement', 'ExamCommandCenter',
           'DetailedExamAnalytics', 'ExamResults', 'ExamAttemptReview', 'GradeExam', 'UserProfile', 'AssignmentBuilder', 'StaffClocking', 'NotificationsPage'
         ];
