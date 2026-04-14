@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Link2, BookOpen, Target } from 'lucide-react';
+import CurriculumStats from '../components/curriculum/CurriculumStats';
 
 export default function CurriculumMapping() {
   const [showStandardForm, setShowStandardForm] = useState(false);
@@ -142,52 +143,14 @@ export default function CurriculumMapping() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Standards</p>
-                <p className="text-2xl font-bold text-blue-600">{standards.length}</p>
-              </div>
-              <BookOpen className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Mapped Items</p>
-                <p className="text-2xl font-bold text-green-600">{mappings.length}</p>
-              </div>
-              <Link2 className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Subjects</p>
-                <p className="text-2xl font-bold text-purple-600">{subjects.length}</p>
-              </div>
-              <Target className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Grade Levels</p>
-                <p className="text-2xl font-bold text-orange-600">{grades.length}</p>
-              </div>
-              <BookOpen className="w-8 h-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <CurriculumStats
+        stats={{
+          standards: standards.length,
+          mappings: mappings.length,
+          subjects: subjects.length,
+          grades: grades.length,
+        }}
+      />
 
       <Card>
         <CardHeader>
@@ -224,6 +187,7 @@ export default function CurriculumMapping() {
       <Card>
         <CardHeader>
           <CardTitle>Curriculum Standards</CardTitle>
+          <p className="text-sm text-gray-500">Map standards to assignments and exams to keep teaching, assessment, and planning aligned.</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

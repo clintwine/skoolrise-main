@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import StudentInsightCards from '../components/ai/StudentInsightCards';
 
 export default function StudentProgressTracking() {
   const [selectedStudent, setSelectedStudent] = useState('');
@@ -196,64 +197,20 @@ export default function StudentProgressTracking() {
 
       {selectedStudent && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Overall Average</p>
-                    <p className="text-2xl font-bold text-blue-600">{avgGrade}%</p>
-                  </div>
-                  <Target className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Recent Average</p>
-                    <p className="text-2xl font-bold text-green-600">{recentAvg}%</p>
-                  </div>
-                  {trend === 'improving' ? <TrendingUp className="w-8 h-8 text-green-600" /> : 
-                   trend === 'declining' ? <TrendingDown className="w-8 h-8 text-red-600" /> :
-                   <TrendingUp className="w-8 h-8 text-gray-400" />}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Submissions</p>
-                    <p className="text-2xl font-bold text-purple-600">{submissions.length}</p>
-                  </div>
-                  <Badge className={trend === 'improving' ? 'bg-green-100 text-green-800' : 
-                                   trend === 'declining' ? 'bg-red-100 text-red-800' : 
-                                   'bg-gray-100 text-gray-800'}>
-                    {trend}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <Badge className={needsSupport ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}>
-                      {needsSupport ? 'Needs Support' : 'On Track'}
-                    </Badge>
-                  </div>
-                  {needsSupport && <AlertCircle className="w-8 h-8 text-red-600" />}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <StudentInsightCards
+            avgGrade={avgGrade}
+            recentAvg={recentAvg}
+            submissionsCount={submissions.length}
+            needsSupport={needsSupport}
+            trend={trend}
+          />
 
           <Card>
             <CardHeader>
               <CardTitle>Performance Trend Over Time</CardTitle>
+              {subjectAverages[0] && (
+                <p className="text-sm text-gray-500">Lowest-performing area currently: Assignment {subjectAverages[0].subject} at {subjectAverages[0].average}%</p>
+              )}
             </CardHeader>
             <CardContent>
               {performanceData.length > 0 ? (

@@ -9,6 +9,7 @@ import { Brain, Loader, Download, Calendar, Clock, BookOpen, Users, Target, Ligh
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import LessonPlanSummaryCards from '../components/ai/LessonPlanSummaryCards';
 
 export default function AILessonPlanner() {
   const [generating, setGenerating] = useState(false);
@@ -36,7 +37,29 @@ export default function AILessonPlanner() {
     queryFn: () => base44.entities.ClassArm.list(),
   });
 
+  const { data: standards = [] } = useQuery({
+    queryKey: ['curriculum-standards-ai'],
+    queryFn: () => base44.entities.CurriculumStandard.filter({ status: 'Active' }),
+  });
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['homework-templates-ai'],
+    queryFn: () => base44.entities.HomeworkTemplate.list(),
+  });
+
   const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
+
+  const suggestedStandards = standards.filter(
+    (item) =>
+      (!formData.subject || item.subject === formData.subject) &&
+      (!formData.grade_level || item.grade_level === formData.grade_level)
+  );
+
+  const suggestedTemplates = templates.filter(
+    (item) =>
+      (!formData.subject || item.subject === formData.subject) &&
+      (!formData.grade_level || item.grade_level === formData.grade_level)
+  ).slice(0, 3);
 
   const handleGenerate = async () => {
     if (!formData.subject || !formData.topic || !formData.grade_level) {
@@ -296,6 +319,51 @@ ${lessonPlan.cross_curricular_connections?.map(c => `• ${c}`).join('\n')}
         <p className="text-gray-600 mt-1">Generate comprehensive, classroom-ready lesson plans for K-12 education</p>
       </div>
 
+      {(suggestedStandards.length > 0 || suggestedTemplates.length > 0) && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <Card className="border-0 shadow-sm bg-white">
+            <CardHeader>
+              <CardTitle className="text-lg">Suggested Standards</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {suggestedStandards.slice(0, 4).map((standard) => (
+                <button
+                  key={standard.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, curriculum_standards: standard.code })}
+                  className="w-full text-left rounded-xl border p-3 hover:bg-gray-50"
+                >
+                  <p className="font-semibold text-gray-900">{standard.code}</p>
+                  <p className="text-sm text-gray-600">{standard.title}</p>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm bg-white">
+            <CardHeader>
+              <CardTitle className="text-lg">Suggested Templates</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {suggestedTemplates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => setFormData({
+                    ...formData,
+                    available_resources: template.description || formData.available_resources,
+                    learning_objectives: template.content || formData.learning_objectives,
+                  })}
+                  className="w-full text-left rounded-xl border p-3 hover:bg-gray-50"
+                >
+                  <p className="font-semibold text-gray-900">{template.title}</p>
+                  <p className="text-sm text-gray-600">{template.type} · {template.difficulty || 'General'}</p>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -477,7 +545,9 @@ ${lessonPlan.cross_curricular_connections?.map(c => `• ${c}`).join('\n')}
       </Card>
 
       {lessonPlan && (
-        <Card>
+        <div className="space-y-4">
+          <LessonPlanSummaryCards lessonPlan={lessonPlan} fallbackDuration={formData.duration} />
+          <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl">{lessonPlan.title}</CardTitle>
@@ -722,7 +792,8 @@ ${lessonPlan.cross_curricular_connections?.map(c => `• ${c}`).join('\n')}
               </div>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       )}
     </div>
   );
