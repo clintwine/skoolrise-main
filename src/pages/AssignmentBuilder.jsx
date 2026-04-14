@@ -896,13 +896,24 @@ Return as JSON array with this exact structure:
             <DialogTitle>Assignment Instructions</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <ReactQuill
-              value={assignmentData.instructions}
-              onChange={(value) => setAssignmentData({ ...assignmentData, instructions: value })}
-              className="bg-white min-h-[200px]"
-              placeholder="Enter instructions for students..."
-            />
-            <div className="flex justify-end">
+            {instructionsDialogOpen && (
+              <ReactQuill
+                value={assignmentData.instructions}
+                onChange={(value) => setAssignmentData({ ...assignmentData, instructions: value })}
+                className="bg-white"
+                style={{ minHeight: '200px' }}
+                placeholder="Enter instructions for students..."
+                modules={{
+                  toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    ['clean']
+                  ]
+                }}
+              />
+            )}
+            <div className="flex justify-end pt-10">
               <Button onClick={() => setInstructionsDialogOpen(false)}>
                 Done
               </Button>
