@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, User, Calendar, MapPin } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { GraduationCap, User, Calendar, MapPin, Sparkles } from 'lucide-react';
 
 export default function StudentClasses() {
   const [user, setUser] = useState(null);
@@ -100,7 +101,7 @@ export default function StudentClasses() {
                     <span className="text-sm">Room {classItem.room}</span>
                   </div>
                 )}
-                <div className="pt-3 border-t">
+                <div className="pt-3 border-t space-y-3">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     classItem.status === 'Active' 
                       ? 'bg-green-100 text-green-800' 
@@ -108,6 +109,17 @@ export default function StudentClasses() {
                   }`}>
                     {classItem.status}
                   </span>
+                  <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <p className="text-xs font-semibold text-blue-900">Recommended learning path</p>
+                    </div>
+                    <p className="text-xs text-blue-800">Stay on your core path, and ask your teacher for support or stretch tasks when needed.</p>
+                    <div className="flex gap-2 mt-2">
+                      <Badge className="bg-white text-blue-700 border border-blue-200 hover:bg-white">Core</Badge>
+                      <Badge className="bg-white text-blue-700 border border-blue-200 hover:bg-white">Support</Badge>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -2,7 +2,8 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Users, MapPin } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { GraduationCap, Users, MapPin, Sparkles } from 'lucide-react';
 
 export default function MyClasses() {
   const { data: user } = useQuery({
@@ -112,7 +113,7 @@ export default function MyClasses() {
                     <span className="text-sm">Room {classArm.room}</span>
                   </div>
                 )}
-                <div className="pt-3 border-t">
+                <div className="pt-3 border-t space-y-3">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     classArm.status === 'Active' 
                       ? 'bg-green-100 text-green-800' 
@@ -120,6 +121,18 @@ export default function MyClasses() {
                   }`}>
                     {classArm.status}
                   </span>
+                  <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      <p className="text-xs font-semibold text-indigo-900">Suggested AI pathway</p>
+                    </div>
+                    <p className="text-xs text-indigo-800">Use support, core, or stretch activities for this class based on current student performance patterns.</p>
+                    <div className="flex gap-2 mt-2">
+                      <Badge className="bg-white text-indigo-700 border border-indigo-200 hover:bg-white">Support</Badge>
+                      <Badge className="bg-white text-indigo-700 border border-indigo-200 hover:bg-white">Core</Badge>
+                      <Badge className="bg-white text-indigo-700 border border-indigo-200 hover:bg-white">Stretch</Badge>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

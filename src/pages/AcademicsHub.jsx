@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import BulkImportDialog from '../components/admin/BulkImportDialog';
+import LmsIntegrationPanel from '../components/academics/LmsIntegrationPanel';
 import { toast } from 'sonner';
 
 export default function AcademicsHub() {
@@ -97,6 +98,11 @@ export default function AcademicsHub() {
             <Award className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Grading</span>
             <span className="sm:hidden">Grade</span>
+          </TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center gap-1 sm:gap-2 rounded-lg sm:rounded-full px-2 sm:px-4 py-2 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-none justify-center">
+            <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">LMS + AI</span>
+            <span className="sm:hidden">LMS</span>
           </TabsTrigger>
         </TabsList>
 
@@ -354,6 +360,21 @@ export default function AcademicsHub() {
               />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="integrations" className="space-y-4 mt-4 sm:mt-6">
+          <LmsIntegrationPanel
+            integrations={[
+              { name: 'Google Drive resource sync', description: 'Ready to support shared teaching materials and linked class resources.', active: true },
+              { name: 'Assignment sync foundation', description: 'Internal academic structures are now ready for future LMS-style assignment sync.', active: false },
+              { name: 'Standards-linked assessment flow', description: 'Curriculum standards can guide future external assessment mapping.', active: false },
+            ]}
+            pathways={[
+              { title: 'Support Path', level: 'Needs help', description: 'Recommend revision resources and teacher follow-up for students below target.' },
+              { title: 'Core Path', level: 'On track', description: 'Keep students on the main learning sequence with regular assignments and checks.' },
+              { title: 'Stretch Path', level: 'Advanced', description: 'Suggest deeper challenge tasks and extension activities for high performers.' },
+            ]}
+          />
         </TabsContent>
       </Tabs>
 
