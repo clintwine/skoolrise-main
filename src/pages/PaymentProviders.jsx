@@ -15,6 +15,8 @@ import {
   CreditCard, Shield, CheckCircle2, AlertTriangle, Settings, 
   Eye, EyeOff, ExternalLink, Zap, Globe, Lock, Info
 } from 'lucide-react';
+import PaymentReconciliationSummary from '@/components/fees/PaymentReconciliationSummary';
+import InvoiceReconciliationTable from '@/components/fees/InvoiceReconciliationTable';
 
 const PAYMENT_PROVIDERS = [
   {
@@ -90,6 +92,11 @@ export default function PaymentProviders() {
     queryFn: () => base44.entities.School.list(),
   });
 
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['payment-provider-invoices'],
+    queryFn: () => base44.entities.FeeInvoice.list('-created_date'),
+  });
+
   const school = schools[0];
   const paymentConfig = school?.payment_config ? JSON.parse(school.payment_config) : {};
 
@@ -163,6 +170,37 @@ export default function PaymentProviders() {
     return paymentConfig.active_provider === providerId;
   };
 
+  const configuredProvidersCount = PAYMENT_PROVIDERS.filter((provider) => isProviderConfigured(provider.id)).length;
+  const reconciledInvoices = invoices.map((invoice) => {
+    const paid = invoice.amount_paid || 0;
+    const total = invoice.total_amount || 0;
+    const balance = invoice.balance || 0;
+    let reconciliation_status = 'pending';
+    let reconciliation_label = 'Pending';
+
+    if (invoice.status === 'Paid' || (total > 0 && paid >= total)) {
+      reconciliation_status = 'matched';
+      reconciliation_label = 'Matched';
+    } else if (paid > 0 && balance > 0) {
+      reconciliation_status = 'partial';
+      reconciliation_label = 'Partial';
+    } else if (invoice.status === 'Overdue') {
+      reconciliation_status = 'overdue';
+      reconciliation_label = 'Overdue';
+    }
+
+    return { ...invoice, reconciliation_status, reconciliation_label };
+  });
+
+  const reconciliationStats = {
+    configured: configuredProvidersCount,
+    paid: reconciledInvoices.filter((invoice) => invoice.reconciliation_status === 'matched').length,
+    partial: reconciledInvoices.filter((invoice) => invoice.reconciliation_status === 'partial').length,
+    attention: reconciledInvoices.filter((invoice) => invoice.reconciliation_status === 'overdue' || invoice.reconciliation_status === 'pending').length,
+  };
+
+  const activeProviderName = PAYMENT_PROVIDERS.find((provider) => provider.id === paymentConfig.active_provider)?.name;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -203,6 +241,14 @@ export default function PaymentProviders() {
           </AlertDescription>
         </Alert>
       )}
+
+      <PaymentReconciliationSummary stats={reconciliationStats} />
+
+      <InvoiceReconciliationTable
+        invoices={reconciledInvoices.slice(0, 12)}
+        formatAmount={(amount) => `${school?.currency_symbol || ''}${Number(amount || 0).toLocaleString()}`}
+        activeProviderName={activeProviderName}
+      />
 
       {/* Provider Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

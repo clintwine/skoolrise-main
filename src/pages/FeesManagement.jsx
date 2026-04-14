@@ -12,6 +12,7 @@ import { createPageUrl } from '../utils';
 import BulkPaymentImport from '../components/fees/BulkPaymentImport';
 import { useCurrency } from '../components/CurrencyProvider';
 import EmptyState from '../components/common/EmptyState';
+import PaymentReconciliationSummary from '../components/fees/PaymentReconciliationSummary';
 
 export default function FeesManagement() {
   const navigate = useNavigate();
@@ -38,6 +39,12 @@ export default function FeesManagement() {
     enabled: !isLoadingUser && isAuthorized,
   });
 
+  const { data: schools = [] } = useQuery({
+    queryKey: ['school-payment-provider-info'],
+    queryFn: () => base44.entities.School.list(),
+    enabled: !isLoadingUser && isAuthorized,
+  });
+
   // Memoized filtered invoices
   const filteredInvoices = useMemo(() => invoices.filter(invoice => {
     const matchesSearch = invoice.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,6 +65,14 @@ export default function FeesManagement() {
   }), [invoices]);
 
   const { totalInvoiced, totalPaid, totalOutstanding, overdueInvoices } = financialMetrics;
+  const paymentConfig = schools[0]?.payment_config ? JSON.parse(schools[0].payment_config) : {};
+  const configuredProviders = Object.keys(paymentConfig).filter((key) => key !== 'active_provider' && paymentConfig[key]?.configured);
+  const reconciliationStats = {
+    configured: configuredProviders.length,
+    paid: invoices.filter((invoice) => invoice.status === 'Paid').length,
+    partial: invoices.filter((invoice) => invoice.status === 'Partially Paid').length,
+    attention: invoices.filter((invoice) => invoice.status === 'Pending' || invoice.status === 'Overdue').length,
+  };
   const isFiltered = searchTerm || filterStatus !== 'all';
   const clearFilters = () => { setSearchTerm(''); setFilterStatus('all'); };
 
@@ -152,6 +167,8 @@ export default function FeesManagement() {
           </CardContent>
         </Card>
       </div>
+
+      <PaymentReconciliationSummary stats={reconciliationStats} />
 
       {/* Filters */}
       <Card>
