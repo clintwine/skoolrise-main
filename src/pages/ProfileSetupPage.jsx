@@ -25,7 +25,7 @@ export default function ProfileSetupPage() {
 
         // If not activated, redirect to activation
         if (!currentUser.is_activated) {
-          navigate('/activation');
+          navigate('/ActivationPage', { replace: true });
           return;
         }
 
@@ -36,7 +36,7 @@ export default function ProfileSetupPage() {
         }
 
         // Initialize form data based on user type
-        const userTypes = currentUser.user_types || [];
+        const userType = currentUser.user_type || '';
         
         // Default form data
         const nameParts = (currentUser.full_name || '').split(' ');
@@ -48,7 +48,7 @@ export default function ProfileSetupPage() {
 
         setFormData(initialFormData);
 
-        if (userTypes.includes('teacher')) {
+        if (userType === 'teacher') {
           if (currentUser.linked_teacher_id) {
             const teachers = await base44.entities.Teacher.filter({ id: currentUser.linked_teacher_id });
             if (teachers.length > 0) {
@@ -64,7 +64,7 @@ export default function ProfileSetupPage() {
               }));
             }
           }
-        } else if (userTypes.includes('student')) {
+        } else if (userType === 'student') {
           if (currentUser.linked_student_id) {
             const students = await base44.entities.Student.filter({ id: currentUser.linked_student_id });
             if (students.length > 0) {
@@ -78,7 +78,7 @@ export default function ProfileSetupPage() {
               }));
             }
           }
-        } else if (userTypes.includes('parent')) {
+        } else if (userType === 'parent') {
           if (currentUser.linked_parent_id) {
             const parents = await base44.entities.Parent.filter({ id: currentUser.linked_parent_id });
             if (parents.length > 0) {
@@ -91,7 +91,7 @@ export default function ProfileSetupPage() {
               }));
             }
           }
-        } else if (userTypes.includes('vendor')) {
+        } else if (userType === 'vendor') {
           if (currentUser.linked_vendor_id) {
             const vendors = await base44.entities.Vendor.filter({ id: currentUser.linked_vendor_id });
             if (vendors.length > 0) {
@@ -114,22 +114,22 @@ export default function ProfileSetupPage() {
     checkUser();
   }, [navigate]);
 
-  const redirectToDashboard = (user) => {
-    const userTypes = user.user_types || [];
-    const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+  const redirectToDashboard = (u) => {
+    const userType = u.user_type || '';
+    const isAdmin = u.role === 'admin' || userType === 'admin';
 
     if (isAdmin) {
-      navigate('/admin-dashboard');
-    } else if (userTypes.includes('teacher')) {
-      navigate('/teacher-dashboard');
-    } else if (userTypes.includes('student')) {
-      navigate('/student-dashboard');
-    } else if (userTypes.includes('parent')) {
-      navigate('/parent-portal');
-    } else if (userTypes.includes('vendor')) {
-      navigate('/vendor-dashboard');
+      navigate('/AdminDashboard', { replace: true });
+    } else if (userType === 'teacher') {
+      navigate('/TeacherDashboard', { replace: true });
+    } else if (userType === 'student') {
+      navigate('/StudentDashboard', { replace: true });
+    } else if (userType === 'parent') {
+      navigate('/ParentPortal', { replace: true });
+    } else if (userType === 'vendor') {
+      navigate('/VendorDashboard', { replace: true });
     } else {
-      navigate('/admin-dashboard');
+      navigate('/AdminDashboard', { replace: true });
     }
   };
 
@@ -139,8 +139,7 @@ export default function ProfileSetupPage() {
     setError('');
 
     try {
-      const userTypes = user.user_types || [];
-      const primaryType = userTypes[0] || 'teacher';
+      const primaryType = user.user_type || 'teacher';
 
       const response = await base44.functions.invoke('completeUserProfile', {
         user_type: primaryType,
@@ -462,14 +461,14 @@ export default function ProfileSetupPage() {
         <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
           <div className="mb-4 sm:mb-6 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">Account Type:</p>
-            <p className="font-medium capitalize">{(user.user_types || []).join(', ') || 'User'}</p>
+            <p className="font-medium capitalize">{user.user_type || 'User'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-            {(user.user_types || []).includes('teacher') && renderTeacherForm()}
-            {(user.user_types || []).includes('student') && renderStudentForm()}
-            {(user.user_types || []).includes('parent') && renderParentForm()}
-            {(user.user_types || []).includes('vendor') && renderVendorForm()}
+            {user.user_type === 'teacher' && renderTeacherForm()}
+            {user.user_type === 'student' && renderStudentForm()}
+            {user.user_type === 'parent' && renderParentForm()}
+            {user.user_type === 'vendor' && renderVendorForm()}
 
             {error && (
               <Alert variant="destructive">

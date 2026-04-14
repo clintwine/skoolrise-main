@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +7,6 @@ import {
   FileText, 
   Clock, 
   Users, 
-  Shield, 
   Bell,
   CheckCircle,
   ArrowRight,
@@ -22,49 +21,61 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 
+function getDashboardUrl(currentUser) {
+  const userType = currentUser.user_type || '';
+  const isAdmin = currentUser.role === 'admin' || userType === 'admin';
+  if (isAdmin) return createPageUrl('AdminDashboard');
+  if (userType === 'teacher') return createPageUrl('TeacherDashboard');
+  if (userType === 'student') return createPageUrl('StudentDashboard');
+  if (userType === 'parent') return createPageUrl('ParentPortal');
+  if (userType === 'vendor') return createPageUrl('VendorDashboard');
+  return createPageUrl('AdminDashboard');
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const redirectAuthenticatedUser = async () => {
       const storedToken = localStorage.getItem('base44_access_token');
       const urlToken = new URLSearchParams(window.location.search).get('access_token');
 
-      if (!storedToken && !urlToken) return;
+      if (!storedToken && !urlToken) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      // If we have a URL token but it's not stored yet, wait briefly for the SDK to pick it up
+      if (urlToken && !storedToken) {
+        await new Promise(r => setTimeout(r, 500));
+      }
 
       try {
         const currentUser = await base44.auth.me();
+        if (cancelled) return;
 
         if (!currentUser.is_activated) {
-          navigate(createPageUrl('ActivationPage'));
+          navigate(createPageUrl('ActivationPage'), { replace: true });
           return;
         }
 
         if (!currentUser.profile_completed) {
-          navigate(createPageUrl('ProfileSetupPage'));
+          navigate(createPageUrl('ProfileSetupPage'), { replace: true });
           return;
         }
 
-        const userType = currentUser.user_type || '';
-        const isAdmin = currentUser.role === 'admin' || userType === 'admin';
-
-        if (isAdmin) {
-          navigate(createPageUrl('AdminDashboard'));
-        } else if (userType === 'teacher') {
-          navigate(createPageUrl('TeacherDashboard'));
-        } else if (userType === 'student') {
-          navigate(createPageUrl('StudentDashboard'));
-        } else if (userType === 'parent') {
-          navigate(createPageUrl('ParentPortal'));
-        } else if (userType === 'vendor') {
-          navigate(createPageUrl('VendorDashboard'));
-        }
+        navigate(getDashboardUrl(currentUser), { replace: true });
       } catch (error) {
         console.log('User not authenticated on landing page');
+        if (!cancelled) setCheckingAuth(false);
       }
     };
 
     redirectAuthenticatedUser();
+    return () => { cancelled = true; };
   }, [navigate]);
 
   const features = [
@@ -129,6 +140,15 @@ export default function LandingPage() {
     "Staff overwhelm"
   ];
 
+  // Show a loading spinner while checking auth to prevent flash of landing page
+  if (checkingAuth) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-blue-50">
       {/* Navigation */}
@@ -151,7 +171,7 @@ export default function LandingPage() {
               <Button 
                 variant="ghost" 
                 className="text-gray-700"
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={() => base44.auth.redirectToLogin(window.location.origin + '/LandingPage')}
               >
                 Login
               </Button>
@@ -527,7 +547,7 @@ export default function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <button onClick={() => base44.auth.redirectToLogin()} className="text-gray-400 hover:text-white transition-colors">
+                  <button onClick={() => base44.auth.redirectToLogin(window.location.origin + '/LandingPage')} className="text-gray-400 hover:text-white transition-colors">
                     Login
                   </button>
                 </li>

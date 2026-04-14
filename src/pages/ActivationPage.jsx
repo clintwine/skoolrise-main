@@ -24,7 +24,7 @@ export default function ActivationPage() {
         // If already activated, redirect
         if (currentUser.is_activated) {
           if (!currentUser.profile_completed) {
-            navigate('/profile-setup');
+            navigate('/ProfileSetupPage', { replace: true });
           } else {
             // Redirect based on user type
             redirectToDashboard(currentUser);
@@ -37,22 +37,22 @@ export default function ActivationPage() {
     checkUser();
   }, [navigate]);
 
-  const redirectToDashboard = (user) => {
-    const userTypes = user.user_types || [];
-    const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+  const redirectToDashboard = (u) => {
+    const userType = u.user_type || '';
+    const isAdmin = u.role === 'admin' || userType === 'admin';
 
     if (isAdmin) {
-      navigate('/admin-dashboard');
-    } else if (userTypes.includes('teacher')) {
-      navigate('/teacher-dashboard');
-    } else if (userTypes.includes('student')) {
-      navigate('/student-dashboard');
-    } else if (userTypes.includes('parent')) {
-      navigate('/parent-portal');
-    } else if (userTypes.includes('vendor')) {
-      navigate('/vendor-dashboard');
+      navigate('/AdminDashboard', { replace: true });
+    } else if (userType === 'teacher') {
+      navigate('/TeacherDashboard', { replace: true });
+    } else if (userType === 'student') {
+      navigate('/StudentDashboard', { replace: true });
+    } else if (userType === 'parent') {
+      navigate('/ParentPortal', { replace: true });
+    } else if (userType === 'vendor') {
+      navigate('/VendorDashboard', { replace: true });
     } else {
-      navigate('/admin-dashboard');
+      navigate('/AdminDashboard', { replace: true });
     }
   };
 
@@ -71,7 +71,7 @@ export default function ActivationPage() {
         const updatedUser = await base44.auth.me();
         
         // Redirect to profile setup
-        navigate('/profile-setup');
+        navigate('/ProfileSetupPage', { replace: true });
       } else {
         setError(response.data.message || 'Invalid or expired activation code');
       }
