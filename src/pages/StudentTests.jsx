@@ -42,8 +42,8 @@ export default function StudentTests() {
   }, [studentProfile]);
 
   const { data: exams = [] } = useQuery({
-    queryKey: ['student-exams'],
-    queryFn: () => base44.entities.Exam.filter({ status: 'Active' }),
+    queryKey: ['student-tests'],
+    queryFn: () => base44.entities.Test.filter({ status: 'Published' }, '-end_date', 50),
   });
 
   const { data: attempts = [] } = useQuery({
@@ -55,11 +55,25 @@ export default function StudentTests() {
     enabled: !!studentId,
   });
 
-  const availableExams = exams.filter(exam => 
-    !attempts.some(attempt => attempt.exam_id === exam.id && attempt.status === 'Completed')
-  );
+  const availableExams = exams.filter(exam => {
+    const isCompleted = attempts.some(attempt => attempt.exam_id === exam.id && attempt.status === 'Completed');
+    const isStillOpen = !exam.end_date || new Date(exam.end_date) >= new Date();
+    return !isCompleted && isStillOpen;
+  });
 
   const completedAttempts = attempts.filter(a => a.status === 'Completed');
+
+  if (!user && students.length === 0) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-10 bg-gray-200 rounded w-48"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1,2,3].map((i) => <div key={i} className="h-28 bg-gray-100 rounded-xl"></div>)}
+        </div>
+        <div className="h-64 bg-gray-100 rounded-xl"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

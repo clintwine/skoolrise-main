@@ -160,7 +160,7 @@ export default function PredictiveAlerts() {
         <CardContent className="p-6 text-center">
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
           <h3 className="font-semibold text-green-800">All Clear!</h3>
-          <p className="text-sm text-green-600">No critical alerts at this time</p>
+          <p className="text-sm text-green-700">No critical alerts from the current data right now.</p>
         </CardContent>
       </Card>
     );

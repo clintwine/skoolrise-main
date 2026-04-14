@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Check, CheckCheck, X, Info, AlertTriangle, CheckCircle, XCircle, ClipboardList, Award, Calendar, DollarSign, Megaphone } from 'lucide-react';
+import { IconButton } from '@/components/common/AccessibleButton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -81,7 +82,8 @@ export default function NotificationCenter({ userId }) {
       const url = notification.link_params 
         ? `${notification.link}?${notification.link_params}`
         : notification.link;
-      navigate(createPageUrl(url));
+      const isDirectPath = url.startsWith('/') || url.includes('?');
+      navigate(isDirectPath ? url : createPageUrl(url));
       setOpen(false);
     }
   };
@@ -89,7 +91,7 @@ export default function NotificationCenter({ userId }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="relative p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95">
+        <button aria-label="Open notifications" title="Open notifications" className="relative p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95">
           <Bell className="w-5 h-5 text-text-secondary" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center px-1.5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">

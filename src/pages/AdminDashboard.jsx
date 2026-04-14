@@ -107,7 +107,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">School overview and analytics</p>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">School overview, analytics, live alerts, and AI recommendations</p>
         </div>
         <Link to={createPageUrl('AdminReportsDashboard')}>
           <button className="px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base">

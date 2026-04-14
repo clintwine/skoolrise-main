@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, ClipboardList, FileText, Award, Calendar } from 'lucide-react';
+import { DashboardSkeleton } from '@/components/SkeletonLoader';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
@@ -53,6 +54,22 @@ export default function StudentDashboard() {
     enabled: !!studentProfile?.id && enrollments.length > 0,
   });
 
+  const { data: tests = [] } = useQuery({
+    queryKey: ['student-tests-dashboard', enrollments.map(e => e.class_id).join(',')],
+    queryFn: async () => {
+      const classIds = enrollments.map(e => e.class_id);
+      if (classIds.length === 0) return [];
+      const allTests = await base44.entities.Test.filter({ status: 'Published' }, '-end_date', 20);
+      return allTests.filter(test => classIds.includes(test.class_id));
+    },
+    enabled: enrollments.length > 0,
+  });
+
+  const upcomingTestsCount = useMemo(() => {
+    const now = new Date();
+    return tests.filter(test => !test.end_date || new Date(test.end_date) >= now).length;
+  }, [tests]);
+
   const stats = [
     {
       title: 'Enrolled Classes',
@@ -70,12 +87,16 @@ export default function StudentDashboard() {
     },
     {
       title: 'Upcoming Tests',
-      value: 0,
+      value: upcomingTestsCount,
       icon: FileText,
       color: 'bg-purple-500',
       link: 'StudentTests',
     },
   ];
+
+  if (!user && !studentProfile) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">

@@ -189,8 +189,8 @@ For each insight, provide:
         {!insights ? (
           <div className="text-center py-8">
             <Brain className="w-12 h-12 text-indigo-300 mx-auto mb-3" />
-            <p className="text-indigo-700 font-medium">Click "Analyze" to generate AI insights</p>
-            <p className="text-sm text-indigo-500 mt-1">Our AI will analyze your school data and provide actionable recommendations</p>
+            <p className="text-indigo-700 font-medium">Generate live AI insights</p>
+            <p className="text-sm text-indigo-500 mt-1">This widget analyzes your current school data and creates fresh recommendations on demand.</p>
           </div>
         ) : (
           <div className="space-y-3">

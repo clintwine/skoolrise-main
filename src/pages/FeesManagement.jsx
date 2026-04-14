@@ -32,17 +32,17 @@ export default function FeesManagement() {
   const isVendor = userType === 'vendor';
   const isAuthorized = isAdmin || isVendor;
 
-  // Redirect unauthorized users
-  if (!isLoadingUser && user && !isAuthorized) {
-    navigate(createPageUrl('TeacherDashboard'));
-    return null;
-  }
-
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
     queryFn: () => base44.entities.FeeInvoice.list('-created_date'),
     enabled: !isLoadingUser && isAuthorized,
   });
+
+  // Redirect unauthorized users
+  if (!isLoadingUser && user && !isAuthorized) {
+    navigate(createPageUrl('TeacherDashboard'));
+    return null;
+  }
 
   // Memoized filtered invoices
   const filteredInvoices = useMemo(() => invoices.filter(invoice => {
@@ -55,7 +55,7 @@ export default function FeesManagement() {
   // Memoized financial metrics
   const financialMetrics = useMemo(() => ({
     totalInvoiced: invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0),
-    totalPaid: invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0),
+    totalPaid: invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0),
     totalOutstanding: invoices.reduce((sum, inv) => sum + (inv.balance || 0), 0),
     overdueInvoices: invoices.filter(inv => 
       inv.status === 'Overdue' || 
@@ -206,10 +206,10 @@ export default function FeesManagement() {
                         <p className="text-xs text-gray-500">#{invoice.invoice_number}</p>
                       </div>
                       <Badge className={`text-xs ${
-                        invoice.status === 'Paid' ? 'bg-green-100 text-green-800' :
-                        invoice.status === 'Partially Paid' ? 'bg-blue-100 text-blue-800' :
-                        invoice.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                        invoice.status === 'Paid' ? 'bg-green-100 text-green-900 border border-green-200' :
+                        invoice.status === 'Partially Paid' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                        invoice.status === 'Overdue' ? 'bg-red-100 text-red-900 border border-red-200' :
+                        'bg-gray-100 text-gray-900 border border-gray-200'
                       }`}>
                         {invoice.status}
                       </Badge>
@@ -252,7 +252,7 @@ export default function FeesManagement() {
                         <td className="px-4 lg:px-6 py-3 text-xs text-gray-600 hidden lg:table-cell">{invoice.invoice_date}</td>
                         <td className="px-4 lg:px-6 py-3 text-xs text-gray-600">{invoice.due_date}</td>
                         <td className="px-4 lg:px-6 py-3 text-xs font-medium text-gray-900 text-right">{formatAmount(invoice.total_amount)}</td>
-                        <td className="px-4 lg:px-6 py-3 text-xs text-green-600 font-medium text-right hidden lg:table-cell">{formatAmount(invoice.paid_amount)}</td>
+                        <td className="px-4 lg:px-6 py-3 text-xs text-green-600 font-medium text-right hidden lg:table-cell">{formatAmount(invoice.amount_paid)}</td>
                         <td className="px-4 lg:px-6 py-3 text-xs text-orange-600 font-medium text-right">{formatAmount(invoice.balance)}</td>
                         <td className="px-4 lg:px-6 py-3 text-center">
                           <Badge className={`text-xs ${

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
 /**
@@ -37,17 +37,31 @@ export function usePermission(permissionName) {
  * @returns {{ permissions: Record<string, boolean>, isLoading: boolean }}
  */
 export function usePermissions(permissionNames) {
-  const results = permissionNames.map(name => ({
-    name,
-    ...usePermission(name)
-  }));
+  const results = useQueries({
+    queries: permissionNames.map((permissionName) => ({
+      queryKey: ['permission', permissionName],
+      queryFn: async () => {
+        try {
+          const response = await base44.functions.invoke('checkUserPermission', {
+            permission_name: permissionName
+          });
+          return response.data;
+        } catch (error) {
+          console.error('Permission check failed:', error);
+          return { has_permission: false, source: 'error' };
+        }
+      },
+      staleTime: 60000,
+      enabled: !!permissionName
+    }))
+  });
 
-  const permissions = results.reduce((acc, result) => {
-    acc[result.name] = result.hasPermission;
+  const permissions = permissionNames.reduce((acc, name, index) => {
+    acc[name] = results[index]?.data?.has_permission || false;
     return acc;
   }, {});
 
-  const isLoading = results.some(r => r.isLoading);
+  const isLoading = results.some((result) => result.isLoading);
 
   return { permissions, isLoading };
 }

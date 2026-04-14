@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DashboardSkeleton } from '@/components/SkeletonLoader';
+import EmptyState from '@/components/common/EmptyState';
 import { 
   Users, GraduationCap, DollarSign, FileText, 
   Calendar, Award, ChevronRight, TrendingUp,
@@ -158,13 +159,13 @@ export default function ParentPortal() {
             <Card className="col-span-full bg-white rounded-2xl shadow-md">
               <CardContent className="p-12 text-center">
                 <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-text mb-2">No Children Linked</h3>
-                <p className="text-text-secondary mb-4">Link your children to view their information</p>
-                <Link to={createPageUrl('ParentLinkingRequests')}>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-base">
-                    Link Student
-                  </Button>
-                </Link>
+                <EmptyState
+                  icon={Users}
+                  title="No Children Linked"
+                  description="Link your children to view their information."
+                  actionLabel="Link Student"
+                  onAction={() => window.location.href = createPageUrl('ParentLinkingRequests')}
+                />
               </CardContent>
             </Card>
           ) : (
@@ -353,15 +354,17 @@ export default function ParentPortal() {
                     <div>
                       <p className="font-semibold text-text">{report.student_name}</p>
                       <p className="text-sm text-text-secondary">
-                        Term {report.term_number} • Session {report.session_id}
+                        Session {report.session_id}
                       </p>
-                    </div>
-                    <div className="text-right">
+                      </div>
+                      <div className="text-right">
                       <p className="text-2xl font-bold text-text">{report.average_score}%</p>
-                      <Button size="sm" variant="outline" className="mt-2">
-                        View Report
-                      </Button>
-                    </div>
+                      <Link to={createPageUrl(`ReportCardView?id=${report.id}`)}>
+                        <Button size="sm" variant="outline" className="mt-2">
+                          View Report
+                        </Button>
+                      </Link>
+                      </div>
                   </div>
                 </div>
               ))
