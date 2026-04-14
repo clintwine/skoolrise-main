@@ -229,14 +229,17 @@ export default function ClassroomResources() {
             <p className="text-gray-500 text-center py-8">No resources yet. Click "Add Resource" to upload teaching materials.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myResources.map((resource) => (
+              {filteredMyResources.map((resource) => (
                 <div key={resource.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between mb-2 gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       {getTypeIcon(resource.resource_type)}
                       <h3 className="font-semibold truncate">{resource.title}</h3>
                     </div>
-                    <Badge className={getTypeColor(resource.resource_type)}>{resource.resource_type}</Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <ResourceVersionBadge version={resource.version_number} />
+                      <Badge className={getTypeColor(resource.resource_type)}>{resource.resource_type}</Badge>
+                    </div>
                   </div>
                   {resource.description && (
                     <p className="text-sm text-gray-600 mb-2 line-clamp-2">{resource.description}</p>
