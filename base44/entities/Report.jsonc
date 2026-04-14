@@ -1,0 +1,44 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Saved report name"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "student_performance",
+        "financial_transactions",
+        "event_participation"
+      ],
+      "description": "Type of report"
+    },
+    "filters": {
+      "type": "string",
+      "description": "JSON string of active filters"
+    },
+    "sort_by": {
+      "type": "string",
+      "description": "Selected sort field"
+    },
+    "sort_order": {
+      "type": "string",
+      "enum": [
+        "asc",
+        "desc"
+      ],
+      "default": "desc",
+      "description": "Sort direction"
+    },
+    "columns": {
+      "type": "string",
+      "description": "JSON string of visible columns"
+    }
+  },
+  "required": [
+    "name",
+    "report_type"
+  ]
+}

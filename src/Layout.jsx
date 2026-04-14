@@ -131,7 +131,7 @@ export default function Layout({ children, currentPageName }) {
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
           'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
           'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions', 'NotificationsPage',
-          'StudentLeaderboard'
+          'StudentLeaderboard', 'StudentPerformanceReports'
         ];
         
         const teacherPages = [
@@ -345,6 +345,7 @@ export default function Layout({ children, currentPageName }) {
         groupName: 'REPORTS & ANALYTICS',
         items: [
           { name: 'Reports', icon: TrendingUp, path: 'Reports' },
+          { name: 'Student Performance', icon: BarChart3, path: 'StudentPerformanceReports' },
           { name: 'Scheduled Reports', icon: Calendar, path: 'ScheduledReports' },
         ]
       },

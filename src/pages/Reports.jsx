@@ -3,9 +3,11 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Calendar, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { FileText, Download, Calendar, Users, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 
 export default function Reports() {
   const { data: students = [] } = useQuery({
@@ -144,10 +146,18 @@ export default function Reports() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-gray-600">Generate student enrollment and performance reports</p>
-            <Button variant="outline" size="sm" className="w-full" onClick={generateStudentReport}>
-              <Download className="w-4 h-4 mr-2" />
-              Generate Report
-            </Button>
+            <div className="grid gap-2">
+              <Button variant="outline" size="sm" className="w-full" onClick={generateStudentReport}>
+                <Download className="w-4 h-4 mr-2" />
+                Quick CSV Export
+              </Button>
+              <Link to={createPageUrl('StudentPerformanceReports')}>
+                <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Open Report Module
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
 
