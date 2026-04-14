@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import LessonPlanSummaryCards from '../components/ai/LessonPlanSummaryCards';
+import LessonPlannerSuggestions from '../components/ai/LessonPlannerSuggestions';
+import LessonPlannerResourcePanel from '../components/ai/LessonPlannerResourcePanel';
 import { base44 } from '@/api/base44Client';
 
 export default function AILessonPlanner() {
@@ -47,6 +49,11 @@ export default function AILessonPlanner() {
     queryFn: () => base44.entities.HomeworkTemplate.list(),
   });
 
+  const { data: resources = [] } = useQuery({
+    queryKey: ['teacher-resources-ai'],
+    queryFn: () => base44.entities.TeacherResource.list('-created_date'),
+  });
+
   const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
 
   const suggestedStandards = standards.filter(
@@ -60,6 +67,12 @@ export default function AILessonPlanner() {
       (!formData.subject || item.subject === formData.subject) &&
       (!formData.grade_level || item.grade_level === formData.grade_level)
   ).slice(0, 3);
+
+  const suggestedResources = resources.filter(
+    (item) =>
+      (!formData.subject || item.subject === formData.subject) &&
+      (!formData.grade_level || item.grade_level === formData.grade_level)
+  );
 
   const handleGenerate = async () => {
     if (!formData.subject || !formData.topic || !formData.grade_level) {
@@ -319,50 +332,26 @@ ${lessonPlan.cross_curricular_connections?.map(c => `• ${c}`).join('\n')}
         <p className="text-gray-600 mt-1">Generate comprehensive, classroom-ready lesson plans for K-12 education</p>
       </div>
 
-      {(suggestedStandards.length > 0 || suggestedTemplates.length > 0) && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <Card className="border-0 shadow-sm bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg">Suggested Standards</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {suggestedStandards.slice(0, 4).map((standard) => (
-                <button
-                  key={standard.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, curriculum_standards: standard.code })}
-                  className="w-full text-left rounded-xl border p-3 hover:bg-gray-50"
-                >
-                  <p className="font-semibold text-gray-900">{standard.code}</p>
-                  <p className="text-sm text-gray-600">{standard.title}</p>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg">Suggested Templates</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {suggestedTemplates.map((template) => (
-                <button
-                  key={template.id}
-                  type="button"
-                  onClick={() => setFormData({
-                    ...formData,
-                    available_resources: template.description || formData.available_resources,
-                    learning_objectives: template.content || formData.learning_objectives,
-                  })}
-                  className="w-full text-left rounded-xl border p-3 hover:bg-gray-50"
-                >
-                  <p className="font-semibold text-gray-900">{template.title}</p>
-                  <p className="text-sm text-gray-600">{template.type} · {template.difficulty || 'General'}</p>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <LessonPlannerSuggestions
+        suggestedStandards={suggestedStandards}
+        suggestedTemplates={suggestedTemplates}
+        onPickStandard={(standard) => setFormData({ ...formData, curriculum_standards: standard.code })}
+        onPickTemplate={(template) => setFormData({
+          ...formData,
+          available_resources: template.description || formData.available_resources,
+          learning_objectives: template.content || formData.learning_objectives,
+        })}
+      />
+
+      <LessonPlannerResourcePanel
+        resources={suggestedResources}
+        onAddResource={(resource) => setFormData({
+          ...formData,
+          available_resources: formData.available_resources
+            ? `${formData.available_resources}\n${resource.title}${resource.resource_url ? ` - ${resource.resource_url}` : ''}`
+            : `${resource.title}${resource.resource_url ? ` - ${resource.resource_url}` : ''}`,
+        })}
+      />
 
       <Card>
         <CardHeader>
