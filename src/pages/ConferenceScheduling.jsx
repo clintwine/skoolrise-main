@@ -227,6 +227,11 @@ export default function ConferenceScheduling() {
                     </div>
                   </div>
                 ))}
+                {filteredUpcomingConferences.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">
+                    No conferences match your current filters.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
