@@ -13,12 +13,16 @@ import { Calendar, Clock, Video, Phone, Users, Plus, Settings } from 'lucide-rea
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
 import TeacherAvailabilityManager from '../components/conference/TeacherAvailabilityManager';
 import ConferenceStats from '../components/conference/ConferenceStats';
+import ConferenceFilters from '../components/conference/ConferenceFilters';
+import ConferenceBookingTips from '../components/conference/ConferenceBookingTips';
 
 export default function ConferenceScheduling() {
   const [user, setUser] = useState(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [selectedConference, setSelectedConference] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const [bookingForm, setBookingForm] = useState({
     student_id: '',
@@ -98,6 +102,14 @@ export default function ConferenceScheduling() {
     new Date(c.scheduled_date) >= new Date() && c.status !== 'Completed' && c.status !== 'Cancelled'
   );
 
+  const filteredUpcomingConferences = upcomingConferences.filter((conference) => {
+    const matchesSearch = [conference.student_name, conference.parent_name, conference.parent_email, conference.teacher_name]
+      .filter(Boolean)
+      .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === 'all' || conference.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   const statusColors = {
     Scheduled: 'bg-blue-100 text-blue-800',
     Confirmed: 'bg-green-100 text-green-800',
@@ -145,6 +157,8 @@ export default function ConferenceScheduling() {
         }}
       />
 
+      <ConferenceBookingTips />
+
       <Tabs defaultValue="upcoming" className="space-y-4">
         <TabsList>
           <TabsTrigger value="upcoming">Upcoming Conferences</TabsTrigger>
@@ -162,9 +176,15 @@ export default function ConferenceScheduling() {
             <CardHeader>
               <CardTitle>Upcoming Conferences</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <ConferenceFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                statusFilter={statusFilter}
+                onStatusChange={setStatusFilter}
+              />
               <div className="space-y-4">
-                {upcomingConferences.slice(0, 10).map(conf => (
+                {filteredUpcomingConferences.slice(0, 10).map(conf => (
                   <div key={conf.id} className="rounded-2xl border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
                       <div className="space-y-3">
