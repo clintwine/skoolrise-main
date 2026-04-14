@@ -10,6 +10,7 @@ import { useCurrency } from '@/components/CurrencyProvider';
 import AIInsightsWidget from '../components/dashboard/AIInsightsWidget';
 import PredictiveAlerts from '../components/dashboard/PredictiveAlerts';
 import DashboardWidgetGrid from '../components/dashboard/DashboardWidgetGrid';
+import AcademicRiskBoard from '../components/analytics/AcademicRiskBoard';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { DashboardSkeleton } from '../components/SkeletonLoader';
 import ImplementationPriorityBoard from '../components/admin/ImplementationPriorityBoard';
@@ -46,6 +47,11 @@ export default function AdminDashboard() {
   const { data: reportCards = [] } = useQuery({
     queryKey: ['report-cards'],
     queryFn: () => base44.entities.ReportCard.list(),
+  });
+
+  const { data: behaviors = [] } = useQuery({
+    queryKey: ['behavior-records'],
+    queryFn: () => base44.entities.Behavior.list('-date', 200),
   });
 
   const { data: implementationEpics = [] } = useQuery({
@@ -89,6 +95,50 @@ export default function AdminDashboard() {
     { range: '60-69%', count: reportCards.filter(rc => rc.average_score >= 60 && rc.average_score < 70).length },
     { range: 'Below 60%', count: reportCards.filter(rc => rc.average_score < 60).length },
   ], [reportCards]);
+
+  const academicRiskStudents = useMemo(() => {
+    return students.map((student) => {
+      const studentAttendance = attendance.filter(record => record.student_id === student.id);
+      const presentCount = studentAttendance.filter(record => record.status === 'Present').length;
+      const attendanceRate = studentAttendance.length > 0 ? Math.round((presentCount / studentAttendance.length) * 100) : 100;
+
+      const studentReports = reportCards.filter(report => report.student_id === student.id);
+      const averageScore = studentReports.length > 0
+        ? Math.round(studentReports.reduce((sum, report) => sum + (report.average_score || 0), 0) / studentReports.length)
+        : 100;
+
+      const studentInvoices = invoices.filter(invoice => invoice.student_id === student.id);
+      const outstandingBalance = studentInvoices.reduce((sum, invoice) => sum + (invoice.balance || 0), 0);
+
+      const studentBehaviors = behaviors.filter(record => record.student_id === student.id);
+      const negativeBehaviorCount = studentBehaviors.filter(record => ['Demerit', 'Warning', 'Detention'].includes(record.type)).length;
+
+      const riskSignals = [
+        attendanceRate < 75,
+        averageScore < 60,
+        outstandingBalance > 0,
+        negativeBehaviorCount >= 3,
+      ].filter(Boolean).length;
+
+      if (riskSignals === 0) return null;
+
+      const reasonParts = [];
+      if (attendanceRate < 75) reasonParts.push('low attendance');
+      if (averageScore < 60) reasonParts.push('low academic performance');
+      if (outstandingBalance > 0) reasonParts.push('fee balance outstanding');
+      if (negativeBehaviorCount >= 3) reasonParts.push('repeat behavior incidents');
+
+      return {
+        id: student.id,
+        student_name: `${student.first_name} ${student.last_name}`,
+        attendanceRate,
+        averageScore,
+        outstandingBalance: formatAmount(outstandingBalance),
+        riskLevel: riskSignals >= 3 ? 'High' : 'Medium',
+        reason: reasonParts.join(', '),
+      };
+    }).filter(Boolean).sort((a, b) => (a.riskLevel === 'High' ? -1 : 1)).slice(0, 6);
+  }, [students, attendance, reportCards, invoices, behaviors, formatAmount]);
 
   const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -243,6 +293,8 @@ export default function AdminDashboard() {
         <AIInsightsWidget />
         )}
       </div>
+
+      <AcademicRiskBoard students={academicRiskStudents} />
 
       <ImplementationPriorityBoard epics={implementationEpics.slice(0, 6)} />
 
