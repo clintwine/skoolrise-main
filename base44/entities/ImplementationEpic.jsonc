@@ -1,0 +1,63 @@
+{
+  "name": "ImplementationEpic",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Epic code such as A1 or B2"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "Strategic category"
+    },
+    "title": {
+      "type": "string",
+      "description": "Epic title"
+    },
+    "description": {
+      "type": "string",
+      "description": "What the epic delivers"
+    },
+    "recommended_order": {
+      "type": "number",
+      "description": "Recommended delivery order"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "implemented"
+      ],
+      "default": "planned",
+      "description": "Current implementation status"
+    },
+    "implementation_priority": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium"
+      ],
+      "default": "high",
+      "description": "Priority based on leverage"
+    },
+    "target_page": {
+      "type": "string",
+      "description": "Primary app area where this epic will be implemented"
+    }
+  },
+  "required": [
+    "code",
+    "category",
+    "title",
+    "recommended_order",
+    "status"
+  ]
+}

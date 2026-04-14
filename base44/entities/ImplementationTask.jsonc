@@ -1,0 +1,59 @@
+{
+  "name": "ImplementationTask",
+  "type": "object",
+  "properties": {
+    "epic_code": {
+      "type": "string",
+      "description": "Parent epic code"
+    },
+    "title": {
+      "type": "string",
+      "description": "Task or subtask title"
+    },
+    "task_level": {
+      "type": "string",
+      "enum": [
+        "task",
+        "subtask"
+      ],
+      "description": "Task hierarchy level"
+    },
+    "description": {
+      "type": "string",
+      "description": "Task summary"
+    },
+    "recommended_phase": {
+      "type": "number",
+      "description": "Recommended implementation phase"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "implemented"
+      ],
+      "default": "planned",
+      "description": "Current task status"
+    },
+    "implementation_notes": {
+      "type": "string",
+      "description": "Notes about progress or delivery decisions"
+    },
+    "target_area": {
+      "type": "string",
+      "description": "Page or system area this task belongs to"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Ordering index"
+    }
+  },
+  "required": [
+    "epic_code",
+    "title",
+    "task_level",
+    "recommended_phase",
+    "status"
+  ]
+}

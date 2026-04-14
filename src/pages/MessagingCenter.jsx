@@ -31,6 +31,8 @@ export default function MessagingCenter() {
     contact_list_id: '',
     specific_emails: '',
     channel: 'Email',
+    priority: 'Normal',
+    template_type: 'General Announcement',
     subject: '',
     message: '',
     scheduled_date: '',
@@ -138,6 +140,8 @@ export default function MessagingCenter() {
         recipient_ids: data.recipient_ids,
         contact_list_id: data.contact_list_id,
         channel: data.channel,
+        priority: data.priority,
+        template_type: data.template_type,
         scheduled_date: isScheduled ? data.scheduled_date : null,
         sent_date: isScheduled ? null : new Date().toISOString(),
         sent_by: currentUser?.email,
@@ -189,6 +193,8 @@ export default function MessagingCenter() {
         contact_list_id: '',
         specific_emails: '',
         channel: 'Email',
+        priority: 'Normal',
+        template_type: 'General Announcement',
         subject: '',
         message: '',
         scheduled_date: '',
@@ -462,19 +468,48 @@ export default function MessagingCenter() {
                 </div>
               )}
 
-              <div>
-                <Label>Channel *</Label>
-                <Select value={formData.channel} onValueChange={(value) => setFormData({ ...formData, channel: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Email">Email</SelectItem>
-                    <SelectItem value="SMS">SMS</SelectItem>
-                    <SelectItem value="WhatsApp">WhatsApp</SelectItem>
-                    <SelectItem value="In-App">In-App Notification</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Channel *</Label>
+                  <Select value={formData.channel} onValueChange={(value) => setFormData({ ...formData, channel: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Email">Email</SelectItem>
+                      <SelectItem value="SMS">SMS</SelectItem>
+                      <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                      <SelectItem value="In-App">In-App Notification</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Priority</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Normal">Normal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Template</Label>
+                  <Select value={formData.template_type} onValueChange={(value) => setFormData({ ...formData, template_type: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="General Announcement">General Announcement</SelectItem>
+                      <SelectItem value="Emergency Alert">Emergency Alert</SelectItem>
+                      <SelectItem value="Fee Reminder">Fee Reminder</SelectItem>
+                      <SelectItem value="Attendance Notice">Attendance Notice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
@@ -572,10 +607,14 @@ export default function MessagingCenter() {
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {notifications.map((notification) => (
                   <div key={notification.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-2 gap-3">
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900">{notification.subject}</h4>
                         <p className="text-sm text-gray-600">To: {notification.recipient_type}</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {notification.template_type && <Badge variant="outline">{notification.template_type}</Badge>}
+                          {notification.priority && <Badge className={notification.priority === 'Critical' ? 'bg-red-100 text-red-700' : notification.priority === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}>{notification.priority}</Badge>}
+                        </div>
                       </div>
                       <Badge className={statusColors[notification.status]}>
                         {notification.status}

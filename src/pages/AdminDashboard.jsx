@@ -12,6 +12,7 @@ import PredictiveAlerts from '../components/dashboard/PredictiveAlerts';
 import DashboardWidgetGrid from '../components/dashboard/DashboardWidgetGrid';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { DashboardSkeleton } from '../components/SkeletonLoader';
+import ImplementationPriorityBoard from '../components/admin/ImplementationPriorityBoard';
 
 export default function AdminDashboard() {
   const { formatAmount } = useCurrency();
@@ -45,6 +46,11 @@ export default function AdminDashboard() {
   const { data: reportCards = [] } = useQuery({
     queryKey: ['report-cards'],
     queryFn: () => base44.entities.ReportCard.list(),
+  });
+
+  const { data: implementationEpics = [] } = useQuery({
+    queryKey: ['implementation-epics'],
+    queryFn: () => base44.entities.ImplementationEpic.list('recommended_order'),
   });
 
   // Memoized calculations for performance
@@ -237,6 +243,8 @@ export default function AdminDashboard() {
         <AIInsightsWidget />
         )}
       </div>
+
+      <ImplementationPriorityBoard epics={implementationEpics.slice(0, 6)} />
 
       {isWidgetEnabled('quick-actions') && (
       <Card>
