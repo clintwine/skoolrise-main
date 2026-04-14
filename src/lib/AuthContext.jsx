@@ -47,13 +47,15 @@ export const AuthProvider = ({ children }) => {
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
-        // Public apps can fail this endpoint without auth in preview, so fall back safely
-        if (!appParams.token) {
+        const isAuthRequiredError = appError?.status === 422 && appError?.message?.includes('Authentication required');
+
+        if (!appParams.token || isAuthRequiredError) {
           setAppPublicSettings({ id: appParams.appId, public_settings: 'public_without_login' });
           setUser(null);
           setIsLoadingPublicSettings(false);
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
+          setAuthError(null);
           return;
         }
         console.error('App state check failed:', appError);

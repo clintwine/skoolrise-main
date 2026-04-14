@@ -288,7 +288,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "AIGradingAssistant",
+    mainPage: "LandingPage",
     Pages: PAGES,
     Layout: __Layout,
 };
