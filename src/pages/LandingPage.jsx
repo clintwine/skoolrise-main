@@ -475,10 +475,10 @@ export default function LandingPage() {
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69441b6bd765d833c80ac7ff/90d2daf9a_oie_b7JlP4U16so5.png" 
                 alt="SkoolRise" 
-                className="h-10 w-auto mb-4 brightness-0 invert"
+                className="h-10 w-auto mb-4 object-contain"
               />
               <p className="text-gray-400 text-sm">
-                Smart School Management for Nigerian Schools
+                Smart school management for schools anywhere in the world
               </p>
             </div>
             <div>
