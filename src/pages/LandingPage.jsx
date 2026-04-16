@@ -411,103 +411,36 @@ export default function LandingPage() {
 
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-green-100 text-green-700 border-0">Pricing</Badge>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <Badge className="mb-4 bg-green-100 text-green-700 border-0">Get Started</Badge>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
+              Let’s Set Up Your School
             </h2>
-            <p className="text-xl text-gray-600">Start free, upgrade as you grow</p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Tell us about your school and we’ll guide you to the right onboarding path.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="border-2 border-gray-200">
-              <CardContent className="p-8">
-                <h3 className="text-xl font-bold mb-2">Starter</h3>
-                <p className="text-gray-600 mb-6">Perfect for small schools</p>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">Free</span>
+          <Card className="border-2 border-gray-200 shadow-xl bg-white">
+            <CardContent className="p-8 md:p-12 text-center">
+              <div className="max-w-2xl mx-auto">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Start with a School Enquiry</h3>
+                <p className="text-gray-600 text-lg mb-8">
+                  Share your school size, goals and timeline so our team can follow up with the best next step.
+                </p>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                  <Button className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
+                    Open Enquiry Form
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  <Button variant="outline" className="px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
+                    Request a Demo
+                  </Button>
                 </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Up to 100 students</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Basic reporting</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Email support</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full" onClick={() => setInquiryOpen(true)}>Get Started</Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-4 border-purple-600 relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <Badge className="bg-purple-600 text-white">Most Popular</Badge>
               </div>
-              <CardContent className="p-8">
-                <h3 className="text-xl font-bold mb-2">Professional</h3>
-                <p className="text-gray-600 mb-6">Ideal for growing schools</p>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">₦25,000</span>
-                  <span className="text-gray-600">/month</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Up to 500 students</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Advanced analytics</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">SMS notifications</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Priority support</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => setInquiryOpen(true)}>Start Free Trial</Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-gray-200">
-              <CardContent className="p-8">
-                <h3 className="text-xl font-bold mb-2">Enterprise</h3>
-                <p className="text-gray-600 mb-6">For large institutions</p>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">Custom</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Unlimited students</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Multiple branches</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Dedicated support</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">Custom integrations</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full" onClick={() => setInquiryOpen(true)}>Contact Sales</Button>
-              </CardContent>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

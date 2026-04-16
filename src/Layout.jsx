@@ -127,7 +127,7 @@ export default function Layout({ children, currentPageName }) {
           'CurriculumMapping', 'Gradebook', 'StudentProgressTracking', 'AILessonPlanner', 'ConferenceScheduling', 'ExamCommandCenter', 'ExamManagement', 'QuestionBank',
           'FeePolicies', 'FeesManagement', 'FeeReminderSystem', 'InstalmentPlans', 'PaymentProviders', 'SalaryManagement', 'ExpenseTracking',
           'BookshopManager', 'BookshopReports', 'VendorManagement', 'SchoolShopManagement', 'TripsManagement',
-          'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'EventCalendar',
+          'ClubsManagement', 'Activities', 'MessagingCenter', 'ContactLists', 'DeliveryReports', 'SchoolEnquiry', 'EventCalendar',
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
           'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
           'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions', 'NotificationsPage',
@@ -337,6 +337,7 @@ export default function Layout({ children, currentPageName }) {
           { name: 'Messaging Center', icon: Mail, path: 'MessagingCenter' },
           { name: 'Contact Lists', icon: Users, path: 'ContactLists' },
           { name: 'Delivery Reports', icon: BarChart3, path: 'DeliveryReports' },
+          { name: 'School Enquiry', icon: Mail, path: 'SchoolEnquiry' },
           { name: 'Event Calendar', icon: Calendar, path: 'EventCalendar' },
         ]
       },
