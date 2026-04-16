@@ -4,7 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -42,14 +42,23 @@ const AuthenticatedApp = () => {
     }
   }
 
+  const RootRedirect = () => {
+    const { isAuthenticated, navigateToLogin: goToLogin } = useAuth();
+    if (!isAuthenticated) {
+      goToLogin();
+      return null;
+    }
+    return (
+      <LayoutWrapper currentPageName={mainPageKey}>
+        <MainPage />
+      </LayoutWrapper>
+    );
+  };
+
   // Render the main app
   return (
     <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
+      <Route path="/" element={<RootRedirect />} />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
