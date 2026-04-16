@@ -78,6 +78,8 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
   });
 
   useEffect(() => {
+    if (!open) return;
+    if (loadingOverrides) return;
     if (existingOverrides.length > 0) {
       const overrideMap = {};
       existingOverrides.forEach(ov => {
@@ -91,7 +93,7 @@ export default function UserPermissionsDialog({ user, open, onOpenChange }) {
       setLocalOverrides({});
     }
     setHasChanges(false);
-  }, [existingOverrides, open]);
+  }, [existingOverrides.length, open, loadingOverrides]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
