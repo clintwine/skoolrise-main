@@ -82,17 +82,6 @@ export default function Layout({ children, currentPageName }) {
       try {
         const currentUser = await base44.auth.me();
 
-        // Check activation and profile completion
-        if (!currentUser.is_activated) {
-          navigate(createPageUrl('ActivationPage'));
-          return;
-        }
-
-        if (!currentUser.profile_completed) {
-          navigate(createPageUrl('ProfileSetupPage'));
-          return;
-        }
-
         // Strict validation: user_type must match exactly ONE profile
         const userType = currentUser.user_type || '';
         const hasRole = currentUser.role === 'admin' || !!userType;
@@ -202,8 +191,8 @@ export default function Layout({ children, currentPageName }) {
         }
       } catch (error) {
         console.error('Failed to fetch user:', error);
-        // Redirect to landing page if not authenticated
-        navigate(createPageUrl('LandingPage'));
+        // Redirect to login if not authenticated
+        base44.auth.redirectToLogin(window.location.href);
       } finally {
         setLoading(false);
       }
