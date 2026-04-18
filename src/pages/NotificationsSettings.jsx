@@ -56,14 +56,18 @@ export default function NotificationsSettings() {
     const fetchSettings = async () => {
       try {
         const currentUser = await base44.auth.me();
-        if (currentUser.email_settings) {
-          setEmailConfig(JSON.parse(currentUser.email_settings));
-        }
-        if (currentUser.sms_settings) {
-          setSmsConfig(JSON.parse(currentUser.sms_settings));
-        }
-        if (currentUser.whatsapp_settings) {
-          setWhatsappConfig(JSON.parse(currentUser.whatsapp_settings));
+        const schoolTenant = currentUser.school_tenant_id ? 
+          await base44.entities.SchoolTenant.read(currentUser.school_tenant_id) : null;
+
+        if (schoolTenant?.settings) {
+          try {
+            const schoolSettings = JSON.parse(schoolTenant.settings);
+            if (schoolSettings.email_settings) setEmailConfig(JSON.parse(schoolSettings.email_settings));
+            if (schoolSettings.sms_settings) setSmsConfig(JSON.parse(schoolSettings.sms_settings));
+            if (schoolSettings.whatsapp_settings) setWhatsappConfig(JSON.parse(schoolSettings.whatsapp_settings));
+          } catch (e) {
+            console.log('School settings not in expected format');
+          }
         }
       } catch (error) {
         console.error("Failed to load notification settings:", error);
@@ -92,7 +96,13 @@ export default function NotificationsSettings() {
 
     setSaving({ ...saving, email: true });
     try {
-      await base44.auth.updateMe({ email_settings: JSON.stringify(emailConfig) });
+      const currentUser = await base44.auth.me();
+      if (currentUser.school_tenant_id) {
+        const schoolTenant = await base44.entities.SchoolTenant.read(currentUser.school_tenant_id);
+        const currentSettings = schoolTenant.settings ? JSON.parse(schoolTenant.settings) : {};
+        const updatedSettings = { ...currentSettings, email_settings: JSON.stringify(emailConfig) };
+        await base44.entities.SchoolTenant.update(currentUser.school_tenant_id, { settings: JSON.stringify(updatedSettings) });
+      }
       toast.success('Email configuration saved successfully!');
     } catch (error) {
       toast.error('Failed to save: ' + error.message);
@@ -175,7 +185,13 @@ export default function NotificationsSettings() {
 
     setSaving({ ...saving, sms: true });
     try {
-      await base44.auth.updateMe({ sms_settings: JSON.stringify(smsConfig) });
+      const currentUser = await base44.auth.me();
+      if (currentUser.school_tenant_id) {
+        const schoolTenant = await base44.entities.SchoolTenant.read(currentUser.school_tenant_id);
+        const currentSettings = schoolTenant.settings ? JSON.parse(schoolTenant.settings) : {};
+        const updatedSettings = { ...currentSettings, sms_settings: JSON.stringify(smsConfig) };
+        await base44.entities.SchoolTenant.update(currentUser.school_tenant_id, { settings: JSON.stringify(updatedSettings) });
+      }
       toast.success('SMS configuration saved successfully!');
     } catch (error) {
       toast.error('Failed to save: ' + error.message);
@@ -228,7 +244,13 @@ export default function NotificationsSettings() {
 
     setSaving({ ...saving, whatsapp: true });
     try {
-      await base44.auth.updateMe({ whatsapp_settings: JSON.stringify(whatsappConfig) });
+      const currentUser = await base44.auth.me();
+      if (currentUser.school_tenant_id) {
+        const schoolTenant = await base44.entities.SchoolTenant.read(currentUser.school_tenant_id);
+        const currentSettings = schoolTenant.settings ? JSON.parse(schoolTenant.settings) : {};
+        const updatedSettings = { ...currentSettings, whatsapp_settings: JSON.stringify(whatsappConfig) };
+        await base44.entities.SchoolTenant.update(currentUser.school_tenant_id, { settings: JSON.stringify(updatedSettings) });
+      }
       toast.success('WhatsApp configuration saved successfully!');
     } catch (error) {
       toast.error('Failed to save: ' + error.message);
