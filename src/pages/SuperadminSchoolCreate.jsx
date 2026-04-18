@@ -95,18 +95,32 @@ export default function SuperadminSchoolCreate() {
       const newUser = users.find(u => u.email === form.admin_email);
 
       if (newUser) {
-        // 4. Update user record with school_tenant_id
-        await base44.auth.updateMe ? null : null; // can't update other users directly via auth
-        await base44.entities.User.update(newUser.id, {
-          school_tenant_id: school.id,
-          user_type: 'admin',
-          is_activated: true,
-        });
+        // 4. Only set school_tenant_id if user doesn't already have one (multi-school safe)
+        const updateData = { user_type: 'admin', is_activated: true };
+        if (!newUser.school_tenant_id) {
+          updateData.school_tenant_id = school.id;
+        }
+        await base44.entities.User.update(newUser.id, updateData);
 
         // 5. Update SchoolTenant with admin_user_id
         await base44.entities.SchoolTenant.update(school.id, {
           admin_user_id: newUser.id,
         });
+
+        // 6. Create UserSchoolMembership (check for duplicates first)
+        const existingMemberships = await base44.entities.UserSchoolMembership.filter({
+          user_id: newUser.id,
+          school_tenant_id: school.id,
+        });
+        if (existingMemberships.length === 0) {
+          await base44.entities.UserSchoolMembership.create({
+            user_id: newUser.id,
+            school_tenant_id: school.id,
+            role: 'admin',
+            is_active: true,
+            invited_at: new Date().toISOString(),
+          });
+        }
       }
 
       setSuccess({

@@ -1,0 +1,43 @@
+{
+  "name": "UserSchoolMembership",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Reference to the User"
+    },
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to the SchoolTenant"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "teacher",
+        "student",
+        "parent",
+        "vendor"
+      ],
+      "description": "The user's role at this school"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this membership is active"
+    },
+    "linked_student_ids": {
+      "type": "string",
+      "description": "JSON array of student IDs (for parent memberships)"
+    },
+    "invited_at": {
+      "type": "string",
+      "description": "ISO date when user was invited/added to this school"
+    }
+  },
+  "required": [
+    "user_id",
+    "school_tenant_id",
+    "role"
+  ]
+}

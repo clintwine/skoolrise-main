@@ -4,6 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommandPalette from './components/CommandPalette';
+import SchoolSwitcher from './components/SchoolSwitcher';
 import NoRoleScreen from './components/NoRoleScreen';
 import SchoolSuspended from './pages/SchoolSuspended';
 import MobileBottomNav from './components/MobileBottomNav';
@@ -577,6 +578,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-sm text-text-secondary">Search</span>
               <kbd className="px-2 py-0.5 text-xs bg-white rounded border text-text-secondary">⌘K</kbd>
             </button>
+            <SchoolSwitcher />
             <NotificationCenter userId={user?.id} />
             <Link 
               to={createPageUrl('UserProfile')} 

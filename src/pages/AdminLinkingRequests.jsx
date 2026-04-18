@@ -84,9 +84,7 @@ export default function AdminLinkingRequests() {
         // Update student's linked_parent_ids (add parent if not already linked)
         let studentLinkedParents = [];
         if (student?.linked_parent_ids) {
-          try {
-            studentLinkedParents = JSON.parse(student.linked_parent_ids);
-          } catch (e) { studentLinkedParents = []; }
+          try { studentLinkedParents = JSON.parse(student.linked_parent_ids); } catch (e) {}
         }
         if (!studentLinkedParents.includes(parentId)) {
           studentLinkedParents.push(parentId);
@@ -98,9 +96,7 @@ export default function AdminLinkingRequests() {
         // Update parent's linked_student_ids (add student if not already linked)
         let parentLinkedStudents = [];
         if (parent?.linked_student_ids) {
-          try {
-            parentLinkedStudents = JSON.parse(parent.linked_student_ids);
-          } catch (e) { parentLinkedStudents = []; }
+          try { parentLinkedStudents = JSON.parse(parent.linked_student_ids); } catch (e) {}
         }
         if (!parentLinkedStudents.includes(studentId)) {
           parentLinkedStudents.push(studentId);
@@ -108,6 +104,36 @@ export default function AdminLinkingRequests() {
         await base44.entities.Parent.update(parentId, { 
           linked_student_ids: JSON.stringify(parentLinkedStudents)
         });
+
+        // Upsert UserSchoolMembership for the parent (multi-school support)
+        if (parent?.user_id && student?.school_tenant_id) {
+          const existingMemberships = await base44.entities.UserSchoolMembership.filter({
+            user_id: parent.user_id,
+            school_tenant_id: student.school_tenant_id,
+          });
+          if (existingMemberships.length === 0) {
+            // Create new membership
+            await base44.entities.UserSchoolMembership.create({
+              user_id: parent.user_id,
+              school_tenant_id: student.school_tenant_id,
+              role: 'parent',
+              is_active: true,
+              linked_student_ids: JSON.stringify([studentId]),
+              invited_at: new Date().toISOString(),
+            });
+          } else {
+            // Update existing membership's linked_student_ids
+            const membership = existingMemberships[0];
+            let membershipStudents = [];
+            try { membershipStudents = JSON.parse(membership.linked_student_ids || '[]'); } catch (e) {}
+            if (!membershipStudents.includes(studentId)) {
+              membershipStudents.push(studentId);
+              await base44.entities.UserSchoolMembership.update(membership.id, {
+                linked_student_ids: JSON.stringify(membershipStudents),
+              });
+            }
+          }
+        }
       }
     },
     onSuccess: () => {
