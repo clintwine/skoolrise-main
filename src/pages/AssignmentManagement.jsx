@@ -14,14 +14,14 @@ export default function AssignmentManagement() {
 
   useEffect(() => {
     if (user) {
-      const userTypes = user.user_types || [];
-      const isAdmin = user.role === 'admin' || userTypes.includes('admin');
+      const userType = user.user_type || '';
+      const isAdmin = user.role === 'admin' || userType === 'admin';
 
-      if (isAdmin || userTypes.includes('teacher')) {
+      if (isAdmin || userType === 'teacher') {
         navigate(createPageUrl('TeacherAssignmentManager'));
-      } else if (userTypes.includes('student')) {
+      } else if (userType === 'student') {
         navigate(createPageUrl('StudentAssignmentDashboard'));
-      } else if (userTypes.includes('parent')) {
+      } else if (userType === 'parent') {
         navigate(createPageUrl('ParentAssignmentView'));
       } else {
         navigate(createPageUrl('TeacherAssignmentManager'));

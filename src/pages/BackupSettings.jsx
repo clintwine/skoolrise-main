@@ -17,19 +17,9 @@ export default function BackupSettings() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      checkConnection();
     };
     fetchUser();
   }, []);
-
-  const checkConnection = async () => {
-    try {
-      const result = await base44.functions.invoke('checkGoogleDriveConnection', {});
-      setIsConnected(result.data?.connected || false);
-    } catch (error) {
-      setIsConnected(false);
-    }
-  };
 
   const handleConnect = async () => {
     toast.info(
@@ -39,20 +29,15 @@ export default function BackupSettings() {
   };
 
   const handleDisconnect = async () => {
-    console.log('Attempting to disconnect Google Drive...');
     try {
       const result = await base44.functions.invoke('disconnectGoogleDrive', {});
-      console.log('Disconnect result:', result);
-      
       if (result.data?.success) {
         setIsConnected(false);
-        await checkConnection(); // Verify disconnection
         toast.success('Successfully disconnected from Google Drive.');
       } else {
         toast.error(result.data?.error || 'Failed to disconnect.');
       }
     } catch (error) {
-      console.error('Disconnect error:', error);
       toast.error('Failed to disconnect from Google Drive: ' + error.message);
     }
   };
