@@ -1,0 +1,91 @@
+{
+  "name": "SchoolTenant",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "School name"
+    },
+    "code": {
+      "type": "string",
+      "description": "Short unique code e.g. GRN001"
+    },
+    "subdomain": {
+      "type": "string",
+      "description": "Subdomain slug e.g. greenwood"
+    },
+    "address": {
+      "type": "string",
+      "description": "School address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "School phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "School email address"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to school logo"
+    },
+    "school_type": {
+      "type": "string",
+      "enum": [
+        "Primary",
+        "Secondary",
+        "Mixed",
+        "Nursery",
+        "College"
+      ],
+      "description": "Type of school"
+    },
+    "student_count_range": {
+      "type": "string",
+      "enum": [
+        "1-100",
+        "101-300",
+        "301-700",
+        "701-1500",
+        "1500+"
+      ],
+      "description": "Approximate number of students"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "starter",
+        "pro",
+        "enterprise"
+      ],
+      "default": "free",
+      "description": "Subscription plan"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this school tenant is active"
+    },
+    "settings": {
+      "type": "string",
+      "description": "JSON string for grading scale, currency, branding"
+    },
+    "onboarded_at": {
+      "type": "string",
+      "description": "ISO date when school was onboarded"
+    },
+    "admin_user_id": {
+      "type": "string",
+      "description": "Base44 user ID of school's primary admin"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about this school"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

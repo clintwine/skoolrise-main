@@ -42,7 +42,8 @@ import {
   Clock,
   Shield,
   Database,
-  Trophy
+  Trophy,
+  Globe
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -120,7 +121,8 @@ export default function Layout({ children, currentPageName }) {
           'Reports', 'ScheduledReports', 'UserManagement', 'SettingsHub', 'ScannerSettings', 'RoomAccessManagement',
           'UserProfile', 'CreateReportCard', 'InvoiceDetail', 'CreateInvoice', 'AuditLogs', 'BackupSettings',
           'NotificationsSettings', 'SecuritySettings', 'ExamCreator', 'ActiveClasses', 'StaffClocking', 'ClockingPermissions', 'NotificationsPage',
-          'StudentLeaderboard', 'StudentPerformanceReports'
+          'StudentLeaderboard', 'StudentPerformanceReports',
+          'SuperadminDashboard', 'SuperadminSchoolCreate', 'SuperadminSchoolEdit', 'SuperadminSchoolView'
         ];
         
         const teacherPages = [
@@ -181,6 +183,11 @@ export default function Layout({ children, currentPageName }) {
         // Allow StaffClocking page if user has permission
         if (currentPageName === 'StaffClocking' && userHasClockingPermission) {
           allowedPages.push('StaffClocking');
+        }
+
+        // Superadmin can always access superadmin pages
+        if (currentUser.is_superadmin && currentPageName.startsWith('Superadmin')) {
+          return;
         }
 
         // Check if current page is allowed for this user role
@@ -452,7 +459,21 @@ export default function Layout({ children, currentPageName }) {
           }
     ];
 
-    if (isAdmin) return adminGroups;
+    const isSuperadmin = user.is_superadmin;
+
+    const superadminGroup = {
+      id: 'platform-admin',
+      groupName: 'PLATFORM ADMIN',
+      items: [
+        { name: 'All Schools', icon: Globe, path: 'SuperadminDashboard' },
+        { name: 'Add School', icon: Plus, path: 'SuperadminSchoolCreate' },
+      ]
+    };
+
+    if (isAdmin) {
+      if (isSuperadmin) return [superadminGroup, ...adminGroups];
+      return adminGroups;
+    }
     if (isVendor) return vendorGroups;
     if (isParent) return parentGroups;
     if (isStudent) return studentGroups;

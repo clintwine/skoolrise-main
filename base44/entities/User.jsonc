@@ -1,0 +1,99 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "student",
+        "teacher",
+        "parent",
+        "admin",
+        "vendor"
+      ],
+      "description": "Primary user type - can only have ONE type"
+    },
+    "title": {
+      "type": "string",
+      "enum": [
+        "Mr",
+        "Mrs",
+        "Ms",
+        "Dr",
+        "Prof",
+        "Miss"
+      ],
+      "description": "User title/honorific"
+    },
+    "student_profile_id": {
+      "type": "string",
+      "description": "Reference to Student entity if user_type is student"
+    },
+    "teacher_profile_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity if user_type is teacher"
+    },
+    "parent_profile_id": {
+      "type": "string",
+      "description": "Reference to Parent entity if user_type is parent"
+    },
+    "vendor_profile_id": {
+      "type": "string",
+      "description": "Reference to Vendor entity if user_type is vendor"
+    },
+    "parent_of_student_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of student IDs if user is a parent"
+    },
+    "linked_parent_id": {
+      "type": "string",
+      "description": "Parent ID if user is a student"
+    },
+    "profile_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has completed profile setup"
+    },
+    "is_activated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has activated their account"
+    },
+    "activation_code": {
+      "type": "string",
+      "description": "Activation code for account verification"
+    },
+    "activation_code_expiry": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Expiry date for activation code"
+    },
+    "email_settings": {
+      "type": "string",
+      "description": "JSON string of email configuration"
+    },
+    "sms_settings": {
+      "type": "string",
+      "description": "JSON string of SMS configuration"
+    },
+    "whatsapp_settings": {
+      "type": "string",
+      "description": "JSON string of WhatsApp configuration"
+    },
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Links to SchoolTenant.id \u2014 empty for superadmin users"
+    },
+    "is_superadmin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user is a platform superadmin"
+    }
+  },
+  "required": [
+    "user_type"
+  ]
+}

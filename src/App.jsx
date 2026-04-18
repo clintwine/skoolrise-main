@@ -10,6 +10,10 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import StudentPerformanceReports from '@/pages/StudentPerformanceReports';
 import SchoolEnquiry from '@/pages/SchoolEnquiry';
+import SuperadminDashboard from '@/pages/SuperadminDashboard';
+import SuperadminSchoolCreate from '@/pages/SuperadminSchoolCreate';
+import SuperadminSchoolEdit from '@/pages/SuperadminSchoolEdit';
+import SuperadminSchoolView from '@/pages/SuperadminSchoolView';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -83,6 +87,38 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="SchoolEnquiry">
             <SchoolEnquiry />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/SuperadminDashboard"
+        element={
+          <LayoutWrapper currentPageName="SuperadminDashboard">
+            <SuperadminDashboard />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/SuperadminSchoolCreate"
+        element={
+          <LayoutWrapper currentPageName="SuperadminSchoolCreate">
+            <SuperadminSchoolCreate />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/SuperadminSchoolEdit"
+        element={
+          <LayoutWrapper currentPageName="SuperadminSchoolEdit">
+            <SuperadminSchoolEdit />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/SuperadminSchoolView"
+        element={
+          <LayoutWrapper currentPageName="SuperadminSchoolView">
+            <SuperadminSchoolView />
           </LayoutWrapper>
         }
       />
