@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +17,7 @@ import LessonPlannerResourcePanel from '../components/ai/LessonPlannerResourcePa
 import { base44 } from '@/api/base44Client';
 
 export default function AILessonPlanner() {
+  const { school_tenant_id, isReady } = useSchoolContext();
   const [generating, setGenerating] = useState(false);
   const [lessonPlan, setLessonPlan] = useState(null);
   const [formData, setFormData] = useState({
@@ -30,13 +34,15 @@ export default function AILessonPlanner() {
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.filter({ status: 'Active' }),
+    queryKey: ['subjects', school_tenant_id],
+    queryFn: () => base44.entities.Subject.filter(addSchoolFilter({ status: 'Active' }, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: standards = [] } = useQuery({

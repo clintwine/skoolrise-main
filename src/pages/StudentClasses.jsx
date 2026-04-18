@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, User, Calendar, MapPin, Sparkles } from 'lucide-react';
@@ -47,9 +48,12 @@ export default function StudentClasses() {
     enabled: !!studentId,
   });
 
+  const schoolTenantId = studentProfile?.school_tenant_id || null;
+
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+    queryKey: ['classes', schoolTenantId],
+    queryFn: () => base44.entities.Class.filter(addSchoolFilter({}, schoolTenantId)),
+    enabled: !!studentProfile,
   });
 
   const enrolledClasses = classes.filter(c => 

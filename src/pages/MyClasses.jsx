@@ -1,66 +1,50 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, Users, MapPin, Sparkles } from 'lucide-react';
 
 export default function MyClasses() {
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
-  console.log('🟢 MyClasses - User:', user);
+  const { school_tenant_id, isReady, user } = useSchoolContext();
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const result = await base44.entities.Teacher.filter({ user_id: user.id });
-      console.log('🟢 MyClasses - Teachers:', result);
-      return result;
+      return await base44.entities.Teacher.filter({ user_id: user.id });
     },
     enabled: !!user?.id,
   });
 
   const teacherProfile = teachers[0];
-  console.log('🟢 MyClasses - Teacher Profile:', teacherProfile);
 
   const { data: allocations = [] } = useQuery({
     queryKey: ['teacher-allocations', teacherProfile?.id],
     queryFn: async () => {
-      if (!teacherProfile?.id) {
-        console.log('🟢 MyClasses - No teacher ID, skipping allocations fetch');
-        return [];
-      }
-      const result = await base44.entities.SubjectAllocation.filter({ teacher_id: teacherProfile.id });
-      console.log('🟢 MyClasses - Subject Allocations:', result);
-      return result;
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.SubjectAllocation.filter({ teacher_id: teacherProfile.id });
     },
     enabled: !!teacherProfile?.id,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', allocations],
+    queryKey: ['teacher-classes', allocations, school_tenant_id],
     queryFn: async () => {
-      if (allocations.length === 0) {
-        console.log('🟢 MyClasses - No allocations, skipping classes fetch');
-        return [];
-      }
+      if (allocations.length === 0) return [];
       const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
-      console.log('🟢 MyClasses - Class Arm IDs from allocations:', classArmIds);
-      const allClassArms = await base44.entities.ClassArm.list();
-      console.log('🟢 MyClasses - All Class Arms:', allClassArms);
-      const filtered = allClassArms.filter(ca => classArmIds.includes(ca.id));
-      console.log('🟢 MyClasses - Filtered Classes:', filtered);
-      return filtered;
+      const allClassArms = await base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id));
+      return allClassArms.filter(ca => classArmIds.includes(ca.id));
     },
-    enabled: allocations.length > 0,
+    enabled: allocations.length > 0 && isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const getClassStudentCount = (classArmId) => {

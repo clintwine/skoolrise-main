@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,35 +26,42 @@ export default function ImprovedStudentRecords() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list('-created_date'),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: enrollments = [] } = useQuery({
-    queryKey: ['enrollments'],
-    queryFn: () => base44.entities.Enrollment.list(),
+    queryKey: ['enrollments', school_tenant_id],
+    queryFn: () => base44.entities.Enrollment.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance'],
-    queryFn: () => base44.entities.Attendance.list(),
+    queryKey: ['attendance', school_tenant_id],
+    queryFn: () => base44.entities.Attendance.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: behavior = [] } = useQuery({
-    queryKey: ['behavior'],
-    queryFn: () => base44.entities.Behavior.list(),
+    queryKey: ['behavior', school_tenant_id],
+    queryFn: () => base44.entities.Behavior.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: reportCards = [] } = useQuery({
-    queryKey: ['report-cards'],
-    queryFn: () => base44.entities.ReportCard.list(),
+    queryKey: ['report-cards', school_tenant_id],
+    queryFn: () => base44.entities.ReportCard.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
+    queryKey: ['parents', school_tenant_id],
+    queryFn: () => base44.entities.Parent.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const bulkUpdateMutation = useMutation({
@@ -456,11 +466,10 @@ export default function ImprovedStudentRecords() {
               if (selectedStudent) {
                 await base44.entities.Student.update(selectedStudent.id, data);
               } else {
-                // Generate a unique user_id for new students
-                const newStudentData = {
+                const newStudentData = withSchoolId({
                   ...data,
                   user_id: `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                };
+                }, school_tenant_id);
                 await base44.entities.Student.create(newStudentData);
               }
               queryClient.invalidateQueries(['students']);

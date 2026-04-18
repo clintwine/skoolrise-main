@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +18,7 @@ export default function VendorDashboard() {
   const [vendorId, setVendorId] = useState(null);
   const [showRecommendationForm, setShowRecommendationForm] = useState(false);
   const { formatAmount } = useCurrency();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -35,28 +39,24 @@ export default function VendorDashboard() {
 
   const { data: vendor } = useQuery({
     queryKey: ['vendor', vendorId],
-    queryFn: async () => {
-      const vendors = await base44.entities.Vendor.list();
-      return vendors.find(v => v.id === vendorId);
-    },
+    queryFn: () => base44.entities.Vendor.get(vendorId),
     enabled: !!vendorId,
   });
 
   const { data: purchaseOrders = [] } = useQuery({
-    queryKey: ['vendor-purchase-orders', vendorId],
+    queryKey: ['vendor-purchase-orders', vendorId, school_tenant_id],
     queryFn: async () => {
-      const allOrders = await base44.entities.PurchaseOrder.list('-order_date');
-      return allOrders.filter(po => po.vendor_id === vendorId);
+      const allOrders = await base44.entities.PurchaseOrder.filter(
+        addSchoolFilter({ vendor_id: vendorId }, school_tenant_id), '-order_date'
+      );
+      return allOrders;
     },
-    enabled: !!vendorId,
+    enabled: !!vendorId && isReady,
   });
 
   const { data: catalogItems = [] } = useQuery({
     queryKey: ['vendor-catalog', vendorId],
-    queryFn: async () => {
-      const allCatalog = await base44.entities.BookCatalog.list();
-      return allCatalog.filter(item => item.vendor_id === vendorId);
-    },
+    queryFn: () => base44.entities.BookCatalog.filter({ vendor_id: vendorId }),
     enabled: !!vendorId,
   });
 

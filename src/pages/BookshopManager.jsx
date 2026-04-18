@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, ShoppingCart, AlertCircle, Camera } from 'lucide-react';
@@ -10,14 +13,18 @@ import InventoryView from '../components/bookshop/InventoryView';
 import PurchaseOrdersView from '../components/bookshop/PurchaseOrdersView';
 
 export default function BookshopManager() {
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: inventory = [] } = useQuery({
-    queryKey: ['book-inventory'],
-    queryFn: () => base44.entities.BookInventory.list(),
+    queryKey: ['book-inventory', school_tenant_id],
+    queryFn: () => base44.entities.BookInventory.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: purchaseOrders = [] } = useQuery({
-    queryKey: ['purchase-orders'],
-    queryFn: () => base44.entities.PurchaseOrder.list('-order_date'),
+    queryKey: ['purchase-orders', school_tenant_id],
+    queryFn: () => base44.entities.PurchaseOrder.filter(addSchoolFilter({}, school_tenant_id), '-order_date'),
+    enabled: isReady,
   });
 
   const { data: scannerSettings = [] } = useQuery({

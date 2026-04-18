@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -20,22 +22,20 @@ export default function StaffClocking() {
   const [gpsError, setGpsError] = useState(null);
   const [gettingLocation, setGettingLocation] = useState(false);
   const queryClient = useQueryClient();
-
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { school_tenant_id, isReady, user } = useSchoolContext();
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['all-teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['all-teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: todayRecords = [] } = useQuery({
-    queryKey: ['staff-clock-records-today'],
-    queryFn: () => base44.entities.StaffClockRecord.filter({ 
+    queryKey: ['staff-clock-records-today', school_tenant_id],
+    queryFn: () => base44.entities.StaffClockRecord.filter(addSchoolFilter({ 
       date: format(new Date(), 'yyyy-MM-dd')
-    }),
+    }, school_tenant_id)),
+    enabled: isReady,
   });
 
   // Get GPS location
@@ -87,7 +87,7 @@ export default function StaffClocking() {
       const date = format(now, 'yyyy-MM-dd');
       const time = format(now, 'HH:mm:ss');
 
-      return await base44.entities.StaffClockRecord.create({
+      return await base44.entities.StaffClockRecord.create(withSchoolId({
         staff_id: staff.id,
         staff_name: `${staff.first_name} ${staff.last_name}`,
         staff_id_number: staff.staff_id,
@@ -101,7 +101,7 @@ export default function StaffClocking() {
         recorded_by_id: user?.id,
         recorded_by_name: user?.full_name || user?.email,
         photo_url: staff.photo_url
-      });
+      }, school_tenant_id));
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['staff-clock-records-today']);

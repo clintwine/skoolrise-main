@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,30 +16,36 @@ export default function BookshopReports() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const { formatAmount } = useCurrency();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: bookSales = [] } = useQuery({
-    queryKey: ['book-sales'],
-    queryFn: () => base44.entities.BookSale.list('-sale_date'),
+    queryKey: ['book-sales', school_tenant_id],
+    queryFn: () => base44.entities.BookSale.filter(addSchoolFilter({}, school_tenant_id), '-sale_date'),
+    enabled: isReady,
   });
 
   const { data: purchaseOrders = [] } = useQuery({
-    queryKey: ['purchase-orders'],
-    queryFn: () => base44.entities.PurchaseOrder.list(),
+    queryKey: ['purchase-orders', school_tenant_id],
+    queryFn: () => base44.entities.PurchaseOrder.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: bookInventory = [] } = useQuery({
-    queryKey: ['book-inventory'],
-    queryFn: () => base44.entities.BookInventory.list(),
+    queryKey: ['book-inventory', school_tenant_id],
+    queryFn: () => base44.entities.BookInventory.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: vendors = [] } = useQuery({
-    queryKey: ['vendors'],
-    queryFn: () => base44.entities.Vendor.list(),
+    queryKey: ['vendors', school_tenant_id],
+    queryFn: () => base44.entities.Vendor.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: bookCatalog = [] } = useQuery({
-    queryKey: ['book-catalog'],
-    queryFn: () => base44.entities.BookCatalog.list(),
+    queryKey: ['book-catalog', school_tenant_id],
+    queryFn: () => base44.entities.BookCatalog.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   // Filter by date range

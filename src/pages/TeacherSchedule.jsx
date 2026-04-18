@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,46 +17,26 @@ import { motion } from 'framer-motion';
 export default function TeacherSchedule() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [viewMode, setViewMode] = useState('weekly');
-
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
-  console.log('🔵 TeacherSchedule - User:', user);
+  const { school_tenant_id, isReady, user } = useSchoolContext();
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      console.log('🔵 TeacherSchedule - Querying Teachers with user_id:', user.id);
-      const result = await base44.entities.Teacher.filter({ user_id: user.id });
-      console.log('🔵 TeacherSchedule - Teachers found:', result);
-      
-      // Also check all teachers to see what user_ids exist
-      const allTeachers = await base44.entities.Teacher.list();
-      console.log('🔵 TeacherSchedule - ALL Teachers in system:', allTeachers);
-      console.log('🔵 TeacherSchedule - ALL Teacher user_ids:', allTeachers.map(t => ({ id: t.id, user_id: t.user_id, name: `${t.first_name} ${t.last_name}` })));
-      
-      return result;
+      return await base44.entities.Teacher.filter({ user_id: user.id });
     },
     enabled: !!user?.id,
   });
 
   const teacherProfile = teachers[0];
-  console.log('🔵 TeacherSchedule - Teacher Profile:', teacherProfile);
 
   const { data: timetable = [] } = useQuery({
-    queryKey: ['teacher-timetable', teacherProfile?.id],
+    queryKey: ['teacher-timetable', teacherProfile?.id, school_tenant_id],
     queryFn: async () => {
-      if (!teacherProfile?.id) {
-        console.log('🔵 TeacherSchedule - No teacher ID, skipping timetable fetch');
-        return [];
-      }
-      const result = await base44.entities.Timetable.filter({ teacher_id: teacherProfile.id });
-      console.log('🔵 TeacherSchedule - Timetable data:', result);
-      return result;
+      if (!teacherProfile?.id) return [];
+      return await base44.entities.Timetable.filter(addSchoolFilter({ teacher_id: teacherProfile.id }, school_tenant_id));
     },
-    enabled: !!teacherProfile?.id,
+    enabled: !!teacherProfile?.id && isReady,
   });
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });

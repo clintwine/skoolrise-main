@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trophy, Medal, Award, Star, TrendingUp } from 'lucide-react';
@@ -23,15 +26,18 @@ const levelNames = {
 
 export default function Leaderboard({ classId, limit = 10 }) {
   const [timeFrame, setTimeFrame] = useState('all');
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: studentPoints = [], isLoading } = useQuery({
-    queryKey: ['student-points-leaderboard'],
-    queryFn: () => base44.entities.StudentPoints.list('-lifetime_points', 100),
+    queryKey: ['student-points-leaderboard', school_tenant_id],
+    queryFn: () => base44.entities.StudentPoints.filter(addSchoolFilter({}, school_tenant_id), '-lifetime_points', 100),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students-leaderboard'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students-leaderboard', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const studentMap = {};

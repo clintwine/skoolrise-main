@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function AdminLinkingRequests() {
+  const { school_tenant_id, isReady } = useSchoolContext();
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
@@ -34,23 +37,27 @@ export default function AdminLinkingRequests() {
   const queryClient = useQueryClient();
 
   const { data: allRequests = [] } = useQuery({
-    queryKey: ['all-linking-requests'],
-    queryFn: () => base44.entities.StudentLinkingRequest.list(),
+    queryKey: ['all-linking-requests', school_tenant_id],
+    queryFn: () => base44.entities.StudentLinkingRequest.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: roleRequests = [] } = useQuery({
-    queryKey: ['role-requests'],
-    queryFn: () => base44.entities.RoleAssignmentRequest.list('-created_date'),
+    queryKey: ['role-requests', school_tenant_id],
+    queryFn: () => base44.entities.RoleAssignmentRequest.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
+    queryKey: ['parents', school_tenant_id],
+    queryFn: () => base44.entities.Parent.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const processRequestMutation = useMutation({
@@ -67,6 +74,12 @@ export default function AdminLinkingRequests() {
         // Get current student and parent
         const student = students.find(s => s.id === studentId);
         const parent = parents.find(p => p.id === parentId);
+
+        // CROSS-SCHOOL SECURITY: Reject if student and parent belong to different schools
+        if (student?.school_tenant_id && parent?.school_tenant_id &&
+            student.school_tenant_id !== parent.school_tenant_id) {
+          throw new Error('Student not found in your school.');
+        }
         
         // Update student's linked_parent_ids (add parent if not already linked)
         let studentLinkedParents = [];

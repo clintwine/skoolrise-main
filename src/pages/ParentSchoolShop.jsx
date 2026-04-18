@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +22,7 @@ export default function ParentSchoolShop() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -62,8 +66,9 @@ export default function ParentSchoolShop() {
   });
 
   const { data: products = [] } = useQuery({
-    queryKey: ['school-products'],
-    queryFn: () => base44.entities.SchoolProduct.filter({ status: 'Active' }),
+    queryKey: ['school-products', school_tenant_id],
+    queryFn: () => base44.entities.SchoolProduct.filter(addSchoolFilter({ status: 'Active' }, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: orders = [] } = useQuery({

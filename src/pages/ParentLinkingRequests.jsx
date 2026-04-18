@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +17,7 @@ import { toast } from 'sonner';
 export default function ParentLinkingRequests() {
   const [user, setUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { school_tenant_id } = useSchoolContext();
   const [formData, setFormData] = useState({
     student_name: '',
     student_id_number: '',
@@ -54,13 +57,13 @@ export default function ParentLinkingRequests() {
       return;
     }
 
-    createRequestMutation.mutate({
+    createRequestMutation.mutate(withSchoolId({
       parent_user_id: user.id,
       parent_name: user.full_name,
       parent_email: user.email,
       ...formData,
       status: 'Pending',
-    });
+    }, school_tenant_id));
   };
 
   const getStatusIcon = (status) => {

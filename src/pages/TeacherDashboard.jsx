@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Users, ClipboardList, Award, Brain, Target, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,49 +10,47 @@ import { createPageUrl } from '../utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function TeacherDashboard() {
-  const [user, setUser] = useState(null);
   const [teacherProfile, setTeacherProfile] = useState(null);
+  const { school_tenant_id, isReady, user } = useSchoolContext();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      // Fetch teacher profile
-      if (currentUser?.teacher_profile_id) {
-        const profile = await base44.entities.Teacher.get(currentUser.teacher_profile_id);
+    if (!user) return;
+    const fetchTeacher = async () => {
+      if (user?.teacher_profile_id) {
+        const profile = await base44.entities.Teacher.get(user.teacher_profile_id);
         setTeacherProfile(profile);
-      } else if (currentUser?.id) {
-        const teachers = await base44.entities.Teacher.filter({ user_id: currentUser.id });
+      } else if (user?.id) {
+        const teachers = await base44.entities.Teacher.filter({ user_id: user.id });
         setTeacherProfile(teachers[0]);
       }
     };
-    fetchUser();
-  }, []);
+    fetchTeacher();
+  }, [user]);
 
   const { data: classes = [] } = useQuery({
     queryKey: ['teacher-classes', teacherProfile?.id],
     queryFn: async () => {
       if (!teacherProfile?.id) return [];
-      const allClasses = await base44.entities.Class.list();
+      const allClasses = await base44.entities.Class.filter(addSchoolFilter({}, school_tenant_id));
       return allClasses.filter(c => c.teacher_id === teacherProfile.id);
     },
-    enabled: !!teacherProfile?.id,
+    enabled: !!teacherProfile?.id && isReady,
   });
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments', teacherProfile?.id],
+    queryKey: ['teacher-assignments', teacherProfile?.id, school_tenant_id],
     queryFn: async () => {
       if (!teacherProfile?.id) return [];
-      const allAssignments = await base44.entities.Assignment.list('-created_date');
+      const allAssignments = await base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id), '-created_date');
       return allAssignments.filter(a => a.teacher_id === teacherProfile.id).slice(0, 10);
     },
-    enabled: !!teacherProfile?.id,
+    enabled: !!teacherProfile?.id && isReady,
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['submissions'],
-    queryFn: () => base44.entities.Submission.list(),
+    queryKey: ['submissions', school_tenant_id],
+    queryFn: () => base44.entities.Submission.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const pendingGrading = submissions.filter(s => s.status === 'Submitted').length;

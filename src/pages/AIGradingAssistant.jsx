@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +12,7 @@ import { Brain, Loader, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function AIGradingAssistant() {
+  const { school_tenant_id, isReady } = useSchoolContext();
   const [selectedAssignment, setSelectedAssignment] = useState('');
   const [rubric, setRubric] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
@@ -16,8 +20,9 @@ export default function AIGradingAssistant() {
   const queryClient = useQueryClient();
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['assignments'],
-    queryFn: () => base44.entities.Assignment.list(),
+    queryKey: ['assignments', school_tenant_id],
+    queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: submissions = [] } = useQuery({

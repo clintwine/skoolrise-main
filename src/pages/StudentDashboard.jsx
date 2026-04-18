@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, ClipboardList, FileText, Award, Calendar } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/SkeletonLoader';
@@ -43,24 +44,26 @@ export default function StudentDashboard() {
     enabled: !!studentProfile?.id,
   });
 
+  const schoolTenantId = studentProfile?.school_tenant_id || null;
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['student-assignments', studentProfile?.id],
+    queryKey: ['student-assignments', studentProfile?.id, schoolTenantId],
     queryFn: async () => {
       if (!studentProfile?.id) return [];
       const classIds = enrollments.map(e => e.class_id);
       if (classIds.length === 0) return [];
-      const allAssignments = await base44.entities.Assignment.list('-due_date', 10);
+      const allAssignments = await base44.entities.Assignment.filter(addSchoolFilter({}, schoolTenantId), '-due_date', 10);
       return allAssignments.filter(a => classIds.includes(a.class_id));
     },
     enabled: !!studentProfile?.id && enrollments.length > 0,
   });
 
   const { data: tests = [] } = useQuery({
-    queryKey: ['student-tests-dashboard', enrollments.map(e => e.class_id).join(',')],
+    queryKey: ['student-tests-dashboard', enrollments.map(e => e.class_id).join(','), schoolTenantId],
     queryFn: async () => {
       const classIds = enrollments.map(e => e.class_id);
       if (classIds.length === 0) return [];
-      const allTests = await base44.entities.Test.filter({ status: 'Published' }, '-end_date', 20);
+      const allTests = await base44.entities.Test.filter(addSchoolFilter({ status: 'Published' }, schoolTenantId), '-end_date', 20);
       return allTests.filter(test => classIds.includes(test.class_id));
     },
     enabled: enrollments.length > 0,

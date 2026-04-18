@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,9 +21,12 @@ export default function RewardsStore() {
     fetchUser();
   }, []);
 
+  const schoolTenantId = studentProfile?.school_tenant_id || null;
+
   const { data: rewards = [] } = useQuery({
-    queryKey: ['rewards'],
-    queryFn: () => base44.entities.Reward.list(),
+    queryKey: ['rewards', schoolTenantId],
+    queryFn: () => base44.entities.Reward.filter(addSchoolFilter({}, schoolTenantId)),
+    enabled: !!studentProfile,
   });
 
   const { data: students = [] } = useQuery({

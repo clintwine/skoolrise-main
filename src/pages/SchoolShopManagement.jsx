@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,19 +33,22 @@ export default function SchoolShopManagement() {
   });
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['school-products'],
-    queryFn: () => base44.entities.SchoolProduct.list('-created_date'),
+    queryKey: ['school-products', school_tenant_id],
+    queryFn: () => base44.entities.SchoolProduct.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: orders = [] } = useQuery({
-    queryKey: ['product-orders'],
-    queryFn: () => base44.entities.ProductOrder.list('-created_date'),
+    queryKey: ['product-orders', school_tenant_id],
+    queryFn: () => base44.entities.ProductOrder.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.SchoolProduct.create(data),
+    mutationFn: (data) => base44.entities.SchoolProduct.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-products'] });
       setIsFormOpen(false);
