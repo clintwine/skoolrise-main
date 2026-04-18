@@ -1,6 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,38 +48,46 @@ export default function MessagingCenter() {
   const [attachments, setAttachments] = useState([]);
   const [expandedHistoryId, setExpandedHistoryId] = useState(null);
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: () => base44.entities.Notification.list('-created_date', 50),
+    queryKey: ['notifications', school_tenant_id],
+    queryFn: () => base44.entities.Notification.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
+  // SPECIAL CASE: MessagingCenter — only load students/teachers/contacts from same tenant
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: contactLists = [] } = useQuery({
-    queryKey: ['contact-lists'],
-    queryFn: () => base44.entities.ContactList.list(),
+    queryKey: ['contact-lists', school_tenant_id],
+    queryFn: () => base44.entities.ContactList.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: school } = useQuery({
-    queryKey: ['school-for-email'],
+    queryKey: ['school-for-email', school_tenant_id],
     queryFn: async () => {
-      const schools = await base44.entities.School.list();
+      const schools = await base44.entities.School.filter(addSchoolFilter({}, school_tenant_id));
       return schools[0];
     },
+    enabled: isReady,
   });
 
   const { data: currentUser } = useQuery({
@@ -208,7 +221,7 @@ export default function MessagingCenter() {
         throw new Error('No recipients found for the selected criteria');
       }
 
-      const notification = await base44.entities.Notification.create({
+      const notification = await base44.entities.Notification.create(addSchoolFilter({
         subject: data.subject,
         message: data.message,
         recipient_type: data.recipient_type,
@@ -225,7 +238,7 @@ export default function MessagingCenter() {
         failure_count: 0,
         recipient_count: sendableTargets.length,
         delivery_details: JSON.stringify([]),
-      });
+      }, school_tenant_id));
 
       if (isScheduled) {
         await base44.entities.Notification.update(notification.id, {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,15 +88,19 @@ export default function PaymentProviders() {
   const [formData, setFormData] = useState({});
   const [testMode, setTestMode] = useState(false);
 
-  // Fetch school settings for payment config
+  const { school_tenant_id, isReady } = useSchoolContext();
+
+  // Fetch school settings for payment config — scoped to this tenant
   const { data: schools = [], isLoading } = useQuery({
-    queryKey: ['school-payment-settings'],
-    queryFn: () => base44.entities.School.list(),
+    queryKey: ['school-payment-settings', school_tenant_id],
+    queryFn: () => base44.entities.School.filter({ id: school_tenant_id }),
+    enabled: !!school_tenant_id,
   });
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ['payment-provider-invoices'],
-    queryFn: () => base44.entities.FeeInvoice.list('-created_date'),
+    queryKey: ['payment-provider-invoices', school_tenant_id],
+    queryFn: () => base44.entities.FeeInvoice.filter({ school_tenant_id }, '-created_date'),
+    enabled: !!school_tenant_id,
   });
 
   const school = schools[0];

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,15 +25,18 @@ export default function InstalmentPlans() {
   const queryClient = useQueryClient();
   const { formatAmount, symbol } = useCurrency();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: plans = [] } = useQuery({
-    queryKey: ['instalment-plans'],
-    queryFn: () => base44.entities.InstalmentPlan.list('-created_date'),
+    queryKey: ['instalment-plans', school_tenant_id],
+    queryFn: () => base44.entities.InstalmentPlan.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ['invoices-for-plans'],
+    queryKey: ['invoices-for-plans', school_tenant_id],
     queryFn: async () => {
-      const allInvoices = await base44.entities.FeeInvoice.list('-created_date');
+      const allInvoices = await base44.entities.FeeInvoice.filter(addSchoolFilter({}, school_tenant_id), '-created_date');
       // Only show invoices that don't have an instalment plan yet and aren't fully paid
       return allInvoices.filter(inv => 
         inv.status !== 'Paid' && 
@@ -84,7 +89,7 @@ export default function InstalmentPlans() {
         });
       }
 
-      return await base44.entities.InstalmentPlan.create({
+      return await base44.entities.InstalmentPlan.create(withSchoolId({
         plan_name: data.planName || `Payment Plan - ${invoice.student_name}`,
         invoice_id: invoice.id,
         student_id: invoice.student_id,
@@ -98,7 +103,7 @@ export default function InstalmentPlans() {
         start_date: startDate.toISOString().split('T')[0],
         end_date: addMonths(startDate, data.numberOfInstalments - 1).toISOString().split('T')[0],
         status: 'Active',
-      });
+      }, school_tenant_id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instalment-plans'] });

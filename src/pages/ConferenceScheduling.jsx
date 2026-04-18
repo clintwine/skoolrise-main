@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,19 +45,24 @@ export default function ConferenceScheduling() {
     fetchUser();
   }, []);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: conferences = [] } = useQuery({
-    queryKey: ['conferences'],
-    queryFn: () => base44.entities.Conference.list('-scheduled_date'),
+    queryKey: ['conferences', school_tenant_id],
+    queryFn: () => base44.entities.Conference.filter(addSchoolFilter({}, school_tenant_id), '-scheduled_date'),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const currentTeacher = teachers.find(t => t.user_id === user?.id);
@@ -62,7 +70,7 @@ export default function ConferenceScheduling() {
   const createConferenceMutation = useMutation({
     mutationFn: async (data) => {
       const student = students.find(s => s.id === data.student_id);
-      return await base44.entities.Conference.create({
+      return await base44.entities.Conference.create(withSchoolId({
         ...data,
         teacher_id: user?.teacher_id || user?.id,
         teacher_name: user?.full_name,
@@ -70,7 +78,7 @@ export default function ConferenceScheduling() {
         parent_name: student?.parent_name,
         student_name: `${student?.first_name} ${student?.last_name}`,
         requested_by: user?.role === 'admin' ? 'Admin' : 'Teacher',
-      });
+      }, school_tenant_id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conferences'] });

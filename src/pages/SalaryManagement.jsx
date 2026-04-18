@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,21 +27,24 @@ export default function SalaryManagement() {
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: salaries = [] } = useQuery({
-    queryKey: ['salaries', selectedMonth],
+    queryKey: ['salaries', selectedMonth, school_tenant_id],
     queryFn: async () => {
-      const all = await base44.entities.Salary.list('-created_date');
-      return all.filter(s => s.month === selectedMonth);
+      return await base44.entities.Salary.filter(addSchoolFilter({ month: selectedMonth }, school_tenant_id), '-created_date');
     },
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Salary.create(data),
+    mutationFn: (data) => base44.entities.Salary.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salaries'] });
       setIsFormOpen(false);

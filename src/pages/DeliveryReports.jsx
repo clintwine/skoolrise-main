@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +23,12 @@ export default function DeliveryReports() {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ['notifications-reports'],
-    queryFn: () => base44.entities.Notification.list('-created_date', 100),
+    queryKey: ['notifications-reports', school_tenant_id],
+    queryFn: () => base44.entities.Notification.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const filteredNotifications = notifications.filter(n => {

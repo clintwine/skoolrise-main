@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart3, Download, FileText, TrendingUp, Users } from 'lucide-react';
@@ -17,15 +19,18 @@ export default function StudentPerformanceReports() {
   const [gradeLevel, setGradeLevel] = useState('all');
   const [sortBy, setSortBy] = useState('average_score');
   const [sortOrder, setSortOrder] = useState('desc');
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['reporting-students'],
-    queryFn: () => base44.entities.Student.list('-updated_date')
+    queryKey: ['reporting-students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id), '-updated_date'),
+    enabled: isReady,
   });
 
   const { data: reportCards = [], isLoading: reportCardsLoading } = useQuery({
-    queryKey: ['reporting-report-cards'],
-    queryFn: () => base44.entities.ReportCard.list('-updated_date')
+    queryKey: ['reporting-report-cards', school_tenant_id],
+    queryFn: () => base44.entities.ReportCard.filter(addSchoolFilter({}, school_tenant_id), '-updated_date'),
+    enabled: isReady,
   });
 
   const rows = useMemo(() => getStudentPerformanceRows(students, reportCards), [students, reportCards]);

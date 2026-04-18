@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,24 +36,30 @@ export default function CreateInvoice() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: () => base44.entities.AcademicSession.list(),
+    queryKey: ['sessions', school_tenant_id],
+    queryFn: () => base44.entities.AcademicSession.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: terms = [] } = useQuery({
-    queryKey: ['terms'],
-    queryFn: () => base44.entities.Term.list(),
+    queryKey: ['terms', school_tenant_id],
+    queryFn: () => base44.entities.Term.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: policies = [] } = useQuery({
-    queryKey: ['fee-policies'],
-    queryFn: () => base44.entities.FeePolicy.list(),
+    queryKey: ['fee-policies', school_tenant_id],
+    queryFn: () => base44.entities.FeePolicy.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createInvoiceMutation = useMutation({
@@ -157,7 +165,7 @@ export default function CreateInvoice() {
     e.preventDefault();
     const { subtotal, total } = calculateTotals();
 
-    const invoiceData = {
+    const invoiceData = withSchoolId({
       invoice_number: `INV-${Date.now()}`,
       student_id: formData.student_id,
       student_name: `${selectedStudent?.first_name} ${selectedStudent?.last_name}`,
@@ -178,7 +186,7 @@ export default function CreateInvoice() {
       instalment_plan_id: formData.instalment_enabled ? 'pending' : null,
       payment_reminder_sent: false,
       notes: formData.notes,
-    };
+    }, school_tenant_id);
 
     createInvoiceMutation.mutate(invoiceData);
   };

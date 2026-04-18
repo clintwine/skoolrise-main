@@ -62,6 +62,7 @@ export default function ParentFees() {
         invoice_id: invoiceId,
         student_id: selectedInvoice.student_id,
         student_name: selectedInvoice.student_name,
+        school_tenant_id: selectedInvoice.school_tenant_id,
         amount: amount,
         payment_method: method,
         payment_date: new Date().toISOString(),

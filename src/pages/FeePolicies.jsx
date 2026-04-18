@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,23 +20,28 @@ export default function FeePolicies() {
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: policies = [] } = useQuery({
-    queryKey: ['fee-policies'],
-    queryFn: () => base44.entities.FeePolicy.list('-created_date'),
+    queryKey: ['fee-policies', school_tenant_id],
+    queryFn: () => base44.entities.FeePolicy.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: () => base44.entities.AcademicSession.list(),
+    queryKey: ['sessions', school_tenant_id],
+    queryFn: () => base44.entities.AcademicSession.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: terms = [] } = useQuery({
-    queryKey: ['terms'],
-    queryFn: () => base44.entities.Term.list(),
+    queryKey: ['terms', school_tenant_id],
+    queryFn: () => base44.entities.Term.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.FeePolicy.create(data),
+    mutationFn: (data) => base44.entities.FeePolicy.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fee-policies'] });
       setIsFormOpen(false);

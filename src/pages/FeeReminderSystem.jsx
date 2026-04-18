@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,20 +13,24 @@ import { useCurrency } from '@/components/CurrencyProvider';
 export default function FeeReminderSystem() {
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ['invoices'],
-    queryFn: () => base44.entities.FeeInvoice.list('-due_date'),
+    queryKey: ['invoices', school_tenant_id],
+    queryFn: () => base44.entities.FeeInvoice.filter(addSchoolFilter({}, school_tenant_id), '-due_date'),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: reminders = [] } = useQuery({
-    queryKey: ['fee-reminders'],
-    queryFn: () => base44.entities.FeeReminder.list('-sent_date'),
+    queryKey: ['fee-reminders', school_tenant_id],
+    queryFn: () => base44.entities.FeeReminder.filter(addSchoolFilter({}, school_tenant_id), '-sent_date'),
+    enabled: isReady,
   });
 
   const sendReminderMutation = useMutation({
@@ -37,7 +43,7 @@ export default function FeeReminderSystem() {
         body: message,
       });
 
-      await base44.entities.FeeReminder.create({
+      await base44.entities.FeeReminder.create(withSchoolId({
         invoice_id: invoice.id,
         student_id: student.id,
         parent_email: student.parent_email,
@@ -46,7 +52,7 @@ export default function FeeReminderSystem() {
         delivery_method: 'Email',
         status: 'Sent',
         message_content: message,
-      });
+      }, school_tenant_id));
 
       await base44.entities.FeeInvoice.update(invoice.id, {
         payment_reminder_sent: true,

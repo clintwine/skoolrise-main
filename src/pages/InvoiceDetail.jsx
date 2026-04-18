@@ -44,8 +44,7 @@ export default function InvoiceDetail() {
   const { data: payments = [] } = useQuery({
     queryKey: ['payments', invoiceId],
     queryFn: async () => {
-      const all = await base44.entities.Payment.list();
-      return all.filter(p => p.invoice_id === invoiceId);
+      return await base44.entities.Payment.filter({ invoice_id: invoiceId });
     },
     enabled: !!invoiceId,
   });
@@ -162,6 +161,7 @@ ${school?.school_name || 'School Administration'}`,
       await base44.entities.Payment.create({
         receipt_number: receiptNumber,
         invoice_id: invoiceId,
+        school_tenant_id: invoice.school_tenant_id,
         student_id: invoice.student_id,
         student_name: invoice.student_name,
         payment_date: new Date().toISOString(),

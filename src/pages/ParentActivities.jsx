@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,14 +68,18 @@ export default function ParentActivities() {
     enabled: !!parentProfile?.id,
   });
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: trips = [] } = useQuery({
-    queryKey: ['school-trips'],
-    queryFn: () => base44.entities.SchoolTrip.list('-departure_date'),
+    queryKey: ['school-trips', school_tenant_id],
+    queryFn: () => base44.entities.SchoolTrip.filter({ school_tenant_id, status: 'Open for Registration' }, '-departure_date'),
+    enabled: isReady,
   });
 
   const { data: clubs = [] } = useQuery({
-    queryKey: ['school-clubs'],
-    queryFn: () => base44.entities.Club.filter({ status: 'Active' }),
+    queryKey: ['school-clubs', school_tenant_id],
+    queryFn: () => base44.entities.Club.filter({ school_tenant_id, status: 'Active' }),
+    enabled: isReady,
   });
 
   const { data: tripEnrollments = [] } = useQuery({

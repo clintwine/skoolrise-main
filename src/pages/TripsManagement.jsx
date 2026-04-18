@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,23 +50,28 @@ export default function TripsManagement() {
     fetchUser();
   }, []);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: trips = [] } = useQuery({
-    queryKey: ['school-trips'],
-    queryFn: () => base44.entities.SchoolTrip.list('-departure_date'),
+    queryKey: ['school-trips', school_tenant_id],
+    queryFn: () => base44.entities.SchoolTrip.filter(addSchoolFilter({}, school_tenant_id), '-departure_date'),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: enrollments = [] } = useQuery({
-    queryKey: ['trip-enrollments-all'],
-    queryFn: () => base44.entities.TripEnrollment.list('-created_date'),
+    queryKey: ['trip-enrollments-all', school_tenant_id],
+    queryFn: () => base44.entities.TripEnrollment.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.SchoolTrip.create(data),
+    mutationFn: (data) => base44.entities.SchoolTrip.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-trips'] });
       setIsFormOpen(false);

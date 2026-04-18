@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -11,40 +13,48 @@ import { TrendingUp, Users, AlertTriangle, Brain, DollarSign, Award, CheckSquare
 
 export default function AdminReportsDashboard() {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance'],
-    queryFn: () => base44.entities.Attendance.list(),
+    queryKey: ['attendance', school_tenant_id],
+    queryFn: () => base44.entities.Attendance.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: reportCards = [] } = useQuery({
-    queryKey: ['report-cards'],
-    queryFn: () => base44.entities.ReportCard.list(),
+    queryKey: ['report-cards', school_tenant_id],
+    queryFn: () => base44.entities.ReportCard.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ['invoices'],
-    queryFn: () => base44.entities.FeeInvoice.list(),
+    queryKey: ['invoices', school_tenant_id],
+    queryFn: () => base44.entities.FeeInvoice.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['assignments'],
-    queryFn: () => base44.entities.Assignment.list(),
+    queryKey: ['assignments', school_tenant_id],
+    queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+    queryKey: ['classes', school_tenant_id],
+    queryFn: () => base44.entities.Class.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   // Financial metrics

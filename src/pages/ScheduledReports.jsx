@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,9 +31,12 @@ export default function ScheduledReports() {
     is_active: true,
   });
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: reports = [], isLoading } = useQuery({
-    queryKey: ['scheduled-reports'],
-    queryFn: () => base44.entities.ScheduledReport.list(),
+    queryKey: ['scheduled-reports', school_tenant_id],
+    queryFn: () => base44.entities.ScheduledReport.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: user } = useQuery({
@@ -47,7 +52,7 @@ export default function ScheduledReports() {
         created_by_name: user?.full_name || user?.email,
         next_run: calculateNextRun(data.schedule),
       };
-      return await base44.entities.ScheduledReport.create(reportData);
+      return await base44.entities.ScheduledReport.create(withSchoolId(reportData, school_tenant_id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduled-reports'] });

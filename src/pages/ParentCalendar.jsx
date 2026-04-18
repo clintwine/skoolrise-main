@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,10 +23,12 @@ export default function ParentCalendar() {
     fetchUser();
   }, []);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: events = [] } = useQuery({
-    queryKey: ['parent-events'],
+    queryKey: ['parent-events', school_tenant_id],
     queryFn: async () => {
-      const allEvents = await base44.entities.Event.list('-start_date');
+      const allEvents = await base44.entities.Event.filter(addSchoolFilter({}, school_tenant_id), '-start_date');
       // Filter events visible to parents
       return allEvents.filter(event => 
         event.visible_to_parents !== false && 
@@ -33,6 +37,7 @@ export default function ParentCalendar() {
          event.target_audience === 'Students')
       );
     },
+    enabled: isReady,
   });
 
   const monthStart = startOfMonth(currentDate);

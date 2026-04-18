@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -92,14 +94,16 @@ export default function ParentConferences() {
 
   const studentIds = students.map(s => s.id);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: conferences = [] } = useQuery({
-    queryKey: ['parent-conferences', studentIds],
+    queryKey: ['parent-conferences', studentIds, school_tenant_id],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
-      const all = await base44.entities.Conference.list('-scheduled_date');
+      const all = await base44.entities.Conference.filter(addSchoolFilter({}, school_tenant_id), '-scheduled_date');
       return all.filter(c => studentIds.includes(c.student_id) || c.parent_email === user?.email);
     },
-    enabled: studentIds.length > 0,
+    enabled: studentIds.length > 0 && isReady,
   });
 
   const cancelMutation = useMutation({

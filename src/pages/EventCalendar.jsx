@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,18 +38,22 @@ export default function EventCalendar() {
   });
   const queryClient = useQueryClient();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: events = [] } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-start_date'),
+    queryKey: ['events', school_tenant_id],
+    queryFn: () => base44.entities.Event.filter(addSchoolFilter({}, school_tenant_id), '-start_date'),
+    enabled: isReady,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+    queryKey: ['classes', school_tenant_id],
+    queryFn: () => base44.entities.Class.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Event.create(data),
+    mutationFn: (data) => base44.entities.Event.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       setIsFormOpen(false);
