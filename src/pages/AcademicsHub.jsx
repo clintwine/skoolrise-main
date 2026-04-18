@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolTenant } from '@/hooks/useSchoolTenant';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,40 +30,49 @@ export default function AcademicsHub() {
   const [gradeScaleDialog, setGradeScaleDialog] = useState({ open: false, editing: null });
   const [bulkImport, setBulkImport] = useState({ open: false, entity: '', schema: null, template: [] });
   const queryClient = useQueryClient();
+  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
+  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.ClassArm.filter(tenantFilter) : base44.entities.ClassArm.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list(),
+    queryKey: ['subjects', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Subject.filter(tenantFilter) : base44.entities.Subject.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Teacher.filter(tenantFilter) : base44.entities.Teacher.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: allocations = [] } = useQuery({
-    queryKey: ['allocations'],
-    queryFn: () => base44.entities.SubjectAllocation.list(),
+    queryKey: ['allocations', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.SubjectAllocation.filter(tenantFilter) : base44.entities.SubjectAllocation.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: () => base44.entities.AcademicSession.list(),
+    queryKey: ['sessions', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.AcademicSession.filter(tenantFilter) : base44.entities.AcademicSession.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: terms = [] } = useQuery({
-    queryKey: ['terms'],
-    queryFn: () => base44.entities.Term.list(),
+    queryKey: ['terms', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Term.filter(tenantFilter) : base44.entities.Term.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: gradingScales = [] } = useQuery({
-    queryKey: ['grading-scales'],
-    queryFn: () => base44.entities.GradingScale.list(),
+    queryKey: ['grading-scales', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.GradingScale.filter(tenantFilter) : base44.entities.GradingScale.list(),
+    enabled: !tenantLoading,
   });
 
   return (

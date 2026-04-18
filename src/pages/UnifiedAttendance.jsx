@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolTenant } from '@/hooks/useSchoolTenant';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,8 @@ const DEFAULT_AVATAR = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/obje
 
 export default function UnifiedAttendance() {
   const queryClient = useQueryClient();
+  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
+  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
   const [activeTab, setActiveTab] = useState('school-arrival');
   const today = format(new Date(), 'yyyy-MM-dd');
   const [selectedDate, setSelectedDate] = useState(today);
@@ -48,39 +51,41 @@ export default function UnifiedAttendance() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.ClassArm.filter(tenantFilter) : base44.entities.ClassArm.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Student.filter(tenantFilter) : base44.entities.Student.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: timetable = [] } = useQuery({
-    queryKey: ['timetable', selectedClass],
+    queryKey: ['timetable', selectedClass, schoolTenantId],
     queryFn: async () => {
       if (!selectedClass) return [];
-      const all = await base44.entities.Timetable.list();
-      return all.filter(t => t.class_arm_id === selectedClass);
+      const filter = { ...tenantFilter, class_arm_id: selectedClass };
+      return schoolTenantId ? await base44.entities.Timetable.filter(filter) : (await base44.entities.Timetable.list()).filter(t => t.class_arm_id === selectedClass);
     },
-    enabled: !!selectedClass,
+    enabled: !!selectedClass && !tenantLoading,
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance', selectedDate, endDate, useDateRange],
+    queryKey: ['attendance', selectedDate, endDate, useDateRange, schoolTenantId],
     queryFn: async () => {
-      const all = await base44.entities.Attendance.list();
-      
+      const dateFilter = { ...tenantFilter };
+      if (!useDateRange || !endDate) dateFilter.date = selectedDate;
+      const all = schoolTenantId
+        ? await base44.entities.Attendance.filter(dateFilter)
+        : await base44.entities.Attendance.list();
       if (useDateRange && endDate) {
-        return all.filter(a => {
-          const recordDate = a.date;
-          return recordDate >= selectedDate && recordDate <= endDate;
-        });
+        return all.filter(a => a.date >= selectedDate && a.date <= endDate);
       }
-      
       return all.filter(a => a.date === selectedDate);
     },
+    enabled: !tenantLoading,
   });
 
   const createAttendanceMutation = useMutation({
@@ -137,6 +142,7 @@ export default function UnifiedAttendance() {
       subject: selectedSubject || null,
       period_number: selectedPeriod && selectedPeriod !== 'none' ? parseInt(selectedPeriod) : null,
       time_recorded: new Date().toISOString(),
+      school_tenant_id: schoolTenantId || undefined,
     };
 
     if (existingRecord) {

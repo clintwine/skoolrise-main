@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolTenant } from '@/hooks/useSchoolTenant';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,35 +34,43 @@ export default function BehaviorManagement() {
     parent_notified: false,
   });
   const queryClient = useQueryClient();
+  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
+  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
 
   const { data: behaviors = [] } = useQuery({
-    queryKey: ['behaviors'],
-    queryFn: () => base44.entities.Behavior.list('-date'),
+    queryKey: ['behaviors', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Behavior.filter(tenantFilter, '-date') : base44.entities.Behavior.list('-date'),
+    enabled: !tenantLoading,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Student.filter(tenantFilter) : base44.entities.Student.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Teacher.filter(tenantFilter) : base44.entities.Teacher.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+    queryKey: ['classes', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Class.filter(tenantFilter) : base44.entities.Class.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.ClassArm.filter(tenantFilter) : base44.entities.ClassArm.list(),
+    enabled: !tenantLoading,
   });
 
   const { data: thresholds = [] } = useQuery({
-    queryKey: ['behavior-thresholds'],
-    queryFn: () => base44.entities.BehaviorThreshold.list(),
+    queryKey: ['behavior-thresholds', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.BehaviorThreshold.filter(tenantFilter) : base44.entities.BehaviorThreshold.list(),
+    enabled: !tenantLoading,
   });
 
   const createMutation = useMutation({
@@ -73,6 +82,7 @@ export default function BehaviorManagement() {
         ...data,
         student_name: `${student?.first_name} ${student?.last_name}`,
         teacher_name: `${teacher?.first_name} ${teacher?.last_name}`,
+        school_tenant_id: schoolTenantId || undefined,
       });
 
       // Check thresholds

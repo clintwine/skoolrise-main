@@ -1,6 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// This function checks for overdue fees and sends notifications to parents
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -10,21 +9,27 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    const schoolTenantId = user.school_tenant_id;
     const now = new Date();
-    
-    // Get invoices that are overdue or unpaid past due date
-    const invoices = await base44.asServiceRole.entities.FeeInvoice.list();
-    
+
+    const invoiceFilter = {};
+    if (schoolTenantId) invoiceFilter.school_tenant_id = schoolTenantId;
+    const invoices = await base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter);
+
     const overdueInvoices = invoices.filter(inv => {
       if (inv.status === 'Paid') return false;
       if (!inv.due_date) return false;
       return new Date(inv.due_date) < now && inv.balance > 0;
     });
 
-    // Get students and parents
-    const students = await base44.asServiceRole.entities.Student.list();
-    const parents = await base44.asServiceRole.entities.Parent.list();
-    
+    const studentFilter = {};
+    if (schoolTenantId) studentFilter.school_tenant_id = schoolTenantId;
+    const students = await base44.asServiceRole.entities.Student.filter(studentFilter);
+
+    const parentFilter = {};
+    if (schoolTenantId) parentFilter.school_tenant_id = schoolTenantId;
+    const parents = await base44.asServiceRole.entities.Parent.filter(parentFilter);
+
     const studentMap = {};
     students.forEach(s => { studentMap[s.id] = s; });
 
@@ -34,7 +39,6 @@ Deno.serve(async (req) => {
       const student = studentMap[invoice.student_id];
       if (!student) continue;
 
-      // Find parent linked to this student
       const linkedParents = parents.filter(p => {
         try {
           const linkedIds = JSON.parse(p.linked_student_ids || '[]');
@@ -58,16 +62,13 @@ Deno.serve(async (req) => {
           entity_type: 'FeeInvoice',
           entity_id: invoice.id,
           is_read: false,
+          school_tenant_id: schoolTenantId || null,
         });
         notificationsSent++;
       }
     }
 
-    return Response.json({ 
-      success: true, 
-      overdueInvoicesChecked: overdueInvoices.length,
-      notificationsSent 
-    });
+    return Response.json({ success: true, overdueInvoicesChecked: overdueInvoices.length, notificationsSent });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

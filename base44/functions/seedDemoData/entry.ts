@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -9,7 +9,33 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Step 1: Delete all existing data
+    // Get or create school_tenant_id
+    let schoolTenantId = user.school_tenant_id || null;
+
+    // If no school_tenant_id, create a default SchoolTenant first
+    if (!schoolTenantId) {
+      const existingTenants = await base44.asServiceRole.entities.SchoolTenant.filter({ admin_user_id: user.id });
+      if (existingTenants.length > 0) {
+        schoolTenantId = existingTenants[0].id;
+      } else {
+        const newTenant = await base44.asServiceRole.entities.SchoolTenant.create({
+          name: 'SkoolRise Academy',
+          code: 'SKR001',
+          subdomain: 'skoolrise-demo',
+          plan: 'free',
+          is_active: true,
+          admin_user_id: user.id,
+          onboarded_at: new Date().toISOString().split('T')[0],
+        });
+        schoolTenantId = newTenant.id;
+        // Update the user with the new tenant ID
+        await base44.asServiceRole.entities.User.update(user.id, { school_tenant_id: schoolTenantId });
+      }
+    }
+
+    const tid = schoolTenantId; // convenience alias
+
+    // Step 1: Delete all existing data for this tenant
     const entitiesToClear = [
       'Submission', 'AssignmentQuestion', 'Assignment', 'QuestionBank',
       'Timetable', 'Enrollment', 'Attendance', 'Behavior', 'ReportCard',
@@ -18,12 +44,12 @@ Deno.serve(async (req) => {
       'Class', 'ClassArm', 'Course', 'Subject',
       'Term', 'AcademicSession', 'GradingScale',
       'AuditLog', 'AnalyticsEvent', 'CachedData', 'ScheduledReport',
-      'Notification', 'Message', 'MessageThread'
+      'Notification'
     ];
 
     for (const entityName of entitiesToClear) {
       try {
-        const items = await base44.asServiceRole.entities[entityName].list();
+        const items = await base44.asServiceRole.entities[entityName].filter({ school_tenant_id: tid });
         for (const item of items) {
           await base44.asServiceRole.entities[entityName].delete(item.id);
         }
@@ -33,7 +59,7 @@ Deno.serve(async (req) => {
     }
 
     // Step 2: Create School Info
-    const schools = await base44.asServiceRole.entities.School.list();
+    const schools = await base44.asServiceRole.entities.School.filter({ school_tenant_id: tid });
     let school = schools[0];
     if (!school) {
       school = await base44.asServiceRole.entities.School.create({
@@ -46,6 +72,7 @@ Deno.serve(async (req) => {
         motto: 'Excellence in Education',
         principal_name: 'Dr. Sarah Johnson',
         currency: 'USD',
+        school_tenant_id: tid,
       });
     }
 
@@ -56,6 +83,7 @@ Deno.serve(async (req) => {
       end_date: '2026-06-30',
       is_current: true,
       status: 'Active',
+      school_tenant_id: tid,
     });
 
     const term1 = await base44.asServiceRole.entities.Term.create({
@@ -66,6 +94,7 @@ Deno.serve(async (req) => {
       end_date: '2025-12-20',
       is_current: true,
       status: 'Active',
+      school_tenant_id: tid,
     });
 
     // Step 4: Create Subjects
@@ -82,7 +111,7 @@ Deno.serve(async (req) => {
 
     const subjects = [];
     for (const s of subjectsData) {
-      const subject = await base44.asServiceRole.entities.Subject.create({ ...s, status: 'Active' });
+      const subject = await base44.asServiceRole.entities.Subject.create({ ...s, status: 'Active', school_tenant_id: tid });
       subjects.push(subject);
     }
 
@@ -96,13 +125,12 @@ Deno.serve(async (req) => {
     ];
 
     for (const g of grades) {
-      await base44.asServiceRole.entities.GradingScale.create({ ...g, scale_name: 'Standard', is_active: true });
+      await base44.asServiceRole.entities.GradingScale.create({ ...g, scale_name: 'Standard', is_active: true, school_tenant_id: tid });
     }
 
     // Step 6: Get or create demo users
     const existingUsers = await base44.asServiceRole.entities.User.list();
-    
-    // Find or create teacher user
+
     let teacherUser = existingUsers.find(u => u.email === 'teacher@demo.com');
     if (!teacherUser) {
       await base44.users.inviteUser('teacher@demo.com', 'user');
@@ -111,15 +139,11 @@ Deno.serve(async (req) => {
     }
     if (teacherUser) {
       await base44.asServiceRole.entities.User.update(teacherUser.id, {
-        full_name: 'John Smith',
-        title: 'Mr',
-        profile_completed: true,
-        is_activated: true,
-        user_type: 'teacher',
+        full_name: 'John Smith', title: 'Mr', profile_completed: true, is_activated: true,
+        user_type: 'teacher', school_tenant_id: tid,
       });
     }
 
-    // Find or create parent user
     let parentUser = existingUsers.find(u => u.email === 'parent@demo.com');
     if (!parentUser) {
       await base44.users.inviteUser('parent@demo.com', 'user');
@@ -128,15 +152,11 @@ Deno.serve(async (req) => {
     }
     if (parentUser) {
       await base44.asServiceRole.entities.User.update(parentUser.id, {
-        full_name: 'Mary Johnson',
-        title: 'Mrs',
-        profile_completed: true,
-        is_activated: true,
-        user_type: 'parent',
+        full_name: 'Mary Johnson', title: 'Mrs', profile_completed: true, is_activated: true,
+        user_type: 'parent', school_tenant_id: tid,
       });
     }
 
-    // Find or create student user
     let studentUser = existingUsers.find(u => u.email === 'student@demo.com');
     if (!studentUser) {
       await base44.users.inviteUser('student@demo.com', 'user');
@@ -145,11 +165,8 @@ Deno.serve(async (req) => {
     }
     if (studentUser) {
       await base44.asServiceRole.entities.User.update(studentUser.id, {
-        full_name: 'James Johnson',
-        title: 'Mr',
-        profile_completed: true,
-        is_activated: true,
-        user_type: 'student',
+        full_name: 'James Johnson', title: 'Mr', profile_completed: true, is_activated: true,
+        user_type: 'student', school_tenant_id: tid,
       });
     }
 
@@ -164,22 +181,18 @@ Deno.serve(async (req) => {
     const teachers = [];
     for (const t of teachersData) {
       const teacher = await base44.asServiceRole.entities.Teacher.create({
-        ...t,
-        hire_date: '2020-01-15',
-        status: 'Active',
-        qualifications: 'MSc, B.Ed',
+        ...t, hire_date: '2020-01-15', status: 'Active', qualifications: 'MSc, B.Ed',
         phone: '+1 555 ' + Math.floor(Math.random() * 9000000 + 1000000),
+        school_tenant_id: tid,
       });
       teachers.push(teacher);
     }
 
     // Step 8: Create Parent Profile
     const parent = await base44.asServiceRole.entities.Parent.create({
-      user_id: parentUser?.id,
-      first_name: 'Mary',
-      last_name: 'Johnson',
-      phone: '+1 555 1234567',
-      address: '456 Family Street, Hometown',
+      user_id: parentUser?.id, first_name: 'Mary', last_name: 'Johnson',
+      phone: '+1 555 1234567', address: '456 Family Street, Hometown',
+      school_tenant_id: tid,
     });
 
     // Step 9: Create Class Arms
@@ -198,6 +211,7 @@ Deno.serve(async (req) => {
         class_teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : '',
         room: `Room ${ca.grade_level}${ca.arm_name}`,
         status: 'Active',
+        school_tenant_id: tid,
       });
       classArms.push(classArm);
     }
@@ -225,11 +239,11 @@ Deno.serve(async (req) => {
         status: 'Active',
         parent_id: i === 0 ? parent.id : null,
         parent_email: i === 0 ? 'parent@demo.com' : null,
+        school_tenant_id: tid,
       });
       students.push(student);
     }
 
-    // Update parent with linked student IDs
     if (parentUser) {
       await base44.asServiceRole.entities.User.update(parentUser.id, {
         parent_of_student_ids: students[0].id,
@@ -248,6 +262,7 @@ Deno.serve(async (req) => {
           enrollment_date: '2025-09-01',
           session_id: session.id,
           status: 'Enrolled',
+          school_tenant_id: tid,
         });
       }
     }
@@ -260,42 +275,36 @@ Deno.serve(async (req) => {
       { period: 3, start: '09:40', end: '10:25' },
       { period: 4, start: '10:45', end: '11:30' },
       { period: 5, start: '11:35', end: '12:20' },
-      { period: 6, start: '13:00', end: '13:45' },
-      { period: 7, start: '13:50', end: '14:35' },
     ];
 
     for (const classArm of classArms.slice(0, 2)) {
       for (const day of days) {
-        for (let i = 0; i < Math.min(5, periods.length); i++) {
+        for (let i = 0; i < periods.length; i++) {
           const p = periods[i];
           const subjectIdx = (days.indexOf(day) + i) % subjects.length;
           const teacherIdx = i % teachers.length;
-          
+
           await base44.asServiceRole.entities.Timetable.create({
             class_arm_id: classArm.id,
             class_arm_name: `Grade ${classArm.grade_level} - ${classArm.arm_name}`,
-            day_of_week: day,
-            period_number: p.period,
-            start_time: p.start,
-            end_time: p.end,
+            day_of_week: day, period_number: p.period, start_time: p.start, end_time: p.end,
             subject: subjects[subjectIdx].subject_name,
             teacher_id: teachers[teacherIdx].id,
             teacher_name: `${teachers[teacherIdx].first_name} ${teachers[teacherIdx].last_name}`,
-            room: classArm.room,
-            session_id: session.id,
-            term_id: term1.id,
+            room: classArm.room, session_id: session.id, term_id: term1.id,
+            school_tenant_id: tid,
           });
         }
       }
     }
 
-    // Step 13: Create Attendance Records (last 30 days)
+    // Step 13: Create Attendance Records (last 20 days)
     const attendanceStatuses = ['Present', 'Present', 'Present', 'Present', 'Present', 'Late', 'Absent'];
     for (let d = 0; d < 20; d++) {
       const date = new Date();
       date.setDate(date.getDate() - d);
       if (date.getDay() === 0 || date.getDay() === 6) continue;
-      
+
       for (const student of students) {
         const status = attendanceStatuses[Math.floor(Math.random() * attendanceStatuses.length)];
         await base44.asServiceRole.entities.Attendance.create({
@@ -303,69 +312,59 @@ Deno.serve(async (req) => {
           student_name: `${student.first_name} ${student.last_name}`,
           date: date.toISOString().split('T')[0],
           status: status,
-          type: 'School',
-          marked_by: teachers[0].id,
-          marked_by_name: `${teachers[0].first_name} ${teachers[0].last_name}`,
+          type: 'class',
+          school_tenant_id: tid,
         });
       }
     }
 
     // Step 14: Create Fee Policies and Invoices
     const feePolicy = await base44.asServiceRole.entities.FeePolicy.create({
-      name: 'Standard Tuition 2025-2026',
+      policy_name: 'Standard Tuition 2025-2026',
       description: 'Regular tuition fees for all students',
-      amount: 5000,
-      fee_type: 'Tuition',
-      frequency: 'Term',
-      applicable_grades: 'All',
+      total_amount: 5000,
+      grade_level: 'All',
       session_id: session.id,
-      is_active: true,
+      status: 'Active',
+      school_tenant_id: tid,
     });
 
     for (const student of students) {
       const paid = Math.random() > 0.4;
       const partialPaid = !paid && Math.random() > 0.5;
       const amountPaid = paid ? 5000 : (partialPaid ? 2500 : 0);
-      
+
       await base44.asServiceRole.entities.FeeInvoice.create({
         invoice_number: `INV-${session.id.slice(-4)}-${student.student_id_number}`,
         student_id: student.id,
         student_name: `${student.first_name} ${student.last_name}`,
-        session_id: session.id,
-        term_id: term1.id,
-        fee_policy_id: feePolicy.id,
-        invoice_date: '2025-09-01',
-        due_date: '2025-09-30',
-        subtotal: 5000,
-        total_amount: 5000,
-        amount_paid: amountPaid,
-        balance: 5000 - amountPaid,
+        session_id: session.id, term_id: term1.id, fee_policy_id: feePolicy.id,
+        invoice_date: '2025-09-01', due_date: '2025-09-30',
+        subtotal: 5000, total_amount: 5000, amount_paid: amountPaid, balance: 5000 - amountPaid,
         status: paid ? 'Paid' : (partialPaid ? 'Partially Paid' : (Math.random() > 0.5 ? 'Overdue' : 'Pending')),
         fee_items: JSON.stringify([{ name: 'Tuition Fee', amount: 5000 }]),
+        school_tenant_id: tid,
       });
     }
 
     // Step 15: Create Behavior Records
     const behaviorTypes = ['Merit', 'Merit', 'Merit', 'Demerit', 'Warning'];
     const behaviorCategories = ['Academic Excellence', 'Good Conduct', 'Leadership', 'Participation', 'Tardiness'];
-    
+
     for (let i = 0; i < 15; i++) {
       const student = students[Math.floor(Math.random() * students.length)];
       const type = behaviorTypes[Math.floor(Math.random() * behaviorTypes.length)];
       const category = behaviorCategories[Math.floor(Math.random() * behaviorCategories.length)];
       const date = new Date();
       date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-      
+
       await base44.asServiceRole.entities.Behavior.create({
-        student_id: student.id,
-        student_name: `${student.first_name} ${student.last_name}`,
-        teacher_id: teachers[0].id,
-        teacher_name: `${teachers[0].first_name} ${teachers[0].last_name}`,
-        date: date.toISOString().split('T')[0],
-        type: type,
-        category: category,
+        student_id: student.id, student_name: `${student.first_name} ${student.last_name}`,
+        teacher_id: teachers[0].id, teacher_name: `${teachers[0].first_name} ${teachers[0].last_name}`,
+        date: date.toISOString().split('T')[0], type, category,
         points: type === 'Merit' ? Math.floor(Math.random() * 5) + 1 : -(Math.floor(Math.random() * 3) + 1),
         description: `${type} for ${category.toLowerCase()}`,
+        school_tenant_id: tid,
       });
     }
 
@@ -373,60 +372,41 @@ Deno.serve(async (req) => {
     const questionsData = [
       { text: 'What is 15 + 27?', type: 'Multiple Choice', options: ['40', '42', '44', '45'], correct: '42', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
       { text: 'Solve for x: 2x + 5 = 13', type: 'Multiple Choice', options: ['2', '3', '4', '5'], correct: '4', subject: 'Mathematics', difficulty: 'Medium', points: 3 },
-      { text: 'What is the square root of 144?', type: 'Multiple Choice', options: ['10', '11', '12', '13'], correct: '12', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
-      { text: 'What is 25% of 200?', type: 'Multiple Choice', options: ['25', '50', '75', '100'], correct: '50', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
       { text: 'What is the chemical symbol for water?', type: 'Multiple Choice', options: ['H2O', 'CO2', 'O2', 'N2'], correct: 'H2O', subject: 'Chemistry', difficulty: 'Easy', points: 2 },
-      { text: 'What is the speed of light?', type: 'Multiple Choice', options: ['300,000 km/s', '150,000 km/s', '450,000 km/s', '600,000 km/s'], correct: '300,000 km/s', subject: 'Physics', difficulty: 'Medium', points: 3 },
-      { text: 'What is the powerhouse of the cell?', type: 'Multiple Choice', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'], correct: 'Mitochondria', subject: 'Biology', difficulty: 'Easy', points: 2 },
       { text: 'The Earth revolves around the Sun.', type: 'True/False', options: ['True', 'False'], correct: 'True', subject: 'Physics', difficulty: 'Easy', points: 1 },
-      { text: 'Water boils at 50°C at sea level.', type: 'True/False', options: ['True', 'False'], correct: 'False', subject: 'Physics', difficulty: 'Easy', points: 1 },
-      { text: 'Explain the process of photosynthesis.', type: 'Essay', options: '[]', correct: 'Photosynthesis converts light energy...', subject: 'Biology', difficulty: 'Hard', points: 10 },
-      { text: 'What is 7 × 8?', type: 'Multiple Choice', options: ['54', '56', '58', '60'], correct: '56', subject: 'Mathematics', difficulty: 'Easy', points: 2 },
+      { text: 'What is the powerhouse of the cell?', type: 'Multiple Choice', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Chloroplast'], correct: 'Mitochondria', subject: 'Biology', difficulty: 'Easy', points: 2 },
       { text: 'Who wrote Romeo and Juliet?', type: 'Multiple Choice', options: ['Charles Dickens', 'William Shakespeare', 'Jane Austen', 'Mark Twain'], correct: 'William Shakespeare', subject: 'English Language', difficulty: 'Easy', points: 2 },
       { text: 'What year did World War II end?', type: 'Multiple Choice', options: ['1943', '1944', '1945', '1946'], correct: '1945', subject: 'History', difficulty: 'Medium', points: 3 },
-      { text: 'What is the derivative of x²?', type: 'Multiple Choice', options: ['x', '2x', 'x²', '2x²'], correct: '2x', subject: 'Mathematics', difficulty: 'Hard', points: 5 },
-      { text: 'Which planet is closest to the Sun?', type: 'Multiple Choice', options: ['Venus', 'Earth', 'Mercury', 'Mars'], correct: 'Mercury', subject: 'Physics', difficulty: 'Easy', points: 2 },
     ];
 
     const questions = [];
     for (const q of questionsData) {
       const question = await base44.asServiceRole.entities.QuestionBank.create({
-        question_text: q.text,
-        question_type: q.type,
-        options: JSON.stringify(q.options),
-        correct_answer: q.correct,
-        subject: q.subject,
-        difficulty: q.difficulty,
-        points: q.points,
-        status: 'Active',
+        question_text: q.text, question_type: q.type,
+        options: JSON.stringify(q.options), correct_answer: q.correct,
+        subject: q.subject, difficulty: q.difficulty, points: q.points, status: 'Active',
+        school_tenant_id: tid,
       });
       questions.push(question);
     }
 
     // Step 17: Create Assignments
     const assignmentsData = [
-      { title: 'Math Homework Week 1', type: 'Homework', status: 'Published', daysFromNow: 7 },
-      { title: 'Physics Quiz Chapter 3', type: 'Quiz', status: 'Published', daysFromNow: 3 },
-      { title: 'Biology Essay: Ecosystems', type: 'Essay', status: 'Published', daysFromNow: 14 },
-      { title: 'Chemistry Lab Report', type: 'Lab', status: 'Draft', daysFromNow: 10 },
-      { title: 'History Project: World War II', type: 'Project', status: 'Published', daysFromNow: 21 },
+      { title: 'Math Homework Week 1', status: 'Published', daysFromNow: 7 },
+      { title: 'Physics Quiz Chapter 3', status: 'Published', daysFromNow: 3 },
+      { title: 'Biology Essay: Ecosystems', status: 'Published', daysFromNow: 14 },
     ];
 
     const assignments = [];
     for (const a of assignmentsData) {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + a.daysFromNow);
-      
+
       const assignment = await base44.asServiceRole.entities.Assignment.create({
-        title: a.title,
-        description: `<p>Complete this ${a.type.toLowerCase()} assignment.</p>`,
-        class_id: classArms[0].id,
-        class_name: `Grade ${classArms[0].grade_level} - ${classArms[0].arm_name}`,
-        teacher_id: teachers[0].id,
-        due_date: dueDate.toISOString(),
-        max_points: a.type === 'Quiz' ? 20 : a.type === 'Project' ? 50 : 30,
-        type: a.type,
-        status: a.status,
+        title: a.title, description: `<p>Complete this assignment.</p>`,
+        class_id: classArms[0].id, class_name: `Grade ${classArms[0].grade_level} - ${classArms[0].arm_name}`,
+        teacher_id: teachers[0].id, due_date: dueDate.toISOString(), max_points: 30, status: a.status,
+        school_tenant_id: tid,
       });
       assignments.push(assignment);
     }
@@ -437,51 +417,33 @@ Deno.serve(async (req) => {
         subject: s.subject_name,
         ca_score: Math.floor(Math.random() * 20) + 10,
         exam_score: Math.floor(Math.random() * 40) + 30,
-        total: 0,
-        grade: '',
+        total: 0, grade: '',
       }));
-      
+
       gradesArray.forEach(g => {
         g.total = g.ca_score + g.exam_score;
         g.grade = g.total >= 90 ? 'A' : g.total >= 80 ? 'B' : g.total >= 70 ? 'C' : g.total >= 60 ? 'D' : 'F';
       });
-      
+
       const avgScore = gradesArray.reduce((sum, g) => sum + g.total, 0) / gradesArray.length;
-      
+
       await base44.asServiceRole.entities.ReportCard.create({
-        student_id: student.id,
-        student_name: `${student.first_name} ${student.last_name}`,
-        session_id: session.id,
-        term_id: term1.id,
-        class_id: classArms[0].id,
-        grades: JSON.stringify(gradesArray),
-        average_score: Math.round(avgScore),
+        student_id: student.id, student_name: `${student.first_name} ${student.last_name}`,
+        session_id: session.id, term_id: term1.id, class_id: classArms[0].id,
+        grades: JSON.stringify(gradesArray), average_score: Math.round(avgScore),
         grade: avgScore >= 90 ? 'A' : avgScore >= 80 ? 'B' : avgScore >= 70 ? 'C' : avgScore >= 60 ? 'D' : 'F',
         position: Math.floor(Math.random() * 8) + 1,
         teacher_comment: 'Good progress this term. Keep up the excellent work!',
         principal_comment: 'Well done. Continue to strive for excellence.',
-        status: 'Published',
+        status: 'Published', school_tenant_id: tid,
       });
     }
 
-    // Step 19: Create Fee Reminders
-    const overdueInvoices = await base44.asServiceRole.entities.FeeInvoice.filter({ status: 'Overdue' });
-    for (const invoice of overdueInvoices.slice(0, 3)) {
-      await base44.asServiceRole.entities.FeeReminder.create({
-        invoice_id: invoice.id,
-        student_id: invoice.student_id,
-        student_name: invoice.student_name,
-        reminder_type: 'Email',
-        reminder_date: new Date().toISOString(),
-        status: 'Sent',
-        message: `Dear Parent, this is a reminder that the fee payment of $${invoice.balance} is overdue.`,
-      });
-    }
-
-    return Response.json({ 
-      success: true, 
-      message: 'All data cleared and demo data seeded successfully!',
+    return Response.json({
+      success: true,
+      message: 'Demo data seeded successfully for this school tenant!',
       data: {
+        school_tenant_id: tid,
         school: school.id,
         session: session.id,
         subjects: subjects.length,

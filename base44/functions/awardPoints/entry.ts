@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const LEVEL_THRESHOLDS = [0, 100, 500, 1500, 5000, 15000];
 const LEVEL_NAMES = ['Beginner', 'Explorer', 'Achiever', 'Champion', 'Legend', 'Master'];
@@ -21,31 +21,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { 
-      student_id, 
-      student_name, 
-      points, 
-      type, 
-      category, 
-      description,
-      reference_type,
-      reference_id 
-    } = await req.json();
+    const schoolTenantId = user.school_tenant_id || null;
+
+    const { student_id, student_name, points, type, category, description, reference_type, reference_id } = await req.json();
 
     if (!student_id || !points || !type || !category) {
-      return Response.json({ 
-        error: 'student_id, points, type, and category are required' 
-      }, { status: 400 });
+      return Response.json({ error: 'student_id, points, type, and category are required' }, { status: 400 });
     }
 
-    // Get or create StudentPoints record
-    let studentPoints = await base44.asServiceRole.entities.StudentPoints.filter({ 
-      student_id 
-    });
+    const studentPointsFilter = { student_id };
+    if (schoolTenantId) studentPointsFilter.school_tenant_id = schoolTenantId;
+
+    let studentPoints = await base44.asServiceRole.entities.StudentPoints.filter(studentPointsFilter);
 
     let pointsRecord;
     if (studentPoints.length === 0) {
-      // Create new record
       pointsRecord = await base44.asServiceRole.entities.StudentPoints.create({
         student_id,
         student_name: student_name || '',
@@ -54,22 +44,20 @@ Deno.serve(async (req) => {
         lifetime_points: 0,
         level: 1,
         level_name: 'Beginner',
+        school_tenant_id: schoolTenantId,
       });
     } else {
       pointsRecord = studentPoints[0];
     }
 
-    // Calculate new totals
     const isEarning = type === 'earned' || type === 'bonus';
     const newAvailable = (pointsRecord.available_points || 0) + (isEarning ? points : -points);
-    const newLifetime = isEarning 
-      ? (pointsRecord.lifetime_points || 0) + points 
+    const newLifetime = isEarning
+      ? (pointsRecord.lifetime_points || 0) + points
       : pointsRecord.lifetime_points || 0;
 
-    // Calculate new level
     const { level, name: levelName } = calculateLevel(newLifetime);
 
-    // Update StudentPoints
     await base44.asServiceRole.entities.StudentPoints.update(pointsRecord.id, {
       total_points: newAvailable,
       available_points: newAvailable,
@@ -78,7 +66,6 @@ Deno.serve(async (req) => {
       level_name: levelName,
     });
 
-    // Create transaction record
     const transaction = await base44.asServiceRole.entities.PointTransaction.create({
       student_id,
       student_name: student_name || '',
@@ -89,9 +76,9 @@ Deno.serve(async (req) => {
       reference_type: reference_type || '',
       reference_id: reference_id || '',
       awarded_by: user.email,
+      school_tenant_id: schoolTenantId,
     });
 
-    // Check for level up notification
     if (level > (pointsRecord.level || 1)) {
       await base44.asServiceRole.entities.InAppNotification.create({
         user_id: student_id,
@@ -100,16 +87,11 @@ Deno.serve(async (req) => {
         type: 'success',
         link: 'RewardsStore',
         is_read: false,
+        school_tenant_id: schoolTenantId,
       });
     }
 
-    return Response.json({ 
-      success: true, 
-      transaction,
-      newBalance: newAvailable,
-      newLevel: level,
-      levelName,
-    });
+    return Response.json({ success: true, transaction, newBalance: newAvailable, newLevel: level, levelName });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

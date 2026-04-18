@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolTenant } from '@/hooks/useSchoolTenant';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,10 +21,13 @@ export default function ReportCardsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
   const [bulkGeneratorOpen, setBulkGeneratorOpen] = useState(false);
+  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
+  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['academic-sessions'],
-    queryFn: () => base44.entities.AcademicSession.list('-created_date'),
+    queryKey: ['academic-sessions', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.AcademicSession.filter(tenantFilter, '-created_date') : base44.entities.AcademicSession.list('-created_date'),
+    enabled: !tenantLoading,
   });
 
   // Auto-select most recent/current session
@@ -35,13 +39,16 @@ export default function ReportCardsManagement() {
   }, [sessions, selectedSession]);
 
   const { data: reportCards = [], isLoading } = useQuery({
-    queryKey: ['report-cards', selectedSession],
+    queryKey: ['report-cards', selectedSession, schoolTenantId],
     queryFn: async () => {
-      if (selectedSession) {
-        return await base44.entities.ReportCard.filter({ session_id: selectedSession }, '-created_date');
+      const filter = { ...tenantFilter };
+      if (selectedSession) filter.session_id = selectedSession;
+      if (Object.keys(filter).length > 0) {
+        return await base44.entities.ReportCard.filter(filter, '-created_date');
       }
       return await base44.entities.ReportCard.list('-created_date');
     },
+    enabled: !tenantLoading,
   });
 
   const filteredReports = reportCards.filter((report) =>

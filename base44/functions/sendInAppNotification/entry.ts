@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
       entity_type: entity_type || '',
       entity_id: entity_id || '',
       is_read: false,
+      school_tenant_id: user.school_tenant_id || null,
     });
 
     return Response.json({ success: true, notification });

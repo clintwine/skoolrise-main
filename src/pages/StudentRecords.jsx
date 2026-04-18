@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useSchoolTenant } from '@/hooks/useSchoolTenant';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,15 +36,19 @@ export default function StudentRecords() {
   const [selectedParentId, setSelectedParentId] = useState('');
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
+  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
 
   const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list('-created_date'),
+    queryKey: ['students', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Student.filter(tenantFilter, '-created_date') : base44.entities.Student.list('-created_date'),
+    enabled: !tenantLoading,
   });
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
+    queryKey: ['parents', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.Parent.filter(tenantFilter) : base44.entities.Parent.list(),
+    enabled: !tenantLoading,
   });
 
   const linkParentMutation = useMutation({
@@ -94,7 +99,7 @@ export default function StudentRecords() {
       setSelectedStudent(null);
       toast.success('Student updated successfully');
     } else {
-      await base44.entities.Student.create(data);
+      await base44.entities.Student.create({ ...data, school_tenant_id: schoolTenantId || undefined });
       queryClient.invalidateQueries({ queryKey: ['students'] });
       setIsFormOpen(false);
       setSelectedStudent(null);

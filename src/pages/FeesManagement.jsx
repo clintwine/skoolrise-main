@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSchoolTenant } from '@/hooks/useSchoolTenant';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,9 @@ export default function FeesManagement() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
+  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
+
   // Check authorization
   const userType = user?.user_type || '';
   const isAdmin = user?.role === 'admin' || userType === 'admin';
@@ -34,15 +38,15 @@ export default function FeesManagement() {
   const isAuthorized = isAdmin || isVendor;
 
   const { data: invoices = [], isLoading } = useQuery({
-    queryKey: ['invoices'],
-    queryFn: () => base44.entities.FeeInvoice.list('-created_date'),
-    enabled: !isLoadingUser && isAuthorized,
+    queryKey: ['invoices', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.FeeInvoice.filter(tenantFilter, '-created_date') : base44.entities.FeeInvoice.list('-created_date'),
+    enabled: !isLoadingUser && !tenantLoading && isAuthorized,
   });
 
   const { data: schools = [] } = useQuery({
-    queryKey: ['school-payment-provider-info'],
-    queryFn: () => base44.entities.School.list(),
-    enabled: !isLoadingUser && isAuthorized,
+    queryKey: ['school-payment-provider-info', schoolTenantId],
+    queryFn: () => schoolTenantId ? base44.entities.School.filter(tenantFilter) : base44.entities.School.list(),
+    enabled: !isLoadingUser && !tenantLoading && isAuthorized,
   });
 
   // Memoized filtered invoices
