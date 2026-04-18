@@ -106,9 +106,8 @@ export default function Layout({ children, currentPageName }) {
               return;
             }
           } catch (e) {
-            setUser({ ...currentUser, schoolSuspended: true, schoolName: 'Your School' });
-            setLoading(false);
-            return;
+            console.log('School tenant not found or error:', e);
+            // Don't suspend if school can't be read - let user proceed
           }
         }
 
