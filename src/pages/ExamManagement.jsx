@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,18 +36,21 @@ export default function ExamManagement() {
 
   const teacherProfile = teachers[0];
   const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: allExams = [], isLoading } = useQuery({
-    queryKey: ['exams'],
-    queryFn: () => base44.entities.Exam.list('-created_date'),
+    queryKey: ['exams', school_tenant_id],
+    queryFn: () => base44.entities.Exam.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   // Filter exams: admins see all, teachers see only their own
   const exams = isAdmin ? allExams : allExams.filter(e => e.created_by === user?.email || e.teacher_id === teacherProfile?.id);
 
   const { data: attempts = [] } = useQuery({
-    queryKey: ['exam-attempts'],
-    queryFn: () => base44.entities.ExamAttempt.list(),
+    queryKey: ['exam-attempts', school_tenant_id],
+    queryFn: () => base44.entities.ExamAttempt.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const filteredExams = exams.filter(exam => {

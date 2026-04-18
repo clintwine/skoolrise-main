@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,10 +21,12 @@ export default function StudentAssignmentDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
-    enabled: !!user,
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: !!user && isReady,
   });
 
   const currentStudent = students.find(s => s.user_id === user?.id);
@@ -36,9 +40,9 @@ export default function StudentAssignmentDashboard() {
   const classIds = enrollments.map(e => e.class_id);
 
   const { data: allAssignments = [] } = useQuery({
-    queryKey: ['student-assignments'],
-    queryFn: () => base44.entities.Assignment.list(),
-    enabled: classIds.length > 0,
+    queryKey: ['student-assignments', school_tenant_id],
+    queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({ status: 'Published' }, school_tenant_id)),
+    enabled: classIds.length > 0 && isReady,
   });
 
   const myAssignments = allAssignments.filter(a => 

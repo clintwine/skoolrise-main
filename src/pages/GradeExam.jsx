@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,31 +16,32 @@ export default function GradeExam() {
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const queryClient = useQueryClient();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: exam } = useQuery({
-    queryKey: ['exam', examId],
+    queryKey: ['exam', examId, school_tenant_id],
     queryFn: async () => {
-      const exams = await base44.entities.Exam.list();
-      return exams.find(e => e.id === examId);
+      const exams = await base44.entities.Exam.filter(addSchoolFilter({ id: examId }, school_tenant_id));
+      return exams[0] || null;
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const { data: questions = [] } = useQuery({
-    queryKey: ['exam-questions', examId],
+    queryKey: ['exam-questions', examId, school_tenant_id],
     queryFn: async () => {
-      const allQuestions = await base44.entities.ExamQuestion.list();
-      return allQuestions.filter(q => q.exam_id === examId).sort((a, b) => a.order - b.order);
+      const allQuestions = await base44.entities.ExamQuestion.filter(addSchoolFilter({ exam_id: examId }, school_tenant_id));
+      return allQuestions.sort((a, b) => a.order - b.order);
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const { data: attempts = [] } = useQuery({
-    queryKey: ['exam-attempts', examId],
+    queryKey: ['exam-attempts', examId, school_tenant_id],
     queryFn: async () => {
-      const allAttempts = await base44.entities.ExamAttempt.list();
-      return allAttempts.filter(a => a.exam_id === examId && (a.status === 'Submitted' || a.status === 'Graded'));
+      return await base44.entities.ExamAttempt.filter(addSchoolFilter({ exam_id: examId }, school_tenant_id));
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const gradeMutation = useMutation({

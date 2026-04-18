@@ -47,8 +47,7 @@ export default function StudentAssignments() {
     queryKey: ['student-enrollments', studentProfile?.id],
     queryFn: async () => {
       if (!studentProfile?.id) return [];
-      const allEnrollments = await base44.entities.Enrollment.list();
-      return allEnrollments.filter(e => e.student_id === studentProfile.id);
+      return await base44.entities.Enrollment.filter({ student_id: studentProfile.id });
     },
     enabled: !!studentProfile?.id,
   });
@@ -56,11 +55,10 @@ export default function StudentAssignments() {
   const { data: assignments = [] } = useQuery({
     queryKey: ['student-assignments', studentProfile?.id],
     queryFn: async () => {
-      if (!studentProfile?.id) return [];
+      if (!studentProfile?.id || enrollments.length === 0) return [];
       const classIds = enrollments.map(e => e.class_id);
-      if (classIds.length === 0) return [];
-      const allAssignments = await base44.entities.Assignment.list('-due_date');
-      return allAssignments.filter(a => classIds.includes(a.class_id) && a.status === 'Published');
+      const allAssignments = await base44.entities.Assignment.filter({ status: 'Published' }, '-due_date');
+      return allAssignments.filter(a => classIds.includes(a.class_id));
     },
     enabled: !!studentProfile?.id && enrollments.length > 0,
   });

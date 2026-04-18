@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,22 +14,24 @@ export default function ExamResults() {
   const examId = urlParams.get('id');
   const queryClient = useQueryClient();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: exam } = useQuery({
-    queryKey: ['exam', examId],
+    queryKey: ['exam', examId, school_tenant_id],
     queryFn: async () => {
-      const exams = await base44.entities.Exam.list();
-      return exams.find(e => e.id === examId);
+      const exams = await base44.entities.Exam.filter(addSchoolFilter({ id: examId }, school_tenant_id));
+      return exams[0] || null;
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const { data: results = [] } = useQuery({
-    queryKey: ['exam-results', examId],
+    queryKey: ['exam-results', examId, school_tenant_id],
     queryFn: async () => {
-      const allResults = await base44.entities.ExamResult.list();
-      return allResults.filter(r => r.exam_id === examId).sort((a, b) => b.percentage - a.percentage);
+      const allResults = await base44.entities.ExamResult.filter(addSchoolFilter({ exam_id: examId }, school_tenant_id));
+      return allResults.sort((a, b) => b.percentage - a.percentage);
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const publishMutation = useMutation({

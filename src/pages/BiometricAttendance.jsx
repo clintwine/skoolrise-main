@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,23 +24,24 @@ export default function BiometricAttendance() {
   const [scannedStudent, setScannedStudent] = useState(null);
   const [scannedId, setScannedId] = useState(null);
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: biometricRecords = [], isLoading } = useQuery({
-    queryKey: ['biometric-attendance', dateRange],
+    queryKey: ['biometric-attendance', dateRange, school_tenant_id],
     queryFn: async () => {
       if (!dateRange?.from || !dateRange?.to) return [];
-
       const fromDate = format(dateRange.from, 'yyyy-MM-dd');
       const toDate = format(dateRange.to, 'yyyy-MM-dd');
-
-      const all = await base44.entities.BiometricAttendance.list('-timestamp');
+      const all = await base44.entities.BiometricAttendance.filter(addSchoolFilter({}, school_tenant_id), '-timestamp');
       return all.filter(r => r.date >= fromDate && r.date <= toDate);
     },
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: scannerSettings = [] } = useQuery({

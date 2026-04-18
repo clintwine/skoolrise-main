@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,28 +19,30 @@ export default function ProctoringMonitor() {
   const [actionTaken, setActionTaken] = useState('');
 
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: exams = [] } = useQuery({
-    queryKey: ['exams'],
-    queryFn: () => base44.entities.Exam.list('-created_date'),
+    queryKey: ['exams', school_tenant_id],
+    queryFn: () => base44.entities.Exam.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: attempts = [] } = useQuery({
-    queryKey: ['exam-attempts', selectedExam],
+    queryKey: ['exam-attempts', selectedExam, school_tenant_id],
     queryFn: async () => {
-      const allAttempts = await base44.entities.ExamAttempt.list();
-      return selectedExam ? allAttempts.filter(a => a.exam_id === selectedExam && a.status === 'In Progress') : [];
+      if (!selectedExam) return [];
+      return await base44.entities.ExamAttempt.filter(addSchoolFilter({ exam_id: selectedExam, status: 'In Progress' }, school_tenant_id));
     },
-    enabled: !!selectedExam,
+    enabled: !!selectedExam && isReady,
   });
 
   const { data: logs = [] } = useQuery({
-    queryKey: ['proctoring-logs', selectedExam],
+    queryKey: ['proctoring-logs', selectedExam, school_tenant_id],
     queryFn: async () => {
-      const allLogs = await base44.entities.ProctoringLog.list('-timestamp');
-      return selectedExam ? allLogs.filter(l => l.exam_id === selectedExam) : [];
+      if (!selectedExam) return [];
+      return await base44.entities.ProctoringLog.filter(addSchoolFilter({ exam_id: selectedExam }, school_tenant_id), '-timestamp');
     },
-    enabled: !!selectedExam,
+    enabled: !!selectedExam && isReady,
   });
 
   const reviewMutation = useMutation({

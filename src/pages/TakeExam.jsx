@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,23 +27,28 @@ export default function TakeExam() {
   const autosaveTimerRef = useRef(null);
 
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: exam } = useQuery({
-    queryKey: ['exam', examId],
+    queryKey: ['exam', examId, school_tenant_id],
     queryFn: async () => {
-      const exams = await base44.entities.Exam.list();
-      return exams.find(e => e.id === examId);
+      // Security: only load exam from the student's school tenant
+      const exams = await base44.entities.Exam.filter(addSchoolFilter({ id: examId }, school_tenant_id));
+      return exams[0] || null;
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const { data: questions = [] } = useQuery({
-    queryKey: ['exam-questions', examId],
+    queryKey: ['exam-questions', examId, school_tenant_id],
     queryFn: async () => {
-      const allQuestions = await base44.entities.ExamQuestion.list();
-      return allQuestions.filter(q => q.exam_id === examId).sort((a, b) => a.order - b.order);
+      // Security: only load questions belonging to this school's exam
+      const allQuestions = await base44.entities.ExamQuestion.filter(
+        addSchoolFilter({ exam_id: examId }, school_tenant_id)
+      );
+      return allQuestions.sort((a, b) => a.order - b.order);
     },
-    enabled: !!examId,
+    enabled: !!examId && isReady,
   });
 
   const [studentProfile, setStudentProfile] = useState(null);
@@ -66,7 +73,7 @@ export default function TakeExam() {
   // Start exam and create attempt
   const startExamMutation = useMutation({
     mutationFn: async () => {
-      const attempt = await base44.entities.ExamAttempt.create({
+      const attempt = await base44.entities.ExamAttempt.create(withSchoolId({
         exam_id: examId,
         student_id: studentProfile.id,
         student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
@@ -74,7 +81,7 @@ export default function TakeExam() {
         status: 'In Progress',
         tab_switches: 0,
         answers: JSON.stringify({}),
-      });
+      }, studentProfile.school_tenant_id));
       return attempt;
     },
     onSuccess: (attempt) => {
@@ -137,7 +144,7 @@ export default function TakeExam() {
       });
 
       // Create exam result
-      await base44.entities.ExamResult.create({
+      await base44.entities.ExamResult.create(withSchoolId({
         exam_id: examId,
         attempt_id: attemptId,
         student_id: studentProfile.id,
@@ -149,7 +156,7 @@ export default function TakeExam() {
         session_id: exam.session_id,
         term_id: exam.term_id,
         published: false,
-      });
+      }, studentProfile.school_tenant_id));
 
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());

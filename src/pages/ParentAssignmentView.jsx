@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,35 +17,42 @@ export default function ParentAssignmentView() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
-    enabled: !!user,
+    queryKey: ['parents', user?.id],
+    queryFn: () => base44.entities.Parent.filter({ user_id: user?.id }),
+    enabled: !!user?.id,
   });
 
-  const currentParent = parents.find(p => p.user_id === user?.id);
+  const currentParent = parents[0];
 
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['all-students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['all-students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const myChildren = allStudents.filter(s => s.parent_id === currentParent?.id);
 
   const { data: enrollments = [] } = useQuery({
-    queryKey: ['child-enrollments'],
-    queryFn: () => base44.entities.Enrollment.list(),
-    enabled: myChildren.length > 0,
+    queryKey: ['child-enrollments', currentParent?.id],
+    queryFn: () => base44.entities.Enrollment.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: myChildren.length > 0 && isReady,
   });
 
   const { data: allAssignments = [] } = useQuery({
-    queryKey: ['all-assignments'],
-    queryFn: () => base44.entities.Assignment.list(),
+    queryKey: ['all-assignments', school_tenant_id],
+    queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({ status: 'Published' }, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['child-submissions'],
-    queryFn: () => base44.entities.Submission.list(),
+    queryKey: ['child-submissions', selectedStudentId],
+    queryFn: () => selectedStudentId
+      ? base44.entities.Submission.filter({ student_id: selectedStudentId })
+      : [],
+    enabled: !!selectedStudentId,
   });
 
   const selectedStudent = myChildren.find(s => s.id === selectedStudentId);

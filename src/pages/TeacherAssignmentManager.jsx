@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,31 +49,30 @@ export default function TeacherAssignmentManager() {
   });
 
   const teacherProfile = teachers[0];
-
   const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['teacher-assignments', teacherProfile?.id, isAdmin],
+    queryKey: ['teacher-assignments', teacherProfile?.id, isAdmin, school_tenant_id],
     queryFn: async () => {
-      // Admins see all assignments, teachers see only their own
       if (isAdmin) {
-        return await base44.entities.Assignment.list('-created_date');
+        return await base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id), '-created_date');
       }
       if (!teacherProfile?.id) return [];
-      return await base44.entities.Assignment.filter({ teacher_id: teacherProfile.id }, '-created_date');
+      return await base44.entities.Assignment.filter(addSchoolFilter({ teacher_id: teacherProfile.id }, school_tenant_id), '-created_date');
     },
-    enabled: isAdmin || !!teacherProfile?.id,
+    enabled: (isAdmin || !!teacherProfile?.id) && isReady,
   });
 
   const { data: submissions = [] } = useQuery({
     queryKey: ['all-submissions', teacherProfile?.id, assignments.map(a => a.id)],
     queryFn: async () => {
-      if (!teacherProfile?.id || assignments.length === 0) return [];
+      if (assignments.length === 0) return [];
       const assignmentIds = assignments.map(a => a.id);
-      const allSubmissions = await base44.entities.Submission.list('-submitted_date');
+      const allSubmissions = await base44.entities.Submission.filter(addSchoolFilter({}, school_tenant_id), '-submitted_date');
       return allSubmissions.filter(s => assignmentIds.includes(s.assignment_id));
     },
-    enabled: !!teacherProfile?.id && assignments.length > 0,
+    enabled: assignments.length > 0 && isReady,
   });
 
   const activeAssignments = assignments.filter(a => a.status === 'Published');

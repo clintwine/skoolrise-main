@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,28 +19,32 @@ export default function ExamAttemptReview() {
   const urlParams = new URLSearchParams(window.location.search);
   const attemptId = urlParams.get('attemptId');
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: attempts = [] } = useQuery({
-    queryKey: ['exam-attempts'],
-    queryFn: () => base44.entities.ExamAttempt.list(),
+    queryKey: ['exam-attempts', school_tenant_id],
+    queryFn: () => base44.entities.ExamAttempt.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const attempt = attempts.find(a => a.id === attemptId);
 
   const { data: exams = [] } = useQuery({
-    queryKey: ['exams'],
-    queryFn: () => base44.entities.Exam.list(),
+    queryKey: ['exams', school_tenant_id],
+    queryFn: () => base44.entities.Exam.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const exam = exams.find(e => e.id === attempt?.exam_id);
 
   const { data: questions = [] } = useQuery({
-    queryKey: ['exam-questions', attempt?.exam_id],
+    queryKey: ['exam-questions', attempt?.exam_id, school_tenant_id],
     queryFn: async () => {
       if (!attempt?.exam_id) return [];
-      const allQuestions = await base44.entities.ExamQuestion.list();
-      return allQuestions.filter(q => q.exam_id === attempt.exam_id).sort((a, b) => a.order - b.order);
+      const allQuestions = await base44.entities.ExamQuestion.filter(addSchoolFilter({ exam_id: attempt.exam_id }, school_tenant_id));
+      return allQuestions.sort((a, b) => a.order - b.order);
     },
-    enabled: !!attempt?.exam_id,
+    enabled: !!attempt?.exam_id && isReady,
   });
 
   useEffect(() => {

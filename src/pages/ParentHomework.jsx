@@ -125,8 +125,12 @@ export default function ParentHomework() {
   });
 
   const { data: allAssignments = [] } = useQuery({
-    queryKey: ['assignments'],
-    queryFn: () => base44.entities.Assignment.list('-due_date'),
+    queryKey: ['assignments', selectedStudentId],
+    queryFn: async () => {
+      if (!selectedStudentId || studentClassIds.length === 0) return [];
+      return base44.entities.Assignment.filter({ status: 'Published' }, '-due_date');
+    },
+    enabled: !!selectedStudentId,
   });
 
   const studentClassIds = enrollments.map(e => e.class_id);

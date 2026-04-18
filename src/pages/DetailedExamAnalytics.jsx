@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,40 +28,42 @@ export default function DetailedExamAnalytics() {
 
   const teacherProfile = teachers[0];
   const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: allExams = [] } = useQuery({
-    queryKey: ['exams'],
-    queryFn: () => base44.entities.Exam.list('-created_date'),
+    queryKey: ['exams', school_tenant_id],
+    queryFn: () => base44.entities.Exam.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   // Filter exams: admins see all, teachers see only their own
   const exams = isAdmin ? allExams : allExams.filter(e => e.created_by === user?.email || e.teacher_id === teacherProfile?.id);
 
   const { data: results = [] } = useQuery({
-    queryKey: ['exam-results', selectedExam],
+    queryKey: ['exam-results', selectedExam, school_tenant_id],
     queryFn: async () => {
-      const allResults = await base44.entities.ExamResult.list();
-      return selectedExam ? allResults.filter(r => r.exam_id === selectedExam) : [];
+      if (!selectedExam) return [];
+      return await base44.entities.ExamResult.filter(addSchoolFilter({ exam_id: selectedExam }, school_tenant_id));
     },
-    enabled: !!selectedExam,
+    enabled: !!selectedExam && isReady,
   });
 
   const { data: questions = [] } = useQuery({
-    queryKey: ['exam-questions', selectedExam],
+    queryKey: ['exam-questions', selectedExam, school_tenant_id],
     queryFn: async () => {
-      const allQuestions = await base44.entities.ExamQuestion.list();
-      return selectedExam ? allQuestions.filter(q => q.exam_id === selectedExam) : [];
+      if (!selectedExam) return [];
+      return await base44.entities.ExamQuestion.filter(addSchoolFilter({ exam_id: selectedExam }, school_tenant_id));
     },
-    enabled: !!selectedExam,
+    enabled: !!selectedExam && isReady,
   });
 
   const { data: attempts = [] } = useQuery({
-    queryKey: ['exam-attempts', selectedExam],
+    queryKey: ['exam-attempts', selectedExam, school_tenant_id],
     queryFn: async () => {
-      const allAttempts = await base44.entities.ExamAttempt.list();
-      return selectedExam ? allAttempts.filter(a => a.exam_id === selectedExam) : [];
+      if (!selectedExam) return [];
+      return await base44.entities.ExamAttempt.filter(addSchoolFilter({ exam_id: selectedExam }, school_tenant_id));
     },
-    enabled: !!selectedExam,
+    enabled: !!selectedExam && isReady,
   });
 
   const filteredResults = selectedClass === 'all' 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,19 +81,24 @@ export default function ExamCreator() {
   const [questionBankOpen, setQuestionBankOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list(),
+    queryKey: ['subjects', school_tenant_id],
+    queryFn: () => base44.entities.Subject.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: questionBank = [] } = useQuery({
-    queryKey: ['questions'],
-    queryFn: () => base44.entities.QuestionBank.list(),
+    queryKey: ['questions', school_tenant_id],
+    queryFn: () => base44.entities.QuestionBank.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: existingExam } = useQuery({
@@ -362,18 +369,18 @@ Return a JSON array of questions with the following structure:
         exam = { id: examId };
       } else {
         // Create new exam
-        exam = await base44.entities.Exam.create({
+        exam = await base44.entities.Exam.create(withSchoolId({
           ...data,
           class_name: selectedClass ? `Grade ${selectedClass.grade_level} - ${selectedClass.arm_name}` : '',
           teacher_id: selectedClass?.class_teacher_id,
           total_points: validQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
           status: 'Published',
-        });
+        }, school_tenant_id));
       }
 
       for (let i = 0; i < validQuestions.length; i++) {
         const q = validQuestions[i];
-        await base44.entities.ExamQuestion.create({
+        await base44.entities.ExamQuestion.create(withSchoolId({
           exam_id: exam.id,
           question_bank_id: q.question_bank_id || null,
           question_text: q.question_text,
@@ -384,7 +391,7 @@ Return a JSON array of questions with the following structure:
           negative_marking: q.negative_marking || 0,
           order: i + 1,
           explanation: q.explanation,
-        });
+        }, school_tenant_id));
       }
 
       return exam;

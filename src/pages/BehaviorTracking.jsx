@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -60,9 +62,12 @@ export default function BehaviorTracking() {
     enabled: allocations.length > 0,
   });
 
+  const { school_tenant_id } = useSchoolContext();
+
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter({ user_id: user?.id || 'none' }),
+    enabled: !!user?.id,
   });
 
   const { data: enrollments = [] } = useQuery({
@@ -100,7 +105,7 @@ export default function BehaviorTracking() {
   });
 
   const createBehaviorMutation = useMutation({
-    mutationFn: (data) => base44.entities.Behavior.create(data),
+    mutationFn: (data) => base44.entities.Behavior.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['behaviors']);
       toast.success('Behavior record created');
