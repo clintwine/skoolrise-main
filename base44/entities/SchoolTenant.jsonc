@@ -72,6 +72,10 @@
       "type": "string",
       "description": "JSON string for grading scale, currency, branding"
     },
+    "feature_overrides": {
+      "type": "string",
+      "description": "JSON string of per-school feature flag overrides"
+    },
     "onboarded_at": {
       "type": "string",
       "description": "ISO date when school was onboarded"

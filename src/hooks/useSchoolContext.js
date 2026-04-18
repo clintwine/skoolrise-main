@@ -15,9 +15,8 @@ import { base44 } from '@/api/base44Client';
  */
 export function useSchoolContext() {
   const { data: user, isLoading } = useQuery({
-    queryKey: ['school-context-user'],
+    queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
-    staleTime: 5 * 60 * 1000, // 5 minutes — avoids redundant calls across pages
   });
 
   if (isLoading || !user) {

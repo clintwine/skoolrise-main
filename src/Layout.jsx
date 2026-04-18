@@ -106,7 +106,9 @@ export default function Layout({ children, currentPageName }) {
               return;
             }
           } catch (e) {
-            console.log('Could not verify school tenant status');
+            setUser({ ...currentUser, schoolSuspended: true, schoolName: 'Your School' });
+            setLoading(false);
+            return;
           }
         }
 

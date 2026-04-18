@@ -4,7 +4,7 @@ import { canAccess, PLAN_FEATURES } from '@/utils/planFeatures';
 
 export function usePlanAccess(feature) {
   const { data: user } = useQuery({
-    queryKey: ['current-user-plan-access'],
+    queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
   });
 

@@ -8,9 +8,8 @@ import { base44 } from '@/api/base44Client';
  */
 export function useSchoolTenant() {
   const { data: user, isLoading } = useQuery({
-    queryKey: ['current-user-tenant'],
+    queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   if (isLoading) return { schoolTenantId: undefined, isLoading: true, user: null };

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSchoolTenant } from '@/hooks/useSchoolTenant';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,13 +24,7 @@ export default function FeesManagement() {
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
 
-  const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
-  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
+  const { school_tenant_id, isReady, user } = useSchoolContext();
 
   // Check authorization
   const userType = user?.user_type || '';
@@ -38,15 +33,15 @@ export default function FeesManagement() {
   const isAuthorized = isAdmin || isVendor;
 
   const { data: invoices = [], isLoading } = useQuery({
-    queryKey: ['invoices', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.FeeInvoice.filter(tenantFilter, '-created_date') : base44.entities.FeeInvoice.list('-created_date'),
-    enabled: !isLoadingUser && !tenantLoading && isAuthorized,
+    queryKey: ['invoices', school_tenant_id],
+    queryFn: () => base44.entities.FeeInvoice.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady && isAuthorized,
   });
 
   const { data: schools = [] } = useQuery({
-    queryKey: ['school-payment-provider-info', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.School.filter(tenantFilter) : base44.entities.School.list(),
-    enabled: !isLoadingUser && !tenantLoading && isAuthorized,
+    queryKey: ['school-payment-provider-info', school_tenant_id],
+    queryFn: () => base44.entities.School.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady && isAuthorized,
   });
 
   // Memoized filtered invoices
@@ -81,12 +76,12 @@ export default function FeesManagement() {
   const clearFilters = () => { setSearchTerm(''); setFilterStatus('all'); };
 
   useEffect(() => {
-    if (!isLoadingUser && user && !isAuthorized) {
+    if (isReady && user && !isAuthorized) {
       navigate(createPageUrl('TeacherDashboard'));
     }
-  }, [isLoadingUser, user, isAuthorized, navigate]);
+  }, [isReady, user, isAuthorized, navigate]);
 
-  if (isLoadingUser) {
+  if (!isReady) {
     return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div></div>;
   }
 

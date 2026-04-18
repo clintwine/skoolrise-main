@@ -17,7 +17,7 @@ import AcademicRiskBoard from '../components/analytics/AcademicRiskBoard';
 import RiskSummaryCards from '../components/analytics/RiskSummaryCards';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { DashboardSkeleton } from '../components/SkeletonLoader';
-import ImplementationPriorityBoard from '../components/admin/ImplementationPriorityBoard';
+
 
 export default function AdminDashboard() {
   const { formatAmount } = useCurrency();
@@ -64,11 +64,6 @@ export default function AdminDashboard() {
     queryKey: ['behavior-records', school_tenant_id],
     queryFn: () => base44.entities.Behavior.filter(addSchoolFilter({}, school_tenant_id), '-date', 200),
     enabled: isReady,
-  });
-
-  const { data: implementationEpics = [] } = useQuery({
-    queryKey: ['implementation-epics'],
-    queryFn: () => base44.entities.ImplementationEpic.list('recommended_order'),
   });
 
   // Memoized calculations for performance
