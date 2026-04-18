@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,15 +28,18 @@ export default function ParentManagement() {
     email: '',
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
+    queryKey: ['parents', school_tenant_id],
+    queryFn: () => base44.entities.Parent.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createParentMutation = useMutation({
@@ -43,13 +48,13 @@ export default function ParentManagement() {
       const allUsers = await base44.asServiceRole.entities.User.list();
       const newUser = allUsers.find(u => u.email === data.email);
       
-      const parent = await base44.entities.Parent.create({
+      const parent = await base44.entities.Parent.create(withSchoolId({
         user_id: newUser?.id || '',
         first_name: data.first_name,
         last_name: data.last_name,
         phone: data.phone,
         address: data.address,
-      });
+      }, school_tenant_id));
 
       const matchingStudents = students.filter(s => 
         s.parent_email === data.email || s.parent_phone === data.phone

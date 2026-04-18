@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +13,12 @@ import { Building2, Upload, Save } from 'lucide-react';
 export default function SchoolSettings() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: schools = [] } = useQuery({
-    queryKey: ['schools'],
-    queryFn: () => base44.entities.School.list(),
+    queryKey: ['schools', school_tenant_id],
+    queryFn: () => base44.entities.School.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const school = schools[0];
@@ -48,7 +52,7 @@ export default function SchoolSettings() {
       if (school) {
         return base44.entities.School.update(school.id, data);
       } else {
-        return base44.entities.School.create(data);
+        return base44.entities.School.create(withSchoolId(data, school_tenant_id));
       }
     },
     onSuccess: () => {

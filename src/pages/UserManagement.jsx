@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,6 +57,9 @@ export default function UserManagement() {
     checkAccess();
   }, [navigate]);
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
+  // Users are not tenant-scoped (they're platform-level), but profiles are
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
@@ -62,27 +67,27 @@ export default function UserManagement() {
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
-    enabled: !!currentUser,
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: !!currentUser && isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
-    enabled: !!currentUser,
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: !!currentUser && isReady,
   });
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents'],
-    queryFn: () => base44.entities.Parent.list(),
-    enabled: !!currentUser,
+    queryKey: ['parents', school_tenant_id],
+    queryFn: () => base44.entities.Parent.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: !!currentUser && isReady,
   });
 
   const { data: vendors = [] } = useQuery({
-    queryKey: ['vendors'],
-    queryFn: () => base44.entities.Vendor.list(),
-    enabled: !!currentUser,
+    queryKey: ['vendors', school_tenant_id],
+    queryFn: () => base44.entities.Vendor.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: !!currentUser && isReady,
   });
 
   const updateUserMutation = useMutation({

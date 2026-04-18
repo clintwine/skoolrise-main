@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSchoolTenant } from '@/hooks/useSchoolTenant';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,17 +26,16 @@ export default function TeacherManagement() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [viewMode, setViewMode] = useState('table');
   const queryClient = useQueryClient();
-  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
-  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Teacher.filter(tenantFilter, '-created_date') : base44.entities.Teacher.list('-created_date'),
-    enabled: !tenantLoading,
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Teacher.create({ ...data, school_tenant_id: schoolTenantId || undefined }),
+    mutationFn: (data) => base44.entities.Teacher.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teachers'] });
       setIsFormOpen(false);

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { useSchoolTenant } from '@/hooks/useSchoolTenant';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,19 +37,18 @@ export default function StudentRecords() {
   const [selectedParentId, setSelectedParentId] = useState('');
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
-  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: students = [], isLoading } = useQuery({
-    queryKey: ['students', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Student.filter(tenantFilter, '-created_date') : base44.entities.Student.list('-created_date'),
-    enabled: !tenantLoading,
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: parents = [] } = useQuery({
-    queryKey: ['parents', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Parent.filter(tenantFilter) : base44.entities.Parent.list(),
-    enabled: !tenantLoading,
+    queryKey: ['parents', school_tenant_id],
+    queryFn: () => base44.entities.Parent.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const linkParentMutation = useMutation({
@@ -99,7 +99,7 @@ export default function StudentRecords() {
       setSelectedStudent(null);
       toast.success('Student updated successfully');
     } else {
-      await base44.entities.Student.create({ ...data, school_tenant_id: schoolTenantId || undefined });
+      await base44.entities.Student.create(withSchoolId(data, school_tenant_id));
       queryClient.invalidateQueries({ queryKey: ['students'] });
       setIsFormOpen(false);
       setSelectedStudent(null);

@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useSchoolTenant } from '@/hooks/useSchoolTenant';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, GraduationCap, BookOpen, TrendingUp, CheckSquare, Award, DollarSign, AlertTriangle, Brain, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -20,51 +22,48 @@ import ImplementationPriorityBoard from '../components/admin/ImplementationPrior
 export default function AdminDashboard() {
   const { formatAmount } = useCurrency();
   const [widgetLayout, setWidgetLayout] = useState(null);
-  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
-
-  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
-  const tenantReady = !tenantLoading;
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Student.filter(tenantFilter) : base44.entities.Student.list(),
-    enabled: tenantReady,
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Teacher.filter(tenantFilter) : base44.entities.Teacher.list(),
-    enabled: tenantReady,
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Class.filter(tenantFilter) : base44.entities.Class.list(),
-    enabled: tenantReady,
+    queryKey: ['classes', school_tenant_id],
+    queryFn: () => base44.entities.Class.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['attendance', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Attendance.filter(tenantFilter) : base44.entities.Attendance.list(),
-    enabled: tenantReady,
+    queryKey: ['attendance', school_tenant_id],
+    queryFn: () => base44.entities.Attendance.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ['invoices', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.FeeInvoice.filter(tenantFilter) : base44.entities.FeeInvoice.list(),
-    enabled: tenantReady,
+    queryKey: ['invoices', school_tenant_id],
+    queryFn: () => base44.entities.FeeInvoice.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: reportCards = [] } = useQuery({
-    queryKey: ['report-cards', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.ReportCard.filter(tenantFilter) : base44.entities.ReportCard.list(),
-    enabled: tenantReady,
+    queryKey: ['report-cards', school_tenant_id],
+    queryFn: () => base44.entities.ReportCard.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: behaviors = [] } = useQuery({
-    queryKey: ['behavior-records', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Behavior.filter(tenantFilter, '-date', 200) : base44.entities.Behavior.list('-date', 200),
-    enabled: tenantReady,
+    queryKey: ['behavior-records', school_tenant_id],
+    queryFn: () => base44.entities.Behavior.filter(addSchoolFilter({}, school_tenant_id), '-date', 200),
+    enabled: isReady,
   });
 
   const { data: implementationEpics = [] } = useQuery({
