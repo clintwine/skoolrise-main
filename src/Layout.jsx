@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommandPalette from './components/CommandPalette';
 import NoRoleScreen from './components/NoRoleScreen';
+import SchoolSuspended from './pages/SchoolSuspended';
 import MobileBottomNav from './components/MobileBottomNav';
 import OfflineIndicator from './components/OfflineIndicator';
 import { CurrencyProvider } from './components/CurrencyProvider';
@@ -92,6 +93,21 @@ export default function Layout({ children, currentPageName }) {
           setUser({ ...currentUser, noRole: true });
           setLoading(false);
           return;
+        }
+
+        // Check school tenant status (skip for superadmin)
+        if (!currentUser.is_superadmin && currentUser.school_tenant_id) {
+          try {
+            const schoolTenant = await base44.entities.SchoolTenant.read(currentUser.school_tenant_id);
+            if (schoolTenant && schoolTenant.is_active === false) {
+              // School is suspended - show suspension page
+              setUser({ ...currentUser, schoolSuspended: true, schoolName: schoolTenant.name });
+              setLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.log('Could not verify school tenant status');
+          }
         }
 
         setUser(currentUser);
@@ -513,6 +529,11 @@ export default function Layout({ children, currentPageName }) {
   // If user has no role, show message with request button
   if (user?.noRole) {
     return <NoRoleScreen user={user} onLogout={handleLogout} />;
+  }
+
+  // If school is suspended, show suspension page
+  if (user?.schoolSuspended) {
+    return <SchoolSuspended schoolName={user?.schoolName} />;
   }
 
   return (
