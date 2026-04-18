@@ -41,7 +41,7 @@ const PAYMENT_PROVIDERS = [
     id: 'flutterwave',
     name: 'Flutterwave',
     description: 'Payment infrastructure for Africa',
-    logo: 'https://asset.brandfetch.io/idL0iThUh6/idXGhFjAum.png',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Flutterwave_Logo.png/320px-Flutterwave_Logo.png',
     color: 'bg-[#F5A623]',
     regions: ['Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Uganda', 'Tanzania'],
     features: ['Cards', 'Bank Transfer', 'Mobile Money', 'USSD', 'Barter'],
@@ -61,7 +61,8 @@ const PAYMENT_PROVIDERS = [
     id: 'stripe',
     name: 'Stripe',
     description: 'Global payments infrastructure',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png',
+    logo: null,
+    logoText: 'stripe',
     color: 'bg-[#635BFF]',
     regions: ['Global', '40+ Countries'],
     features: ['Cards', 'Bank Debits', 'Wallets', 'Buy Now Pay Later'],
@@ -268,7 +269,10 @@ export default function PaymentProviders() {
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <div className={`w-14 h-14 ${provider.color} rounded-xl flex items-center justify-center p-2`}>
-                    <img src={provider.logo} alt={provider.name} className="w-full h-full object-contain" />
+                    {provider.logo ? (
+                      <img src={provider.logo} alt={provider.name} className="w-full h-full object-contain" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+                    ) : null}
+                    <span className="text-white font-bold text-xs text-center leading-tight" style={{display: provider.logo ? 'none' : 'block'}}>{provider.name}</span>
                   </div>
                   <div>
                     <CardTitle className="text-xl">{provider.name}</CardTitle>

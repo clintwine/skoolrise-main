@@ -32,14 +32,10 @@ export default function BackupSettings() {
   };
 
   const handleConnect = async () => {
-    // The Google Drive connector is already authorized via OAuth
-    // Recheck connection status
-    await checkConnection();
-    if (!isConnected) {
-      toast.info('Please contact your administrator to set up Google Drive authorization.');
-    } else {
-      toast.success('Google Drive is connected and ready to use!');
-    }
+    toast.info(
+      'To connect Google Drive: Go to your Base44 dashboard → Connectors → Google Drive and authorize it. Once authorized, backups will be enabled.',
+      { duration: 8000 }
+    );
   };
 
   const handleDisconnect = async () => {

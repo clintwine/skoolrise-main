@@ -186,7 +186,7 @@ export default function ExamCommandCenter() {
                 <p className="text-text-secondary mb-6">Create your first exam to get started</p>
                 <Button 
                   onClick={() => navigate(createPageUrl('ExamCreator'))}
-                  className="bg-accent hover:bg-accent-hover text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create First Exam

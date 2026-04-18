@@ -26,7 +26,7 @@ export function CurrencyProvider({ children }) {
     queryKey: ['school-currency'],
     queryFn: async () => {
       const schools = await base44.entities.School.list();
-      return schools[0];
+      return schools[0] || { currency: 'USD' };
     },
     staleTime: 10000, // 10 seconds for quick updates
     refetchOnWindowFocus: true,

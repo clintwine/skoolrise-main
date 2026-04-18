@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,40 +81,24 @@ export default function StudentRecords() {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Student.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['students'] });
-      setIsFormOpen(false);
-      setSelectedStudent(null);
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
+  const handleSubmit = async (data) => {
+    if (selectedStudent) {
       const studentData = { ...data };
       delete studentData.id;
       delete studentData.created_date;
       delete studentData.updated_date;
       delete studentData.created_by;
-      await base44.entities.Student.update(id, studentData);
-    },
-    onSuccess: () => {
+      await base44.entities.Student.update(selectedStudent.id, studentData);
       queryClient.invalidateQueries({ queryKey: ['students'] });
       setIsFormOpen(false);
       setSelectedStudent(null);
       toast.success('Student updated successfully');
-    },
-    onError: (error) => {
-      toast.error('Failed to update student: ' + error.message);
-    },
-  });
-
-  const handleSubmit = (data) => {
-    if (selectedStudent) {
-      updateMutation.mutate({ id: selectedStudent.id, data });
     } else {
-      createMutation.mutate(data);
+      await base44.entities.Student.create(data);
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      setIsFormOpen(false);
+      setSelectedStudent(null);
+      toast.success('Student added successfully');
     }
   };
 

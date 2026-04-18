@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Settings, Bell, Shield, HardDrive, 
-  Building2, Users, Database, RefreshCw, DollarSign, Globe, Save
+  Settings, Bell, HardDrive, 
+  Users, Database, RefreshCw, DollarSign, Globe, Save, Shield
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -42,10 +42,8 @@ export default function SettingsHub() {
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
     { id: 'workflow', label: 'Workflow Rules', icon: Users },
     { id: 'backup', label: 'Backup & Restore', icon: HardDrive },
-    { id: 'audit', label: 'Audit Logs', icon: Database },
     { id: 'demo', label: 'Demo Data', icon: Database },
   ];
 
@@ -70,11 +68,11 @@ export default function SettingsHub() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg lg:rounded-xl transition-all duration-200 whitespace-nowrap text-sm lg:text-base ${
+                    className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg lg:rounded-xl transition-all duration-200 whitespace-nowrap text-sm lg:text-base lg:w-full ${
                       activeTab === tab.id
-                        ? 'bg-accent text-white shadow-lg lg:scale-105'
-                        : 'text-text hover:bg-gray-100 bg-gray-50 lg:bg-transparent'
-                    } ${activeTab === tab.id ? '' : 'lg:w-full'}`}
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100 bg-gray-50 lg:bg-transparent'
+                    }`}
                   >
                     <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                     <span className="font-medium">{tab.label}</span>
@@ -98,10 +96,8 @@ export default function SettingsHub() {
           >
             {activeTab === 'general' && <GeneralSettingsContent />}
             {activeTab === 'notifications' && <NotificationsSettings />}
-            {activeTab === 'security' && <SecuritySettingsContent />}
             {activeTab === 'workflow' && <WorkflowRulesContent />}
             {activeTab === 'backup' && <BackupSettings />}
-            {activeTab === 'audit' && <AuditLogsContent />}
             {activeTab === 'demo' && <DemoDataSettings />}
           </motion.div>
         </AnimatePresence>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RefreshCw } from 'lucide-react';
 
 function GradeLevelSelect({ value, onChange }) {
   const { data: classArms = [] } = useQuery({
@@ -128,6 +130,36 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
 
   const [photoFile, setPhotoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [autoGenerateId, setAutoGenerateId] = useState(!student);
+
+  const { data: school } = useQuery({
+    queryKey: ['school-settings'],
+    queryFn: async () => {
+      const schools = await base44.entities.School.list();
+      return schools[0];
+    },
+  });
+
+  const { data: existingStudents = [] } = useQuery({
+    queryKey: ['students-count'],
+    queryFn: () => base44.entities.Student.list(),
+    enabled: autoGenerateId && !student,
+  });
+
+  const generateStudentId = () => {
+    const prefix = school?.student_id_prefix || 'STU';
+    const year = new Date().getFullYear();
+    const count = existingStudents.length + 1;
+    const padded = String(count).padStart(4, '0');
+    return `${prefix}${year}${padded}`;
+  };
+
+  const handleGenerateId = () => {
+    const newId = generateStudentId();
+    handleChange('student_id_number', newId);
+  };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -141,7 +173,23 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    if (!formData.first_name.trim() || !formData.last_name.trim()) {
+      setErrorMsg('First name and last name are required.');
+      return;
+    }
+    if (!formData.student_id_number.trim()) {
+      setErrorMsg('Student ID is required. Please enter one or click "Generate".');
+      return;
+    }
+    if (!formData.grade_level) {
+      setErrorMsg('Please select a class arm.');
+      return;
+    }
+
     let finalFormData = { ...formData };
+    setSubmitting(true);
 
     if (photoFile) {
       setUploading(true);
@@ -149,19 +197,30 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
         finalFormData = { ...finalFormData, photo_url: file_url };
       } catch (error) {
-        console.error("Error uploading photo:", error);
-        alert("Failed to upload photo. Please try again.");
+        setErrorMsg('Failed to upload photo. Please try again or skip the photo.');
         setUploading(false);
+        setSubmitting(false);
         return;
       }
       setUploading(false);
     }
-    
-    onSubmit(finalFormData);
+
+    try {
+      await onSubmit(finalFormData);
+    } catch (error) {
+      setErrorMsg(error?.message || 'Failed to save student. Please check all fields and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {errorMsg && (
+        <Alert className="bg-red-50 border-red-200">
+          <AlertDescription className="text-red-800">{errorMsg}</AlertDescription>
+        </Alert>
+      )}
       {/* Personal Information */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
@@ -192,13 +251,23 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="student_id_number">Student ID *</Label>
-            <Input
-              id="student_id_number"
-              value={formData.student_id_number}
-              onChange={(e) => handleChange('student_id_number', e.target.value)}
-              required
-              placeholder="e.g., STU2024001"
-            />
+            <div className="flex gap-2 mt-1">
+              <Input
+                id="student_id_number"
+                value={formData.student_id_number}
+                onChange={(e) => { setAutoGenerateId(false); handleChange('student_id_number', e.target.value); }}
+                placeholder="e.g., STU2024001"
+                className="flex-1"
+              />
+              {!student && (
+                <Button type="button" variant="outline" size="sm" onClick={handleGenerateId} title="Auto-generate ID">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            {!student && (
+              <p className="text-xs text-gray-500 mt-1">Enter manually or click <RefreshCw className="inline w-3 h-3" /> to auto-generate</p>
+            )}
           </div>
           <div>
             <Label htmlFor="date_of_birth">Date of Birth</Label>
@@ -399,8 +468,8 @@ export default function StudentForm({ student, onSubmit, onCancel }) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={uploading}>
-          {uploading ? 'Uploading...' : student ? 'Update Student' : 'Add Student'}
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={uploading || submitting}>
+          {uploading ? 'Uploading photo...' : submitting ? 'Saving...' : student ? 'Update Student' : 'Add Student'}
         </Button>
       </div>
     </form>
