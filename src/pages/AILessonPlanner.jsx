@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { addSchoolFilter } from '@/utils/schoolFilter';
