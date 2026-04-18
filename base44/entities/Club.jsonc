@@ -1,0 +1,84 @@
+{
+  "name": "Club",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Club name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Club description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Sports",
+        "Arts",
+        "Academic",
+        "Music",
+        "Drama",
+        "Technology",
+        "Community Service",
+        "Other"
+      ],
+      "description": "Club category"
+    },
+    "meeting_schedule": {
+      "type": "string",
+      "description": "Meeting schedule (e.g., Every Tuesday 3pm)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Meeting location"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Club advisor teacher ID"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Club advisor name"
+    },
+    "max_members": {
+      "type": "number",
+      "description": "Maximum members allowed"
+    },
+    "current_members": {
+      "type": "number",
+      "default": 0,
+      "description": "Current number of members"
+    },
+    "fee": {
+      "type": "number",
+      "default": 0,
+      "description": "Club membership fee"
+    },
+    "grade_levels": {
+      "type": "string",
+      "description": "Applicable grade levels (comma-separated)"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Club image URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive",
+        "Full"
+      ],
+      "default": "Active",
+      "description": "Club status"
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

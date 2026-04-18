@@ -1,0 +1,133 @@
+{
+  "name": "Behavior",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Teacher name for quick reference"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class entity (if applicable)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of incident"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Merit",
+        "Demerit",
+        "Detention",
+        "Warning",
+        "Reward"
+      ],
+      "description": "Behavior type"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Academic Excellence",
+        "Good Conduct",
+        "Leadership",
+        "Participation",
+        "Disruption",
+        "Tardiness",
+        "Incomplete Work",
+        "Disrespect",
+        "Bullying",
+        "Other"
+      ],
+      "description": "Behavior category"
+    },
+    "points": {
+      "type": "number",
+      "default": 0,
+      "description": "Points awarded or deducted"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description"
+    },
+    "action_taken": {
+      "type": "string",
+      "description": "Action or consequence applied"
+    },
+    "parent_notified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether parent was notified"
+    },
+    "notification_sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When parent notification was sent"
+    },
+    "threshold_triggered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this triggered a threshold alert"
+    },
+    "is_flagged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flagged for review"
+    }
+  },
+  "required": [
+    "student_id",
+    "date",
+    "type",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

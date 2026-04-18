@@ -1,0 +1,50 @@
+{
+  "name": "ContactList",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "list_name": {
+      "type": "string",
+      "description": "Name of the contact list"
+    },
+    "description": {
+      "type": "string",
+      "description": "List description"
+    },
+    "contact_type": {
+      "type": "string",
+      "enum": [
+        "Parents",
+        "Students",
+        "Teachers",
+        "Mixed"
+      ],
+      "description": "Type of contacts in list"
+    },
+    "contact_ids": {
+      "type": "string",
+      "description": "Comma-separated contact IDs"
+    },
+    "contact_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of contacts in list"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of creator"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether list is active"
+    }
+  },
+  "required": [
+    "list_name",
+    "contact_type"
+  ]
+}

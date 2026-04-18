@@ -1,0 +1,64 @@
+{
+  "name": "TeacherResource",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "title": {
+      "type": "string",
+      "description": "Resource title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Resource description"
+    },
+    "resource_type": {
+      "type": "string",
+      "enum": [
+        "Document",
+        "Presentation",
+        "Video",
+        "Link",
+        "Worksheet"
+      ],
+      "default": "Document",
+      "description": "Type of resource"
+    },
+    "resource_url": {
+      "type": "string",
+      "description": "URL to the resource file"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject area"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Grade level this resource is for"
+    },
+    "shared_with_teachers": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether resource is shared with other teachers"
+    },
+    "shared_with_students": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether resource is shared with students"
+    },
+    "shared_class_ids": {
+      "type": "string",
+      "description": "JSON array of class IDs resource is shared with"
+    }
+  },
+  "required": [
+    "title",
+    "resource_url"
+  ]
+}

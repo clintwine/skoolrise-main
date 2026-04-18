@@ -1,0 +1,80 @@
+{
+  "name": "InstalmentPlan",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "plan_name": {
+      "type": "string",
+      "description": "Name of instalment plan"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "Reference to FeeInvoice"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount to be paid"
+    },
+    "number_of_instalments": {
+      "type": "number",
+      "description": "Number of instalments"
+    },
+    "instalment_amount": {
+      "type": "number",
+      "description": "Amount per instalment"
+    },
+    "instalments_paid": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of instalments paid"
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount paid so far"
+    },
+    "instalments": {
+      "type": "string",
+      "description": "JSON array of instalment details with due_date, amount, status, payment_date"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Plan start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Plan end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Completed",
+        "Defaulted",
+        "Cancelled"
+      ],
+      "default": "Active",
+      "description": "Plan status"
+    }
+  },
+  "required": [
+    "plan_name",
+    "invoice_id",
+    "student_id",
+    "total_amount",
+    "number_of_instalments"
+  ]
+}

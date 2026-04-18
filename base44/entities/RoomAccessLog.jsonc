@@ -1,0 +1,58 @@
+{
+  "name": "RoomAccessLog",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_or_student_id": {
+      "type": "string",
+      "description": "ID of user or student accessing the room"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of person accessing the room"
+    },
+    "room_id": {
+      "type": "string",
+      "description": "Room identifier"
+    },
+    "room_name": {
+      "type": "string",
+      "description": "Name of the room"
+    },
+    "access_type": {
+      "type": "string",
+      "enum": [
+        "Entry",
+        "Exit"
+      ],
+      "description": "Type of access (entry or exit)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of access"
+    },
+    "scanned_by_user_id": {
+      "type": "string",
+      "description": "ID of user who operated the scanner"
+    },
+    "scanned_by_name": {
+      "type": "string",
+      "description": "Name of user who operated the scanner"
+    },
+    "device_id": {
+      "type": "string",
+      "description": "Scanner device identifier"
+    }
+  },
+  "required": [
+    "user_or_student_id",
+    "room_id",
+    "access_type",
+    "timestamp",
+    "scanned_by_user_id"
+  ]
+}

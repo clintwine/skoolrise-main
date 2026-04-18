@@ -1,0 +1,116 @@
+{
+  "name": "Test",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Test title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Test description"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class entity"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name for quick reference"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Test duration in minutes"
+    },
+    "total_points": {
+      "type": "number",
+      "description": "Total points possible"
+    },
+    "passing_score": {
+      "type": "number",
+      "description": "Minimum passing score"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Test availability start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Test availability end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Closed"
+      ],
+      "default": "Draft",
+      "description": "Test status"
+    },
+    "shuffle_questions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Randomize question order"
+    },
+    "show_results": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show results to students after submission"
+    }
+  },
+  "required": [
+    "title",
+    "class_id",
+    "duration_minutes"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

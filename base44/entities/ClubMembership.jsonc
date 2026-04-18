@@ -1,0 +1,71 @@
+{
+  "name": "ClubMembership",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "club_id": {
+      "type": "string",
+      "description": "Reference to Club"
+    },
+    "club_name": {
+      "type": "string",
+      "description": "Club name for quick reference"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Reference to Parent who approved"
+    },
+    "join_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date student joined"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "Not Required",
+        "Pending",
+        "Paid"
+      ],
+      "default": "Not Required",
+      "description": "Fee payment status"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Member",
+        "Secretary",
+        "Vice President",
+        "President"
+      ],
+      "default": "Member",
+      "description": "Role in club"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Active",
+        "Inactive",
+        "Left"
+      ],
+      "default": "Active",
+      "description": "Membership status"
+    }
+  },
+  "required": [
+    "club_id",
+    "student_id"
+  ]
+}

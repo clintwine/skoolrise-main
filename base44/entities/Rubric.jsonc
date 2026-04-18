@@ -1,0 +1,79 @@
+{
+  "name": "Rubric",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Rubric name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Rubric description"
+    },
+    "criteria": {
+      "type": "string",
+      "description": "JSON array of criteria with scoring levels: [{name: string, description: string, levels: [{score: number, label: string, description: string}]}]"
+    },
+    "total_points": {
+      "type": "number",
+      "description": "Total possible points"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher who created it"
+    },
+    "is_template": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a reusable template"
+    }
+  },
+  "required": [
+    "name",
+    "criteria",
+    "total_points"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

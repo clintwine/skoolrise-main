@@ -1,0 +1,71 @@
+{
+  "name": "PurchaseOrder",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "po_number": {
+      "type": "string",
+      "description": "Purchase order number"
+    },
+    "vendor_id": {
+      "type": "string",
+      "description": "Reference to Vendor entity"
+    },
+    "vendor_name": {
+      "type": "string",
+      "description": "Vendor name for quick reference"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Order date"
+    },
+    "expected_delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Expected delivery date"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Actual received date"
+    },
+    "items": {
+      "type": "string",
+      "description": "Order items as JSON array"
+    },
+    "total_cost": {
+      "type": "number",
+      "description": "Total order cost"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Pending Approval",
+        "Approved",
+        "Shipped",
+        "Received",
+        "Cancelled"
+      ],
+      "default": "Draft",
+      "description": "Purchase order status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Email of approver"
+    }
+  },
+  "required": [
+    "po_number",
+    "vendor_id",
+    "total_cost"
+  ]
+}

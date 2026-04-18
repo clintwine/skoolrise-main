@@ -1,0 +1,65 @@
+{
+  "name": "Parent",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Parent's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Parent's last name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Primary phone number"
+    },
+    "address": {
+      "type": "string",
+      "description": "Home address"
+    },
+    "linked_student_ids": {
+      "type": "string",
+      "description": "JSON array string of student IDs linked to this parent"
+    }
+  },
+  "required": [
+    "user_id",
+    "first_name",
+    "last_name",
+    "phone"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "name": "SubjectAllocation",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "class_arm_id": {
+      "type": "string",
+      "description": "Reference to ClassArm entity"
+    },
+    "class_arm_name": {
+      "type": "string",
+      "description": "Class arm name for quick reference"
+    },
+    "subject_id": {
+      "type": "string",
+      "description": "Reference to Subject entity"
+    },
+    "subject_name": {
+      "type": "string",
+      "description": "Subject name for quick reference"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Teacher name for quick reference"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    },
+    "room": {
+      "type": "string",
+      "description": "Preferred room for this class"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive"
+      ],
+      "default": "Active",
+      "description": "Allocation status"
+    }
+  },
+  "required": [
+    "class_arm_id",
+    "subject_id",
+    "teacher_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

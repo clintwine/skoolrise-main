@@ -1,0 +1,48 @@
+{
+  "name": "CachedData",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "cache_key": {
+      "type": "string",
+      "description": "Unique cache key (e.g., 'dashboard_stats_2024_01')"
+    },
+    "cache_type": {
+      "type": "string",
+      "enum": [
+        "dashboard_stats",
+        "attendance_summary",
+        "fee_summary",
+        "performance_metrics",
+        "report_data"
+      ],
+      "description": "Type of cached data"
+    },
+    "data": {
+      "type": "string",
+      "description": "JSON string of cached data"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the cache expires"
+    },
+    "scope": {
+      "type": "string",
+      "description": "Scope of cache (e.g., 'school', 'class_arm_123', 'term_456')"
+    },
+    "is_valid": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether cache is still valid"
+    }
+  },
+  "required": [
+    "cache_key",
+    "cache_type",
+    "data"
+  ]
+}

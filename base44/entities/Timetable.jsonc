@@ -1,0 +1,74 @@
+{
+  "name": "Timetable",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "class_arm_id": {
+      "type": "string",
+      "description": "Reference to ClassArm"
+    },
+    "class_arm_name": {
+      "type": "string",
+      "description": "Class arm for quick reference"
+    },
+    "day_of_week": {
+      "type": "string",
+      "enum": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "description": "Day of the week"
+    },
+    "period_number": {
+      "type": "number",
+      "description": "Period/slot number"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time (HH:MM format)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time (HH:MM format)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject name"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Teacher name"
+    },
+    "room": {
+      "type": "string",
+      "description": "Room number"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    }
+  },
+  "required": [
+    "class_arm_id",
+    "day_of_week",
+    "start_time",
+    "end_time",
+    "subject"
+  ]
+}

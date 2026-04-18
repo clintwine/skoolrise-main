@@ -1,0 +1,131 @@
+{
+  "name": "Submission",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "assignment_id": {
+      "type": "string",
+      "description": "Reference to Assignment entity"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity (primary submitter)"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "submission_group_id": {
+      "type": "string",
+      "description": "Reference to SubmissionGroup if group submission"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Submission timestamp"
+    },
+    "content": {
+      "type": "string",
+      "description": "Text submission content"
+    },
+    "attachments": {
+      "type": "string",
+      "description": "URLs to submitted files (JSON array)"
+    },
+    "grade": {
+      "type": "number",
+      "description": "Grade received"
+    },
+    "rubric_scores": {
+      "type": "string",
+      "description": "JSON object of rubric criteria scores"
+    },
+    "feedback": {
+      "type": "string",
+      "description": "Teacher feedback"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Submitted",
+        "Graded",
+        "Late",
+        "Missing"
+      ],
+      "default": "Submitted",
+      "description": "Submission status"
+    },
+    "is_late": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether submission was late"
+    },
+    "late_penalty_applied": {
+      "type": "number",
+      "default": 0,
+      "description": "Points deducted for late submission"
+    },
+    "teacher_viewed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether teacher has viewed this submission notification"
+    }
+  },
+  "required": [
+    "assignment_id",
+    "student_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

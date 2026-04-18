@@ -1,0 +1,52 @@
+{
+  "name": "ClassArm",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "arm_name": {
+      "type": "string",
+      "description": "e.g., A, B, C, Gold, Silver"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Grade/Year level"
+    },
+    "class_teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher (form teacher)"
+    },
+    "class_teacher_name": {
+      "type": "string",
+      "description": "Teacher name for quick reference"
+    },
+    "max_students": {
+      "type": "number",
+      "description": "Maximum capacity"
+    },
+    "current_students": {
+      "type": "number",
+      "default": 0,
+      "description": "Current number of students"
+    },
+    "room": {
+      "type": "string",
+      "description": "Room number or location"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive"
+      ],
+      "default": "Active",
+      "description": "Arm status"
+    }
+  },
+  "required": [
+    "arm_name",
+    "grade_level"
+  ]
+}

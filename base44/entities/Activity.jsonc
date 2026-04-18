@@ -1,0 +1,108 @@
+{
+  "name": "Activity",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "call",
+        "email",
+        "meeting",
+        "task",
+        "note",
+        "demo",
+        "follow_up"
+      ],
+      "description": "Type of activity"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Activity subject/title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the activity"
+    },
+    "contact_id": {
+      "type": "string",
+      "description": "Associated contact ID"
+    },
+    "deal_id": {
+      "type": "string",
+      "description": "Associated deal ID"
+    },
+    "company_id": {
+      "type": "string",
+      "description": "Associated company ID"
+    },
+    "activity_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of activity"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in minutes"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "no_answer",
+        "scheduled_follow_up",
+        "not_interested",
+        "interested"
+      ],
+      "description": "Activity outcome"
+    },
+    "next_action": {
+      "type": "string",
+      "description": "Planned next action"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Activity priority"
+    }
+  },
+  "required": [
+    "activity_type",
+    "subject"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "ScannerSettings",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "feature_name": {
+      "type": "string",
+      "description": "Name of the scanner feature (e.g., 'biometric_attendance', 'bookshop', 'room_access')"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the scanner feature is enabled"
+    },
+    "allowed_roles": {
+      "type": "string",
+      "description": "JSON array of roles allowed to use this scanner"
+    },
+    "configuration": {
+      "type": "string",
+      "description": "JSON configuration for feature-specific settings"
+    }
+  },
+  "required": [
+    "feature_name"
+  ]
+}

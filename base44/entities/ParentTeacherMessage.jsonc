@@ -1,0 +1,73 @@
+{
+  "name": "ParentTeacherMessage",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "thread_id": {
+      "type": "string",
+      "description": "Conversation thread ID"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Reference to Parent entity"
+    },
+    "parent_name": {
+      "type": "string",
+      "description": "Parent name"
+    },
+    "parent_user_id": {
+      "type": "string",
+      "description": "Parent's user ID"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Teacher name"
+    },
+    "teacher_user_id": {
+      "type": "string",
+      "description": "Teacher's user ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity (context)"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "sender_type": {
+      "type": "string",
+      "enum": [
+        "parent",
+        "teacher"
+      ],
+      "description": "Who sent this message"
+    },
+    "message": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether recipient has read this"
+    },
+    "attachments": {
+      "type": "string",
+      "description": "JSON array of attachment URLs"
+    }
+  },
+  "required": [
+    "parent_id",
+    "teacher_id",
+    "sender_type",
+    "message"
+  ]
+}

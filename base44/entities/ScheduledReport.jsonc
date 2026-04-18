@@ -1,0 +1,78 @@
+{
+  "name": "ScheduledReport",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Report name"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "attendance",
+        "fees",
+        "performance",
+        "behavior",
+        "custom"
+      ],
+      "description": "Type of report"
+    },
+    "schedule": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly",
+        "term_end"
+      ],
+      "description": "When to generate the report"
+    },
+    "recipients": {
+      "type": "string",
+      "description": "JSON array of email addresses"
+    },
+    "filters": {
+      "type": "string",
+      "description": "JSON string of report filters"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "csv",
+        "excel"
+      ],
+      "default": "pdf",
+      "description": "Output format"
+    },
+    "last_run": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last execution time"
+    },
+    "next_run": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next scheduled execution"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether schedule is active"
+    },
+    "created_by_name": {
+      "type": "string",
+      "description": "Name of creator"
+    }
+  },
+  "required": [
+    "name",
+    "report_type",
+    "schedule",
+    "recipients"
+  ]
+}

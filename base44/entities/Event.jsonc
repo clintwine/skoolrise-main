@@ -1,0 +1,120 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Event title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Event description"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "Holiday",
+        "Exam",
+        "Meeting",
+        "Sports Day",
+        "Parent-Teacher Conference",
+        "Assembly",
+        "Field Trip",
+        "Club Activity",
+        "School Trip",
+        "Other"
+      ],
+      "description": "Type of event"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event start date and time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event end date and time"
+    },
+    "location": {
+      "type": "string",
+      "description": "Event location"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "All",
+        "Students",
+        "Parents",
+        "Teachers",
+        "Specific Class",
+        "Specific Grade"
+      ],
+      "default": "All",
+      "description": "Who should see this event"
+    },
+    "visible_to_parents": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether parents can see this event"
+    },
+    "visible_to_students": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether students can see this event"
+    },
+    "visible_to_teachers": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether teachers can see this event"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Specific class ID if targeted"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Specific grade level if targeted"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether event repeats"
+    },
+    "recurrence_pattern": {
+      "type": "string",
+      "description": "Recurrence pattern (daily, weekly, monthly)"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been sent"
+    },
+    "reminder_days_before": {
+      "type": "number",
+      "default": 1,
+      "description": "Days before event to send reminder"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Scheduled",
+        "In Progress",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Scheduled",
+      "description": "Event status"
+    }
+  },
+  "required": [
+    "title",
+    "start_date",
+    "end_date",
+    "event_type"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "name": "ReportCard",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class"
+    },
+    "grades": {
+      "type": "string",
+      "description": "JSON array of subject grades with scores, grades, remarks"
+    },
+    "total_score": {
+      "type": "number",
+      "description": "Total score across all subjects"
+    },
+    "average_score": {
+      "type": "number",
+      "description": "Average score percentage"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Overall grade"
+    },
+    "position": {
+      "type": "number",
+      "description": "Class position/rank"
+    },
+    "attendance_summary": {
+      "type": "string",
+      "description": "Days present/absent/total"
+    },
+    "teacher_comment": {
+      "type": "string",
+      "description": "Class teacher's comment"
+    },
+    "principal_comment": {
+      "type": "string",
+      "description": "Principal's comment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Sent"
+      ],
+      "default": "Draft",
+      "description": "Report card status"
+    }
+  },
+  "required": [
+    "student_id",
+    "session_id",
+    "term_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "student_id": {
+            "$in": "{{user.parent_of_student_ids}}"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

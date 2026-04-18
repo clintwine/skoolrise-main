@@ -1,0 +1,75 @@
+{
+  "name": "Salary",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Teacher name for quick reference"
+    },
+    "month": {
+      "type": "string",
+      "description": "Payment month (YYYY-MM)"
+    },
+    "basic_salary": {
+      "type": "number",
+      "description": "Basic salary amount"
+    },
+    "allowances": {
+      "type": "number",
+      "default": 0,
+      "description": "Total allowances"
+    },
+    "deductions": {
+      "type": "number",
+      "default": 0,
+      "description": "Total deductions"
+    },
+    "net_salary": {
+      "type": "number",
+      "description": "Net salary after allowances and deductions"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Actual payment date"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "Bank Transfer",
+        "Cash",
+        "Cheque"
+      ],
+      "default": "Bank Transfer",
+      "description": "Payment method"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Paid",
+        "Cancelled"
+      ],
+      "default": "Pending",
+      "description": "Payment status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "teacher_id",
+    "month",
+    "basic_salary",
+    "net_salary"
+  ]
+}

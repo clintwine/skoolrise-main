@@ -1,0 +1,64 @@
+{
+  "name": "RoleAssignmentRequest",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to the User entity"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User's email for quick reference"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "User's full name"
+    },
+    "requested_role": {
+      "type": "string",
+      "enum": [
+        "student",
+        "teacher",
+        "parent",
+        "admin",
+        "vendor"
+      ],
+      "description": "Role the user is requesting"
+    },
+    "message": {
+      "type": "string",
+      "description": "Optional message from the user"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Pending",
+      "description": "Request status"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Notes from admin processing the request"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Email of admin who processed the request"
+    },
+    "processed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the request was processed"
+    }
+  },
+  "required": [
+    "user_id",
+    "user_email"
+  ]
+}

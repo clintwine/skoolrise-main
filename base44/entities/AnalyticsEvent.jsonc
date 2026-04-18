@@ -1,0 +1,62 @@
+{
+  "name": "AnalyticsEvent",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "page_view",
+        "feature_use",
+        "search",
+        "export",
+        "error",
+        "performance",
+        "engagement"
+      ],
+      "description": "Type of analytics event"
+    },
+    "event_name": {
+      "type": "string",
+      "description": "Specific event name (e.g., 'student_profile_viewed', 'report_generated')"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who triggered the event"
+    },
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "teacher",
+        "student",
+        "parent",
+        "vendor"
+      ],
+      "description": "Type of user"
+    },
+    "page_name": {
+      "type": "string",
+      "description": "Page where event occurred"
+    },
+    "properties": {
+      "type": "string",
+      "description": "JSON string of event properties"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Duration of the action in milliseconds"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session identifier for grouping events"
+    }
+  },
+  "required": [
+    "event_type",
+    "event_name"
+  ]
+}

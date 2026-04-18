@@ -1,0 +1,84 @@
+{
+  "name": "BookSale",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Unique transaction ID"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "item_id": {
+      "type": "string",
+      "description": "Reference to BookInventory entity"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Item name for quick reference"
+    },
+    "quantity_sold": {
+      "type": "number",
+      "description": "Quantity sold"
+    },
+    "unit_price": {
+      "type": "number",
+      "description": "Selling price per unit"
+    },
+    "cost_price": {
+      "type": "number",
+      "description": "Cost price per unit"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total sale amount"
+    },
+    "total_profit": {
+      "type": "number",
+      "description": "Total profit (Unit Price - Cost Price) * Quantity"
+    },
+    "sale_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Sale timestamp"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "Cash",
+        "Bank Transfer",
+        "Card",
+        "Student Account"
+      ],
+      "default": "Cash",
+      "description": "Payment method"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Completed",
+        "Pending",
+        "Refunded"
+      ],
+      "default": "Completed",
+      "description": "Sale status"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "student_id",
+    "item_id",
+    "quantity_sold",
+    "unit_price",
+    "cost_price"
+  ]
+}

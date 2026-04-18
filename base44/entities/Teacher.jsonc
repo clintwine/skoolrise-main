@@ -1,0 +1,100 @@
+{
+  "name": "Teacher",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Teacher's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Teacher's last name"
+    },
+    "staff_id": {
+      "type": "string",
+      "description": "Unique staff ID number"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department or subject area"
+    },
+    "position": {
+      "type": "string",
+      "description": "Job title/position"
+    },
+    "hire_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of hire"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "On Leave",
+        "Inactive"
+      ],
+      "default": "Active",
+      "description": "Employment status"
+    },
+    "qualifications": {
+      "type": "string",
+      "description": "Qualifications and certifications"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "URL to staff photo"
+    },
+    "address": {
+      "type": "string",
+      "description": "Home address"
+    },
+    "emergency_contact": {
+      "type": "string",
+      "description": "Emergency contact information"
+    }
+  },
+  "required": [
+    "user_id",
+    "first_name",
+    "last_name",
+    "staff_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

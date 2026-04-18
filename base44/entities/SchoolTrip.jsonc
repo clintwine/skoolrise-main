@@ -1,0 +1,96 @@
+{
+  "name": "SchoolTrip",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Trip title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Trip description"
+    },
+    "destination": {
+      "type": "string",
+      "description": "Trip destination"
+    },
+    "departure_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Departure date and time"
+    },
+    "return_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Return date and time"
+    },
+    "cost": {
+      "type": "number",
+      "default": 0,
+      "description": "Cost per student"
+    },
+    "max_participants": {
+      "type": "number",
+      "description": "Maximum number of participants"
+    },
+    "current_participants": {
+      "type": "number",
+      "default": 0,
+      "description": "Current number of enrolled participants"
+    },
+    "grade_levels": {
+      "type": "string",
+      "description": "Applicable grade levels (comma-separated)"
+    },
+    "requires_payment": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether payment is required"
+    },
+    "requires_consent": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether parental consent is required"
+    },
+    "consent_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline for consent submission"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Lead teacher ID"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Lead teacher name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Planned",
+        "Open for Registration",
+        "Registration Closed",
+        "In Progress",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Planned",
+      "description": "Trip status"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Trip image URL"
+    }
+  },
+  "required": [
+    "title",
+    "destination",
+    "departure_date",
+    "return_date"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "name": "ExamResult",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "exam_id": {
+      "type": "string",
+      "description": "Reference to Exam"
+    },
+    "attempt_id": {
+      "type": "string",
+      "description": "Reference to ExamAttempt"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject"
+    },
+    "exam_type": {
+      "type": "string",
+      "description": "CA or Exam"
+    },
+    "score": {
+      "type": "number",
+      "description": "Raw score"
+    },
+    "percentage": {
+      "type": "number",
+      "description": "Percentage score"
+    },
+    "weighted_score": {
+      "type": "number",
+      "description": "Weighted score (after CA/Exam %)"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Letter grade"
+    },
+    "remark": {
+      "type": "string",
+      "description": "Grade remark"
+    },
+    "position": {
+      "type": "number",
+      "description": "Rank in class"
+    },
+    "class_average": {
+      "type": "number",
+      "description": "Class average score"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Results published to students"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When results were published"
+    }
+  },
+  "required": [
+    "exam_id",
+    "student_id",
+    "subject",
+    "score"
+  ]
+}

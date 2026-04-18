@@ -1,0 +1,121 @@
+{
+  "name": "Assignment",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Assignment title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Assignment description (supports rich text/HTML)"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class entity"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name for quick reference"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Due date and time"
+    },
+    "max_points": {
+      "type": "number",
+      "description": "Maximum points possible"
+    },
+    "submission_type": {
+      "type": "string",
+      "enum": [
+        "File",
+        "Text",
+        "Both"
+      ],
+      "default": "File",
+      "description": "Type of submission allowed"
+    },
+    "late_policy_config": {
+      "type": "string",
+      "description": "JSON configuration for late policy: {type: 'strict'|'flag'|'deduct', deduction_percent: number, grace_period_hours: number}"
+    },
+    "allow_group_submissions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether students can submit as groups"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Closed"
+      ],
+      "default": "Published",
+      "description": "Assignment status"
+    },
+    "attachments": {
+      "type": "string",
+      "description": "URLs to attached files (JSON array as string)"
+    },
+    "rubric_id": {
+      "type": "string",
+      "description": "Reference to Rubric entity"
+    }
+  },
+  "required": [
+    "title",
+    "class_id",
+    "due_date",
+    "max_points"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

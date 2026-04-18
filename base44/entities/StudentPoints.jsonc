@@ -1,0 +1,46 @@
+{
+  "name": "StudentPoints",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Total accumulated points"
+    },
+    "available_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Points available for spending"
+    },
+    "lifetime_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Total points ever earned"
+    },
+    "level": {
+      "type": "number",
+      "default": 1,
+      "description": "Current level based on lifetime points"
+    },
+    "level_name": {
+      "type": "string",
+      "default": "Beginner",
+      "description": "Level name (Beginner, Explorer, Achiever, Champion, Legend)"
+    }
+  },
+  "required": [
+    "student_id"
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "receipt_number": {
+      "type": "string",
+      "description": "Unique receipt number"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "Reference to FeeInvoice"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of payment"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Payment amount"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "Cash",
+        "Bank Transfer",
+        "Card",
+        "Mobile Money",
+        "Cheque",
+        "Online",
+        "Paystack",
+        "Stripe",
+        "Flutterwave"
+      ],
+      "default": "Cash",
+      "description": "Payment method"
+    },
+    "transaction_reference": {
+      "type": "string",
+      "description": "Transaction ID or reference"
+    },
+    "paid_by": {
+      "type": "string",
+      "description": "Name of person who paid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Completed",
+        "Pending",
+        "Failed",
+        "Refunded"
+      ],
+      "default": "Completed",
+      "description": "Payment status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Payment notes"
+    }
+  },
+  "required": [
+    "receipt_number",
+    "invoice_id",
+    "student_id",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "student_id": {
+            "$in": "{{user.parent_of_student_ids}}"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who performed the action"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of user who performed the action"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of user who performed the action"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete",
+        "view",
+        "login",
+        "logout",
+        "export",
+        "import",
+        "approve",
+        "reject",
+        "bulk_create",
+        "bulk_update",
+        "bulk_delete"
+      ],
+      "description": "Type of action performed"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Entity type affected"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of affected entity"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Name or identifier of affected entity"
+    },
+    "changes": {
+      "type": "string",
+      "description": "JSON string of changes made (old and new values)"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "Additional metadata as JSON (record count for bulk, etc.)"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of user"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser user agent"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session identifier"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info",
+      "description": "Severity level of the action"
+    }
+  },
+  "required": [
+    "user_email",
+    "action",
+    "entity_type"
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "name": "Exam",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Exam title"
+    },
+    "exam_type": {
+      "type": "string",
+      "enum": [
+        "Continuous Assessment (CA)",
+        "Mid-Term Exam",
+        "Final Exam",
+        "Mock Exam"
+      ],
+      "description": "Type of examination"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject being tested"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Exam duration in minutes"
+    },
+    "total_points": {
+      "type": "number",
+      "description": "Total points possible"
+    },
+    "ca_weight": {
+      "type": "number",
+      "description": "CA percentage contribution (e.g., 30 for 30%)"
+    },
+    "exam_weight": {
+      "type": "number",
+      "description": "Exam percentage contribution (e.g., 70 for 70%)"
+    },
+    "include_in_broadsheet": {
+      "type": "boolean",
+      "default": true,
+      "description": "Include results in term broadsheet"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Exam start date/time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Exam end date/time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Active",
+        "Completed",
+        "Closed"
+      ],
+      "default": "Draft",
+      "description": "Exam status"
+    },
+    "shuffle_questions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Randomize question order"
+    },
+    "shuffle_options": {
+      "type": "boolean",
+      "default": false,
+      "description": "Randomize answer options"
+    },
+    "enable_proctoring": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable webcam proctoring"
+    },
+    "fullscreen_mode": {
+      "type": "boolean",
+      "default": true,
+      "description": "Force fullscreen mode"
+    },
+    "disable_copy_paste": {
+      "type": "boolean",
+      "default": true,
+      "description": "Disable copy/paste"
+    },
+    "allow_review": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow reviewing answers before submit"
+    },
+    "show_results": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show results immediately after submission"
+    },
+    "passing_score": {
+      "type": "number",
+      "description": "Minimum passing percentage"
+    }
+  },
+  "required": [
+    "title",
+    "exam_type",
+    "class_id",
+    "subject",
+    "duration_minutes"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

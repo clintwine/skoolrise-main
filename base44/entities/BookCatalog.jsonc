@@ -1,0 +1,65 @@
+{
+  "name": "BookCatalog",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Book title"
+    },
+    "isbn": {
+      "type": "string",
+      "description": "ISBN number"
+    },
+    "author": {
+      "type": "string",
+      "description": "Book author"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject area"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Target grade level"
+    },
+    "publisher": {
+      "type": "string",
+      "description": "Publisher name"
+    },
+    "vendor_id": {
+      "type": "string",
+      "description": "Reference to Vendor entity"
+    },
+    "vendor_name": {
+      "type": "string",
+      "description": "Vendor name for quick reference"
+    },
+    "wholesale_price": {
+      "type": "number",
+      "description": "Wholesale price from vendor"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Discontinued"
+      ],
+      "default": "Active",
+      "description": "Catalog item status"
+    },
+    "description": {
+      "type": "string",
+      "description": "Book description"
+    }
+  },
+  "required": [
+    "title",
+    "isbn",
+    "vendor_id",
+    "wholesale_price"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "SchoolProduct",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Uniform",
+        "Books",
+        "Stationery",
+        "Sports Equipment",
+        "Technology",
+        "Other"
+      ],
+      "description": "Product category"
+    },
+    "price": {
+      "type": "number",
+      "description": "Product price"
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Available stock"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "is_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a required item for students"
+    },
+    "grade_levels": {
+      "type": "string",
+      "description": "Applicable grade levels (comma-separated)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Out of Stock",
+        "Discontinued"
+      ],
+      "default": "Active",
+      "description": "Product status"
+    }
+  },
+  "required": [
+    "name",
+    "price",
+    "category"
+  ]
+}

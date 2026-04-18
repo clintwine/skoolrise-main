@@ -1,0 +1,56 @@
+{
+  "name": "RolePermission",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "teacher",
+        "student",
+        "parent",
+        "vendor"
+      ],
+      "description": "User role"
+    },
+    "permission_id": {
+      "type": "string",
+      "description": "Reference to Permission entity"
+    },
+    "permission_name": {
+      "type": "string",
+      "description": "Permission name for quick lookup"
+    },
+    "is_granted": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether permission is granted"
+    }
+  },
+  "required": [
+    "role",
+    "permission_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

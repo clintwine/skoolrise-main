@@ -1,0 +1,50 @@
+{
+  "name": "RewardRedemption",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "reward_id": {
+      "type": "string",
+      "description": "Reference to Reward"
+    },
+    "reward_name": {
+      "type": "string",
+      "description": "Reward name"
+    },
+    "points_spent": {
+      "type": "number",
+      "description": "Points spent"
+    },
+    "redemption_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When redeemed"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Fulfilled",
+        "Cancelled"
+      ],
+      "default": "Pending",
+      "description": "Redemption status"
+    }
+  },
+  "required": [
+    "student_id",
+    "reward_id",
+    "points_spent"
+  ]
+}

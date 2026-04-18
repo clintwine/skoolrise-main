@@ -1,0 +1,96 @@
+{
+  "name": "QuestionBank",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "question_text": {
+      "type": "string",
+      "description": "The question content"
+    },
+    "question_type": {
+      "type": "string",
+      "enum": [
+        "Multiple Choice",
+        "True/False",
+        "Short Answer",
+        "Essay",
+        "Theory",
+        "Diagram",
+        "Audio",
+        "Video"
+      ],
+      "description": "Type of question"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject area"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Specific topic within subject"
+    },
+    "class_level": {
+      "type": "string",
+      "description": "Grade/class level"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ],
+      "default": "Medium",
+      "description": "Question difficulty"
+    },
+    "options": {
+      "type": "string",
+      "description": "Answer options (JSON array as string, for MCQ)"
+    },
+    "correct_answer": {
+      "type": "string",
+      "description": "Correct answer or marking scheme"
+    },
+    "points": {
+      "type": "number",
+      "default": 1,
+      "description": "Points for this question"
+    },
+    "negative_marking": {
+      "type": "number",
+      "default": 0,
+      "description": "Points to deduct for wrong answer"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Explanation for the answer"
+    },
+    "media_url": {
+      "type": "string",
+      "description": "URL to media file (diagram, audio, video)"
+    },
+    "tags": {
+      "type": "string",
+      "description": "Comma-separated tags for categorization"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Draft",
+        "Archived"
+      ],
+      "default": "Active",
+      "description": "Question status"
+    }
+  },
+  "required": [
+    "question_text",
+    "question_type",
+    "subject",
+    "correct_answer"
+  ]
+}

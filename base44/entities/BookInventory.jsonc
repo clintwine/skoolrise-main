@@ -1,0 +1,83 @@
+{
+  "name": "BookInventory",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Item name/title"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock Keeping Unit code"
+    },
+    "catalog_id": {
+      "type": "string",
+      "description": "Reference to BookCatalog entity"
+    },
+    "catalog_title": {
+      "type": "string",
+      "description": "Book title for quick reference"
+    },
+    "current_stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock quantity"
+    },
+    "reorder_level": {
+      "type": "number",
+      "default": 10,
+      "description": "Minimum stock level before reorder"
+    },
+    "cost_price": {
+      "type": "number",
+      "description": "Weighted average cost price"
+    },
+    "retail_price": {
+      "type": "number",
+      "description": "Selling price"
+    },
+    "location": {
+      "type": "string",
+      "description": "Storage location in bookshop"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "In Stock",
+        "Low Stock",
+        "Out of Stock"
+      ],
+      "default": "In Stock",
+      "description": "Stock status"
+    }
+  },
+  "required": [
+    "item_name",
+    "sku",
+    "catalog_id",
+    "cost_price",
+    "retail_price"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "name": "ExamAttempt",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "exam_id": {
+      "type": "string",
+      "description": "Reference to Exam"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When student started"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When student submitted"
+    },
+    "time_spent_seconds": {
+      "type": "number",
+      "description": "Total time spent in seconds"
+    },
+    "answers": {
+      "type": "string",
+      "description": "Student answers (JSON object)"
+    },
+    "score": {
+      "type": "number",
+      "description": "Total score achieved"
+    },
+    "percentage": {
+      "type": "number",
+      "description": "Percentage score"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "In Progress",
+        "Submitted",
+        "Graded",
+        "Abandoned"
+      ],
+      "default": "In Progress",
+      "description": "Attempt status"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Student IP address"
+    },
+    "tab_switches": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of tab switches detected"
+    },
+    "proctoring_snapshots": {
+      "type": "string",
+      "description": "JSON array of webcam snapshot URLs"
+    },
+    "flagged_for_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flagged for suspicious activity"
+    },
+    "feedback": {
+      "type": "string",
+      "description": "Teacher feedback"
+    },
+    "graded_by": {
+      "type": "string",
+      "description": "Email of teacher who graded"
+    }
+  },
+  "required": [
+    "exam_id",
+    "student_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

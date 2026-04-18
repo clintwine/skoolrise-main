@@ -1,0 +1,45 @@
+{
+  "name": "GradingScale",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "scale_name": {
+      "type": "string",
+      "description": "e.g., Standard Grading, IB Scale"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Grade letter (A, B, C, etc.)"
+    },
+    "min_score": {
+      "type": "number",
+      "description": "Minimum percentage"
+    },
+    "max_score": {
+      "type": "number",
+      "description": "Maximum percentage"
+    },
+    "grade_point": {
+      "type": "number",
+      "description": "GPA value"
+    },
+    "remark": {
+      "type": "string",
+      "description": "e.g., Excellent, Good, Pass"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is this scale currently in use?"
+    }
+  },
+  "required": [
+    "scale_name",
+    "grade",
+    "min_score",
+    "max_score"
+  ]
+}

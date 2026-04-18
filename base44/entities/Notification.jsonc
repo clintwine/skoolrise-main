@@ -1,0 +1,104 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Notification subject"
+    },
+    "message": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "recipient_type": {
+      "type": "string",
+      "enum": [
+        "All Parents",
+        "All Students",
+        "All Teachers",
+        "Specific Class",
+        "Custom List"
+      ],
+      "description": "Type of recipients"
+    },
+    "recipient_ids": {
+      "type": "string",
+      "description": "Comma-separated IDs of recipients"
+    },
+    "contact_list_id": {
+      "type": "string",
+      "description": "Reference to ContactList entity"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "Email",
+        "SMS",
+        "WhatsApp",
+        "In-App",
+        "Push"
+      ],
+      "description": "Delivery channel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Scheduled",
+        "Sending",
+        "Sent",
+        "Failed",
+        "Cancelled"
+      ],
+      "default": "Draft",
+      "description": "Notification status"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled send date/time"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Actual sent date/time"
+    },
+    "sent_by": {
+      "type": "string",
+      "description": "Email of sender"
+    },
+    "delivery_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of successful deliveries"
+    },
+    "failure_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of failed deliveries"
+    },
+    "opened_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of email opens (engagement)"
+    },
+    "clicked_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of link clicks (engagement)"
+    },
+    "delivery_details": {
+      "type": "string",
+      "description": "JSON array of delivery details per recipient"
+    }
+  },
+  "required": [
+    "subject",
+    "message",
+    "channel"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "name": "BiometricAttendance",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "biometric_id": {
+      "type": "string",
+      "description": "Fingerprint/card ID from device"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Check-in/out timestamp"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Attendance date"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Check-In",
+        "Check-Out"
+      ],
+      "description": "Entry or exit"
+    },
+    "device_id": {
+      "type": "string",
+      "description": "Biometric device identifier"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "On Time",
+        "Late",
+        "Early"
+      ],
+      "default": "On Time",
+      "description": "Attendance status"
+    }
+  },
+  "required": [
+    "student_id",
+    "biometric_id",
+    "timestamp",
+    "date"
+  ]
+}

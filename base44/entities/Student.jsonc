@@ -1,0 +1,122 @@
+{
+  "name": "Student",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "linked_parent_ids": {
+      "type": "string",
+      "description": "JSON array of Parent entity IDs linked to this student"
+    },
+    "parent_email": {
+      "type": "string",
+      "description": "Primary parent's email for notifications"
+    },
+    "parent_phone": {
+      "type": "string",
+      "description": "Primary parent's phone for notifications"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Student's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Student's last name"
+    },
+    "student_id_number": {
+      "type": "string",
+      "description": "Unique student ID number"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ],
+      "description": "Gender"
+    },
+    "admission_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of admission"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Current grade/year level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive",
+        "Suspended",
+        "Graduated",
+        "Withdrawn"
+      ],
+      "default": "Active",
+      "description": "Student status"
+    },
+    "address": {
+      "type": "string",
+      "description": "Home address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Primary phone number"
+    },
+    "medical_conditions": {
+      "type": "string",
+      "description": "Medical conditions and allergies"
+    },
+    "send_status": {
+      "type": "string",
+      "description": "Special Educational Needs and Disabilities status"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "URL to student photo"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "user_id",
+    "first_name",
+    "last_name",
+    "student_id_number",
+    "grade_level"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

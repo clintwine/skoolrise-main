@@ -1,0 +1,27 @@
+{
+  "name": "AssignmentQuestion",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "assignment_id": {
+      "type": "string",
+      "description": "Reference to Assignment entity"
+    },
+    "question_bank_id": {
+      "type": "string",
+      "description": "Reference to QuestionBank entity"
+    },
+    "order": {
+      "type": "number",
+      "description": "Question order/sequence in the assignment"
+    }
+  },
+  "required": [
+    "assignment_id",
+    "question_bank_id",
+    "order"
+  ]
+}

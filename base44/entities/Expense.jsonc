@@ -1,0 +1,131 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "expense_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of expense"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Utilities",
+        "Supplies",
+        "Maintenance",
+        "Transportation",
+        "Equipment",
+        "Staff Welfare",
+        "Events",
+        "Other"
+      ],
+      "description": "Expense category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Expense description"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Expense amount"
+    },
+    "paid_to": {
+      "type": "string",
+      "description": "Recipient/vendor name"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "Cash",
+        "Bank Transfer",
+        "Cheque",
+        "Card"
+      ],
+      "default": "Cash",
+      "description": "Payment method"
+    },
+    "receipt_url": {
+      "type": "string",
+      "description": "URL to receipt/invoice"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Email of approver"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Approved",
+        "Paid",
+        "Rejected"
+      ],
+      "default": "Pending",
+      "description": "Expense status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "expense_date",
+    "category",
+    "description",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

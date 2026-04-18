@@ -1,0 +1,63 @@
+{
+  "name": "Reward",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Reward name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Reward description"
+    },
+    "points_required": {
+      "type": "number",
+      "description": "Merit points needed to redeem"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Academic",
+        "Social",
+        "Physical",
+        "Other"
+      ],
+      "description": "Reward category"
+    },
+    "quantity_available": {
+      "type": "number",
+      "description": "Available quantity"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether reward is available"
+    }
+  },
+  "required": [
+    "name",
+    "points_required"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

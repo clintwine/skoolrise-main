@@ -1,0 +1,110 @@
+{
+  "name": "ExamQuestion",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "exam_id": {
+      "type": "string",
+      "description": "Reference to Exam"
+    },
+    "question_bank_id": {
+      "type": "string",
+      "description": "Reference to QuestionBank (if from bank)"
+    },
+    "question_text": {
+      "type": "string",
+      "description": "The question text"
+    },
+    "question_type": {
+      "type": "string",
+      "enum": [
+        "Multiple Choice",
+        "True/False",
+        "Short Answer",
+        "Essay",
+        "Theory",
+        "Diagram",
+        "Audio",
+        "Video"
+      ],
+      "description": "Type of question"
+    },
+    "options": {
+      "type": "string",
+      "description": "Answer options (JSON array as string)"
+    },
+    "correct_answer": {
+      "type": "string",
+      "description": "Correct answer or marking scheme"
+    },
+    "points": {
+      "type": "number",
+      "description": "Points for this question"
+    },
+    "negative_marking": {
+      "type": "number",
+      "default": 0,
+      "description": "Points to deduct for wrong answer"
+    },
+    "order": {
+      "type": "number",
+      "description": "Question order/number"
+    },
+    "media_url": {
+      "type": "string",
+      "description": "URL to media file"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Explanation for answer"
+    }
+  },
+  "required": [
+    "exam_id",
+    "question_text",
+    "question_type",
+    "points"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

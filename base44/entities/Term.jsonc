@@ -1,0 +1,53 @@
+{
+  "name": "Term",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_name": {
+      "type": "string",
+      "description": "e.g., First Term, Fall Semester"
+    },
+    "term_number": {
+      "type": "number",
+      "description": "Order of term (1, 2, 3)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Term start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Term end date"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this the active term?"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Completed",
+        "Upcoming"
+      ],
+      "default": "Active",
+      "description": "Term status"
+    }
+  },
+  "required": [
+    "session_id",
+    "term_name",
+    "start_date",
+    "end_date"
+  ]
+}

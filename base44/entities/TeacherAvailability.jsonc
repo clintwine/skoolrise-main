@@ -1,0 +1,76 @@
+{
+  "name": "TeacherAvailability",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher"
+    },
+    "teacher_name": {
+      "type": "string",
+      "description": "Teacher name for quick reference"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Available date"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time (HH:MM format)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time (HH:MM format)"
+    },
+    "slot_duration": {
+      "type": "number",
+      "default": 30,
+      "description": "Duration of each slot in minutes"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a recurring availability"
+    },
+    "recurrence_day": {
+      "type": "string",
+      "enum": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "description": "Day of week for recurring slots"
+    },
+    "location": {
+      "type": "string",
+      "description": "Default meeting location"
+    },
+    "meeting_types": {
+      "type": "string",
+      "description": "JSON array of allowed meeting types"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive"
+      ],
+      "default": "Active"
+    }
+  },
+  "required": [
+    "teacher_id",
+    "date",
+    "start_time",
+    "end_time"
+  ]
+}

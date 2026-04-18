@@ -1,0 +1,111 @@
+{
+  "name": "ProctoringLog",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "exam_id": {
+      "type": "string",
+      "description": "Reference to Exam"
+    },
+    "attempt_id": {
+      "type": "string",
+      "description": "Reference to ExamAttempt"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "Tab Switch",
+        "Window Focus Lost",
+        "Copy Attempt",
+        "Paste Attempt",
+        "Right Click",
+        "Screen Recording",
+        "Multiple Screens Detected",
+        "Face Not Detected",
+        "Multiple Faces Detected",
+        "Suspicious Activity"
+      ],
+      "description": "Type of proctoring event"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Low",
+      "description": "Severity level"
+    },
+    "details": {
+      "type": "string",
+      "description": "Additional details about the event"
+    },
+    "screenshot_url": {
+      "type": "string",
+      "description": "URL to screenshot if captured"
+    },
+    "requires_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this requires manual review"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Email of reviewer"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Review notes"
+    },
+    "action_taken": {
+      "type": "string",
+      "description": "Action taken after review"
+    }
+  },
+  "required": [
+    "exam_id",
+    "student_id",
+    "timestamp",
+    "event_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

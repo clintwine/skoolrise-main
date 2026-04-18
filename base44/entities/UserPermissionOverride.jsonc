@@ -1,0 +1,78 @@
+{
+  "name": "UserPermissionOverride",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User email for quick lookup"
+    },
+    "permission_id": {
+      "type": "string",
+      "description": "Reference to Permission entity"
+    },
+    "permission_name": {
+      "type": "string",
+      "description": "Permission name for quick lookup"
+    },
+    "is_granted": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether permission is granted (true) or revoked (false)"
+    },
+    "granted_by": {
+      "type": "string",
+      "description": "Admin who granted/revoked this permission"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for override"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the override expires (optional)"
+    }
+  },
+  "required": [
+    "user_id",
+    "permission_id",
+    "is_granted"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -2,6 +2,10 @@
   "name": "SchoolInquiry",
   "type": "object",
   "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
     "contact_name": {
       "type": "string",
       "description": "Full name of the person making the inquiry"

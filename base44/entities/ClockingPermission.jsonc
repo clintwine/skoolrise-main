@@ -1,0 +1,39 @@
+{
+  "name": "ClockingPermission",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity who has permission"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of user with permission"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user with permission"
+    },
+    "granted_by_id": {
+      "type": "string",
+      "description": "Admin who granted the permission"
+    },
+    "granted_by_name": {
+      "type": "string",
+      "description": "Name of admin who granted permission"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether permission is currently active"
+    }
+  },
+  "required": [
+    "user_id",
+    "user_name"
+  ]
+}

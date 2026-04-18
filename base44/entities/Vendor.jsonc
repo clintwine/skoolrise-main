@@ -1,0 +1,99 @@
+{
+  "name": "Vendor",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Vendor business name"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Primary contact person"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Publisher",
+        "Marketer",
+        "Distributor"
+      ],
+      "description": "Vendor category"
+    },
+    "account_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Outstanding balance"
+    },
+    "address": {
+      "type": "string",
+      "description": "Vendor address"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive"
+      ],
+      "default": "Active",
+      "description": "Vendor status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "user_id",
+    "business_name",
+    "contact_person",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

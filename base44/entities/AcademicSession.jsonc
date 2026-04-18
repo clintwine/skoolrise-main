@@ -1,0 +1,44 @@
+{
+  "name": "AcademicSession",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "session_name": {
+      "type": "string",
+      "description": "e.g., 2024-2025"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Session start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Session end date"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this the active session?"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Completed",
+        "Upcoming"
+      ],
+      "default": "Active",
+      "description": "Session status"
+    }
+  },
+  "required": [
+    "session_name",
+    "start_date",
+    "end_date"
+  ]
+}

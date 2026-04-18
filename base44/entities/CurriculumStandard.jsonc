@@ -1,0 +1,70 @@
+{
+  "name": "CurriculumStandard",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "code": {
+      "type": "string",
+      "description": "Standard code (e.g., CCSS.MATH.7.G.A.1)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Standard title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full description of the standard"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject area"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Grade level"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category or domain"
+    },
+    "framework": {
+      "type": "string",
+      "enum": [
+        "Common Core",
+        "State Standard",
+        "International Baccalaureate",
+        "AP",
+        "Custom"
+      ],
+      "default": "Custom",
+      "description": "Curriculum framework"
+    },
+    "parent_standard_id": {
+      "type": "string",
+      "description": "Parent standard if hierarchical"
+    },
+    "learning_objectives": {
+      "type": "string",
+      "description": "JSON array of learning objectives"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Archived",
+        "Draft"
+      ],
+      "default": "Active",
+      "description": "Standard status"
+    }
+  },
+  "required": [
+    "code",
+    "title",
+    "subject",
+    "grade_level"
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "name": "HomeworkTemplate",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "title": {
+      "type": "string",
+      "description": "Template title"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject area"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Recommended grade level"
+    },
+    "description": {
+      "type": "string",
+      "description": "Template description"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Homework",
+        "Quiz",
+        "Project",
+        "Essay",
+        "Lab",
+        "Video",
+        "Independent Learning"
+      ],
+      "description": "Template type"
+    },
+    "content": {
+      "type": "string",
+      "description": "Template content/instructions"
+    },
+    "questions": {
+      "type": "string",
+      "description": "JSON array of questions if applicable"
+    },
+    "max_points": {
+      "type": "number",
+      "description": "Recommended maximum points"
+    },
+    "estimated_duration": {
+      "type": "number",
+      "description": "Estimated completion time in minutes"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ],
+      "description": "Difficulty level"
+    },
+    "tags": {
+      "type": "string",
+      "description": "Comma-separated tags"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Featured template"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times used"
+    }
+  },
+  "required": [
+    "title",
+    "subject",
+    "grade_level",
+    "type"
+  ]
+}

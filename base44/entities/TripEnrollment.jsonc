@@ -1,0 +1,80 @@
+{
+  "name": "TripEnrollment",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "trip_id": {
+      "type": "string",
+      "description": "Reference to SchoolTrip"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Reference to Parent"
+    },
+    "consent_given": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether parent has given consent"
+    },
+    "consent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date consent was given"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "Not Required",
+        "Pending",
+        "Paid",
+        "Refunded"
+      ],
+      "default": "Pending",
+      "description": "Payment status"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Payment date"
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount paid"
+    },
+    "emergency_contact": {
+      "type": "string",
+      "description": "Emergency contact for trip"
+    },
+    "medical_notes": {
+      "type": "string",
+      "description": "Medical notes for trip"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending Approval",
+        "Approved",
+        "Rejected",
+        "Cancelled"
+      ],
+      "default": "Pending Approval",
+      "description": "Enrollment status"
+    }
+  },
+  "required": [
+    "trip_id",
+    "student_id"
+  ]
+}

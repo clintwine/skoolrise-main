@@ -1,0 +1,69 @@
+{
+  "name": "InAppNotification",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID who receives this notification"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User email for quick lookup"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message content"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "info",
+        "success",
+        "warning",
+        "error",
+        "assignment",
+        "grade",
+        "attendance",
+        "fee",
+        "behavior",
+        "announcement"
+      ],
+      "default": "info",
+      "description": "Type of notification"
+    },
+    "link": {
+      "type": "string",
+      "description": "Page to navigate to when clicked"
+    },
+    "link_params": {
+      "type": "string",
+      "description": "URL parameters for the link"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Related entity type (e.g., Assignment, FeeInvoice)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "Related entity ID"
+    }
+  },
+  "required": [
+    "user_id",
+    "title",
+    "message"
+  ]
+}

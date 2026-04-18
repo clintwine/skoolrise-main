@@ -1,0 +1,67 @@
+{
+  "name": "FeeReminder",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "Reference to FeeInvoice"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "parent_email": {
+      "type": "string",
+      "description": "Parent email address"
+    },
+    "reminder_type": {
+      "type": "string",
+      "enum": [
+        "Upcoming Due",
+        "Due Today",
+        "Overdue",
+        "Final Notice"
+      ],
+      "description": "Type of reminder"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When reminder was sent"
+    },
+    "delivery_method": {
+      "type": "string",
+      "enum": [
+        "Email",
+        "SMS",
+        "Both"
+      ],
+      "default": "Email",
+      "description": "How reminder was delivered"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Sent",
+        "Failed",
+        "Pending"
+      ],
+      "default": "Sent",
+      "description": "Delivery status"
+    },
+    "message_content": {
+      "type": "string",
+      "description": "Content of the reminder message"
+    }
+  },
+  "required": [
+    "invoice_id",
+    "student_id",
+    "parent_email",
+    "reminder_type"
+  ]
+}

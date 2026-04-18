@@ -1,0 +1,30 @@
+{
+  "name": "SubmissionGroup",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "assignment_id": {
+      "type": "string",
+      "description": "Reference to Assignment entity"
+    },
+    "group_name": {
+      "type": "string",
+      "description": "Name of the group"
+    },
+    "student_ids": {
+      "type": "string",
+      "description": "JSON array of student IDs in this group"
+    },
+    "member_count": {
+      "type": "number",
+      "description": "Number of students in group"
+    }
+  },
+  "required": [
+    "assignment_id",
+    "student_ids"
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "name": "FeeInvoice",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Unique invoice number"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    },
+    "fee_policy_id": {
+      "type": "string",
+      "description": "Reference to FeePolicy if applicable"
+    },
+    "invoice_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Invoice creation date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment due date"
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Subtotal before discounts"
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Discount amount applied"
+    },
+    "discount_reason": {
+      "type": "string",
+      "description": "Reason for discount (scholarship, sibling, early payment, etc.)"
+    },
+    "penalty_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Late payment penalty"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total invoice amount (subtotal - discount + penalty)"
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount paid so far"
+    },
+    "balance": {
+      "type": "number",
+      "description": "Outstanding balance"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Partially Paid",
+        "Paid",
+        "Overdue",
+        "Cancelled"
+      ],
+      "default": "Pending",
+      "description": "Payment status"
+    },
+    "instalment_plan_id": {
+      "type": "string",
+      "description": "Reference to InstalmentPlan if using instalments"
+    },
+    "fee_items": {
+      "type": "string",
+      "description": "JSON array of fee items with name and amount"
+    },
+    "payment_reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether reminder has been sent"
+    },
+    "last_reminder_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last reminder sent date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "invoice_number",
+    "student_id",
+    "total_amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "student_id": {
+            "$in": "{{user.parent_of_student_ids}}"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

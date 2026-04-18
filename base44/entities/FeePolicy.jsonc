@@ -1,0 +1,77 @@
+{
+  "name": "FeePolicy",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "policy_name": {
+      "type": "string",
+      "description": "Name of the fee policy"
+    },
+    "description": {
+      "type": "string",
+      "description": "Policy description"
+    },
+    "grade_level": {
+      "type": "string",
+      "description": "Applicable grade level"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Reference to AcademicSession"
+    },
+    "term_id": {
+      "type": "string",
+      "description": "Reference to Term"
+    },
+    "fee_items": {
+      "type": "string",
+      "description": "JSON array of fee items with name, amount, and category"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total policy amount"
+    },
+    "late_payment_penalty_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Penalty percentage for late payment"
+    },
+    "early_payment_discount_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Discount percentage for early payment"
+    },
+    "early_payment_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline for early payment discount"
+    },
+    "instalment_allowed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether instalment payment is allowed"
+    },
+    "max_instalments": {
+      "type": "number",
+      "description": "Maximum number of instalments allowed"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Inactive",
+        "Archived"
+      ],
+      "default": "Active",
+      "description": "Policy status"
+    }
+  },
+  "required": [
+    "policy_name",
+    "grade_level",
+    "total_amount"
+  ]
+}

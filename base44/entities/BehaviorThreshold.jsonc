@@ -1,0 +1,75 @@
+{
+  "name": "BehaviorThreshold",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Threshold name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Merit",
+        "Demerit",
+        "Detention",
+        "Warning"
+      ],
+      "description": "Behavior type"
+    },
+    "threshold_count": {
+      "type": "number",
+      "description": "Number of incidents to trigger"
+    },
+    "time_period_days": {
+      "type": "number",
+      "description": "Time period in days"
+    },
+    "action": {
+      "type": "string",
+      "description": "Action to take when triggered"
+    },
+    "notify_parent": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send notification to parent"
+    },
+    "notify_admin": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send notification to admin"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether threshold is active"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "threshold_count",
+    "time_period_days"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

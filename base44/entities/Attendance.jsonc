@@ -1,0 +1,101 @@
+{
+  "name": "Attendance",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class entity"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name for quick reference"
+    },
+    "class_arm_id": {
+      "type": "string",
+      "description": "Reference to ClassArm entity"
+    },
+    "class_arm_name": {
+      "type": "string",
+      "description": "Class arm name for quick reference"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject name (for subject-based attendance)"
+    },
+    "period_number": {
+      "type": "number",
+      "description": "Period number (for subject-based attendance)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Attendance date"
+    },
+    "time": {
+      "type": "string",
+      "description": "Time of record (for arrival tracking)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Present",
+        "Absent",
+        "Late",
+        "Excused",
+        "Departed"
+      ],
+      "default": "Present",
+      "description": "Attendance status"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "arrival",
+        "class",
+        "subject",
+        "exit"
+      ],
+      "default": "class",
+      "description": "Type of attendance record"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "recorded_by_id": {
+      "type": "string",
+      "description": "ID of the teacher/staff who recorded the attendance"
+    },
+    "recorded_by_name": {
+      "type": "string",
+      "description": "Name of the teacher/staff who recorded the attendance"
+    },
+    "record_method": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "scan"
+      ],
+      "default": "manual",
+      "description": "How the attendance was recorded"
+    }
+  },
+  "required": [
+    "student_id",
+    "date",
+    "status",
+    "type"
+  ]
+}

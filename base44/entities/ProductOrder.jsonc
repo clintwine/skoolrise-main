@@ -1,0 +1,71 @@
+{
+  "name": "ProductOrder",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Unique order number"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Reference to Parent"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name"
+    },
+    "items": {
+      "type": "string",
+      "description": "JSON array of order items with product_id, name, quantity, price"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total order amount"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Paid",
+        "Processing",
+        "Ready for Pickup",
+        "Delivered",
+        "Cancelled"
+      ],
+      "default": "Pending",
+      "description": "Order status"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "Unpaid",
+        "Paid",
+        "Refunded"
+      ],
+      "default": "Unpaid",
+      "description": "Payment status"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Payment date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Order notes"
+    }
+  },
+  "required": [
+    "order_number",
+    "student_id",
+    "total_amount"
+  ]
+}

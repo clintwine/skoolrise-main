@@ -1,0 +1,63 @@
+{
+  "name": "StudentGoal",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Reference to Teacher entity who set the goal"
+    },
+    "goal_title": {
+      "type": "string",
+      "description": "Title of the goal"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject area for the goal"
+    },
+    "target_score": {
+      "type": "number",
+      "description": "Target score to achieve"
+    },
+    "current_score": {
+      "type": "number",
+      "description": "Current score"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Goal deadline"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "In Progress",
+        "Achieved",
+        "Not Achieved",
+        "Cancelled"
+      ],
+      "default": "In Progress",
+      "description": "Goal status"
+    }
+  },
+  "required": [
+    "student_id",
+    "goal_title",
+    "target_score"
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "name": "StaffClockRecord",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "staff_id": {
+      "type": "string",
+      "description": "Reference to Teacher/Staff entity"
+    },
+    "staff_name": {
+      "type": "string",
+      "description": "Staff name for quick reference"
+    },
+    "staff_id_number": {
+      "type": "string",
+      "description": "Staff ID number"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "clock_in",
+        "clock_out"
+      ],
+      "description": "Type of clock record"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of clock record"
+    },
+    "time": {
+      "type": "string",
+      "description": "Time of clock record"
+    },
+    "gps_latitude": {
+      "type": "number",
+      "description": "GPS latitude at time of clocking"
+    },
+    "gps_longitude": {
+      "type": "number",
+      "description": "GPS longitude at time of clocking"
+    },
+    "gps_accuracy": {
+      "type": "number",
+      "description": "GPS accuracy in meters"
+    },
+    "location_valid": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether location is within allowed school radius"
+    },
+    "recorded_by_id": {
+      "type": "string",
+      "description": "ID of user who scanned/recorded"
+    },
+    "recorded_by_name": {
+      "type": "string",
+      "description": "Name of user who recorded"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Staff photo URL"
+    }
+  },
+  "required": [
+    "staff_id",
+    "type",
+    "date",
+    "time"
+  ]
+}

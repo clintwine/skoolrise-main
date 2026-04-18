@@ -1,0 +1,212 @@
+{
+  "name": "Application",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "application_number": {
+      "type": "string",
+      "description": "Unique application reference number"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Applicant's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Applicant's last name"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ],
+      "description": "Gender"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Applicant email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone"
+    },
+    "address": {
+      "type": "string",
+      "description": "Residential address"
+    },
+    "parent_name": {
+      "type": "string",
+      "description": "Parent/Guardian name"
+    },
+    "parent_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Parent email"
+    },
+    "parent_phone": {
+      "type": "string",
+      "description": "Parent phone"
+    },
+    "grade_applying_for": {
+      "type": "string",
+      "description": "Grade level applying for"
+    },
+    "previous_school": {
+      "type": "string",
+      "description": "Previous school attended"
+    },
+    "application_stage": {
+      "type": "string",
+      "enum": [
+        "Submitted",
+        "Under Review",
+        "Interview Scheduled",
+        "Interviewed",
+        "Offered",
+        "Accepted",
+        "Declined",
+        "Rejected",
+        "Enrolled"
+      ],
+      "default": "Submitted",
+      "description": "Current stage in application process"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "In Progress",
+        "Approved",
+        "Rejected",
+        "Withdrawn"
+      ],
+      "default": "Pending",
+      "description": "Overall application status"
+    },
+    "admission_year": {
+      "type": "string",
+      "description": "Academic year for admission"
+    },
+    "interview_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled interview date"
+    },
+    "interview_notes": {
+      "type": "string",
+      "description": "Interview feedback and notes"
+    },
+    "documents_submitted": {
+      "type": "string",
+      "description": "JSON array of document URLs"
+    },
+    "offer_letter_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether offer letter has been sent"
+    },
+    "offer_letter_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date offer letter was sent"
+    },
+    "enrollment_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline to accept offer"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Student ID if enrolled"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "Website",
+        "Walk-in",
+        "Referral",
+        "Social Media",
+        "Advertisement",
+        "Other"
+      ],
+      "description": "How applicant found the school"
+    },
+    "upn": {
+      "type": "string",
+      "description": "Unique Pupil Number"
+    },
+    "uln": {
+      "type": "string",
+      "description": "Unique Learner Number"
+    },
+    "destination_data": {
+      "type": "string",
+      "description": "Post-school destination information"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "date_of_birth",
+    "grade_applying_for",
+    "parent_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

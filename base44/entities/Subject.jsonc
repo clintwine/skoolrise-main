@@ -1,0 +1,66 @@
+{
+  "name": "Subject",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "subject_name": {
+      "type": "string",
+      "description": "Name of the subject"
+    },
+    "subject_code": {
+      "type": "string",
+      "description": "Unique subject code"
+    },
+    "description": {
+      "type": "string",
+      "description": "Subject description"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department (e.g., Sciences, Arts, Languages)"
+    },
+    "grade_levels": {
+      "type": "string",
+      "description": "Applicable grade levels (e.g., JSS1-JSS3)"
+    },
+    "is_core": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a core/compulsory subject?"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Archived"
+      ],
+      "default": "Active",
+      "description": "Subject status"
+    }
+  },
+  "required": [
+    "subject_name",
+    "subject_code"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

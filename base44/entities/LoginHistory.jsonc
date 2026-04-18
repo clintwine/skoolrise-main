@@ -1,0 +1,58 @@
+{
+  "name": "LoginHistory",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "login_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of login"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of login"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser/device info"
+    },
+    "location": {
+      "type": "string",
+      "description": "Approximate location from IP"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "mobile",
+        "tablet",
+        "unknown"
+      ],
+      "description": "Type of device"
+    },
+    "is_suspicious": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flagged as suspicious activity"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session identifier"
+    }
+  },
+  "required": [
+    "user_id",
+    "user_email"
+  ]
+}

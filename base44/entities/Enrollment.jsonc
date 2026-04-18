@@ -1,0 +1,68 @@
+{
+  "name": "Enrollment",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Reference to School tenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Reference to Student entity"
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student name for quick reference"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "Reference to Class entity"
+    },
+    "class_name": {
+      "type": "string",
+      "description": "Class name for quick reference"
+    },
+    "enrollment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of enrollment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Enrolled",
+        "Completed",
+        "Dropped",
+        "Withdrawn"
+      ],
+      "default": "Enrolled",
+      "description": "Enrollment status"
+    },
+    "final_grade": {
+      "type": "string",
+      "description": "Final grade for the class"
+    }
+  },
+  "required": [
+    "student_id",
+    "class_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
