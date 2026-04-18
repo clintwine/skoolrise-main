@@ -1,6 +1,8 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, MapPin, BookOpen } from 'lucide-react';
@@ -9,15 +11,18 @@ import { format } from 'date-fns';
 export default function ActiveClasses() {
   const currentDay = format(new Date(), 'EEEE');
   const currentTime = format(new Date(), 'HH:mm');
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: timetable = [], isLoading } = useQuery({
-    queryKey: ['timetable'],
-    queryFn: () => base44.entities.Timetable.list(),
+    queryKey: ['timetable', school_tenant_id],
+    queryFn: () => base44.entities.Timetable.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   // Filter classes happening right now based on day and time

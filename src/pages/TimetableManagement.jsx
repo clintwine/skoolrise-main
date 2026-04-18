@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,29 +34,31 @@ export default function TimetableManagement() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: timetable = [], isLoading } = useQuery({
-    queryKey: ['timetable', selectedClassArm],
+    queryKey: ['timetable', selectedClassArm, school_tenant_id],
     queryFn: async () => {
       if (!selectedClassArm) return [];
-      const all = await base44.entities.Timetable.list();
-      return all.filter(t => t.class_arm_id === selectedClassArm);
+      return await base44.entities.Timetable.filter(addSchoolFilter({ class_arm_id: selectedClassArm }, school_tenant_id));
     },
-    enabled: !!selectedClassArm,
+    enabled: !!selectedClassArm && isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Timetable.create(data),
+    mutationFn: (data) => base44.entities.Timetable.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timetable'] });
       setIsFormOpen(false);
@@ -556,9 +560,10 @@ export default function TimetableManagement() {
 }
 
 function TimetableFormDialog({ open, onOpenChange, slot, teachers, onSubmit }) {
+  const { school_tenant_id } = useSchoolContext();
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list(),
+    queryKey: ['subjects', school_tenant_id],
+    queryFn: () => base44.entities.Subject.filter(addSchoolFilter({}, school_tenant_id)),
   });
   const [formData, setFormData] = useState(
     slot || {

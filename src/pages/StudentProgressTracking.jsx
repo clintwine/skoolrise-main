@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,26 +45,23 @@ export default function StudentProgressTracking() {
 
   const teacherProfile = teachers[0];
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: submissions = [] } = useQuery({
     queryKey: ['submissions', selectedStudent],
-    queryFn: async () => {
-      const allSubmissions = await base44.entities.Submission.list();
-      return selectedStudent ? allSubmissions.filter(s => s.student_id === selectedStudent && s.status === 'Graded') : [];
-    },
+    queryFn: () => base44.entities.Submission.filter({ student_id: selectedStudent, status: 'Graded' }),
     enabled: !!selectedStudent,
   });
 
   const { data: reportCards = [] } = useQuery({
     queryKey: ['report-cards', selectedStudent],
-    queryFn: async () => {
-      const allReports = await base44.entities.ReportCard.list();
-      return selectedStudent ? allReports.filter(rc => rc.student_id === selectedStudent) : [];
-    },
+    queryFn: () => base44.entities.ReportCard.filter({ student_id: selectedStudent }),
     enabled: !!selectedStudent,
   });
 
@@ -75,7 +74,7 @@ export default function StudentProgressTracking() {
   const selectedStudentData = students.find(s => s.id === selectedStudent);
 
   const createGoalMutation = useMutation({
-    mutationFn: (data) => base44.entities.StudentGoal.create(data),
+    mutationFn: (data) => base44.entities.StudentGoal.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['student-goals']);
       toast.success('Goal created successfully');

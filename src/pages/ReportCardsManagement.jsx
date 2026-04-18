@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useSchoolTenant } from '@/hooks/useSchoolTenant';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,13 +22,12 @@ export default function ReportCardsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
   const [bulkGeneratorOpen, setBulkGeneratorOpen] = useState(false);
-  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
-  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['academic-sessions', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.AcademicSession.filter(tenantFilter, '-created_date') : base44.entities.AcademicSession.list('-created_date'),
-    enabled: !tenantLoading,
+    queryKey: ['academic-sessions', school_tenant_id],
+    queryFn: () => base44.entities.AcademicSession.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   // Auto-select most recent/current session
@@ -39,16 +39,12 @@ export default function ReportCardsManagement() {
   }, [sessions, selectedSession]);
 
   const { data: reportCards = [], isLoading } = useQuery({
-    queryKey: ['report-cards', selectedSession, schoolTenantId],
+    queryKey: ['report-cards', selectedSession, school_tenant_id],
     queryFn: async () => {
-      const filter = { ...tenantFilter };
-      if (selectedSession) filter.session_id = selectedSession;
-      if (Object.keys(filter).length > 0) {
-        return await base44.entities.ReportCard.filter(filter, '-created_date');
-      }
-      return await base44.entities.ReportCard.list('-created_date');
+      const filter = addSchoolFilter(selectedSession ? { session_id: selectedSession } : {}, school_tenant_id);
+      return await base44.entities.ReportCard.filter(filter, '-created_date');
     },
-    enabled: !tenantLoading,
+    enabled: isReady,
   });
 
   const filteredReports = reportCards.filter((report) =>

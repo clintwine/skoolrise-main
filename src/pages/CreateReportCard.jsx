@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,20 +29,24 @@ export default function CreateReportCard() {
     average_score: 0,
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: allStudents = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: gradingScales = [] } = useQuery({
-    queryKey: ['grading-scales'],
-    queryFn: () => base44.entities.GradingScale.list(),
+    queryKey: ['grading-scales', school_tenant_id],
+    queryFn: () => base44.entities.GradingScale.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const students = selectedClassArm 
@@ -51,24 +57,27 @@ export default function CreateReportCard() {
     : allStudents;
 
   const { data: terms = [] } = useQuery({
-    queryKey: ['terms'],
-    queryFn: () => base44.entities.Term.list(),
+    queryKey: ['terms', school_tenant_id],
+    queryFn: () => base44.entities.Term.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: () => base44.entities.AcademicSession.list(),
+    queryKey: ['sessions', school_tenant_id],
+    queryFn: () => base44.entities.AcademicSession.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list(),
+    queryKey: ['subjects', school_tenant_id],
+    queryFn: () => base44.entities.Subject.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.ReportCard.create(data),
+    mutationFn: (data) => base44.entities.ReportCard.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-cards'] });
       setSuccessDialogOpen(true);

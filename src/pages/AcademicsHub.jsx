@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSchoolTenant } from '@/hooks/useSchoolTenant';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,49 +31,48 @@ export default function AcademicsHub() {
   const [gradeScaleDialog, setGradeScaleDialog] = useState({ open: false, editing: null });
   const [bulkImport, setBulkImport] = useState({ open: false, entity: '', schema: null, template: [] });
   const queryClient = useQueryClient();
-  const { schoolTenantId, isLoading: tenantLoading } = useSchoolTenant();
-  const tenantFilter = schoolTenantId ? { school_tenant_id: schoolTenantId } : {};
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.ClassArm.filter(tenantFilter) : base44.entities.ClassArm.list(),
-    enabled: !tenantLoading,
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Subject.filter(tenantFilter) : base44.entities.Subject.list(),
-    enabled: !tenantLoading,
+    queryKey: ['subjects', school_tenant_id],
+    queryFn: () => base44.entities.Subject.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Teacher.filter(tenantFilter) : base44.entities.Teacher.list(),
-    enabled: !tenantLoading,
+    queryKey: ['teachers', school_tenant_id],
+    queryFn: () => base44.entities.Teacher.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: allocations = [] } = useQuery({
-    queryKey: ['allocations', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.SubjectAllocation.filter(tenantFilter) : base44.entities.SubjectAllocation.list(),
-    enabled: !tenantLoading,
+    queryKey: ['allocations', school_tenant_id],
+    queryFn: () => base44.entities.SubjectAllocation.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.AcademicSession.filter(tenantFilter) : base44.entities.AcademicSession.list(),
-    enabled: !tenantLoading,
+    queryKey: ['sessions', school_tenant_id],
+    queryFn: () => base44.entities.AcademicSession.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: terms = [] } = useQuery({
-    queryKey: ['terms', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.Term.filter(tenantFilter) : base44.entities.Term.list(),
-    enabled: !tenantLoading,
+    queryKey: ['terms', school_tenant_id],
+    queryFn: () => base44.entities.Term.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: gradingScales = [] } = useQuery({
-    queryKey: ['grading-scales', schoolTenantId],
-    queryFn: () => schoolTenantId ? base44.entities.GradingScale.filter(tenantFilter) : base44.entities.GradingScale.list(),
-    enabled: !tenantLoading,
+    queryKey: ['grading-scales', school_tenant_id],
+    queryFn: () => base44.entities.GradingScale.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   return (
@@ -760,8 +760,9 @@ function ClassArmDialog({ open, editing, onOpenChange }) {
     setFormData(editing || { arm_name: '', grade_level: '', max_students: 40, room: '' });
   }, [editing, open]);
 
+  const { school_tenant_id } = useSchoolContext();
   const mutation = useMutation({
-    mutationFn: (data) => editing ? base44.entities.ClassArm.update(editing.id, data) : base44.entities.ClassArm.create(data),
+    mutationFn: (data) => editing ? base44.entities.ClassArm.update(editing.id, data) : base44.entities.ClassArm.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['class-arms'] });
       onOpenChange(false);
@@ -820,13 +821,14 @@ function SubjectDialog({ open, editing, onOpenChange }) {
     is_core: false,
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id } = useSchoolContext();
 
   React.useEffect(() => {
     setFormData(editing || { subject_name: '', subject_code: '', department: '', grade_levels: '', is_core: false });
   }, [editing, open]);
 
   const mutation = useMutation({
-    mutationFn: (data) => editing ? base44.entities.Subject.update(editing.id, data) : base44.entities.Subject.create(data),
+    mutationFn: (data) => editing ? base44.entities.Subject.update(editing.id, data) : base44.entities.Subject.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] });
       onOpenChange(false);
@@ -886,6 +888,7 @@ function AllocationDialog({ open, editing, classArms, subjects, teachers, onOpen
     room: '',
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id } = useSchoolContext();
 
   React.useEffect(() => {
     setFormData(editing || { class_arm_id: '', subject_id: '', teacher_id: '', room: '' });
@@ -896,12 +899,12 @@ function AllocationDialog({ open, editing, classArms, subjects, teachers, onOpen
       const classArm = classArms.find(c => c.id === data.class_arm_id);
       const subject = subjects.find(s => s.id === data.subject_id);
       const teacher = teachers.find(t => t.id === data.teacher_id);
-      const submitData = {
+      const submitData = withSchoolId({
         ...data,
         class_arm_name: classArm ? `${classArm.grade_level}${classArm.arm_name}` : '',
         subject_name: subject?.subject_name || '',
         teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : '',
-      };
+      }, school_tenant_id);
       return editing ? base44.entities.SubjectAllocation.update(editing.id, submitData) : base44.entities.SubjectAllocation.create(submitData);
     },
     onSuccess: () => {
@@ -990,13 +993,14 @@ function SessionDialog({ open, editing, onOpenChange }) {
     is_current: false,
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id } = useSchoolContext();
 
   React.useEffect(() => {
     setFormData(editing || { session_name: '', start_date: '', end_date: '', is_current: false });
   }, [editing, open]);
 
   const mutation = useMutation({
-    mutationFn: (data) => editing ? base44.entities.AcademicSession.update(editing.id, data) : base44.entities.AcademicSession.create(data),
+    mutationFn: (data) => editing ? base44.entities.AcademicSession.update(editing.id, data) : base44.entities.AcademicSession.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       onOpenChange(false);
@@ -1054,13 +1058,14 @@ function TermDialog({ open, editing, sessions, onOpenChange }) {
     is_current: false,
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id } = useSchoolContext();
 
   React.useEffect(() => {
     setFormData(editing || { session_id: '', term_name: '', term_number: 1, start_date: '', end_date: '', is_current: false });
   }, [editing, open]);
 
   const mutation = useMutation({
-    mutationFn: (data) => editing ? base44.entities.Term.update(editing.id, data) : base44.entities.Term.create(data),
+    mutationFn: (data) => editing ? base44.entities.Term.update(editing.id, data) : base44.entities.Term.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['terms'] });
       onOpenChange(false);
@@ -1139,13 +1144,14 @@ function GradeScaleDialog({ open, editing, onOpenChange }) {
     remark: '',
   });
   const queryClient = useQueryClient();
+  const { school_tenant_id } = useSchoolContext();
 
   React.useEffect(() => {
     setFormData(editing || { scale_name: '', grade: '', min_score: 0, max_score: 100, grade_point: 0, remark: '' });
   }, [editing, open]);
 
   const mutation = useMutation({
-    mutationFn: (data) => editing ? base44.entities.GradingScale.update(editing.id, data) : base44.entities.GradingScale.create(data),
+    mutationFn: (data) => editing ? base44.entities.GradingScale.update(editing.id, data) : base44.entities.GradingScale.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['grading-scales'] });
       onOpenChange(false);

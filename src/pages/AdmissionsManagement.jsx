@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,10 +22,12 @@ export default function AdmissionsManagement() {
   const [stageFilter, setStageFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: applications = [], isLoading } = useQuery({
-    queryKey: ['applications'],
-    queryFn: () => base44.entities.Application.list('-created_date'),
+    queryKey: ['applications', school_tenant_id],
+    queryFn: () => base44.entities.Application.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const updateMutation = useMutation({
@@ -34,13 +38,15 @@ export default function AdmissionsManagement() {
   });
 
   const { data: schools = [] } = useQuery({
-    queryKey: ['schools'],
-    queryFn: () => base44.entities.School.list(),
+    queryKey: ['schools', school_tenant_id],
+    queryFn: () => base44.entities.School.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: existingStudents = [] } = useQuery({
-    queryKey: ['students-for-id'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students-for-id', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const generateStudentId = () => {
@@ -72,7 +78,7 @@ export default function AdmissionsManagement() {
       const allUsers = await base44.entities.User.list();
       const userRecord = allUsers.find(u => u.email === (application.email || application.parent_email));
       
-      await base44.entities.Student.create({
+      await base44.entities.Student.create(withSchoolId({
         user_id: userRecord?.id || '',
         first_name: application.first_name,
         last_name: application.last_name,
@@ -87,7 +93,7 @@ export default function AdmissionsManagement() {
         parent_phone: application.parent_phone,
         admission_date: new Date().toISOString().split('T')[0],
         notes: `Converted from application ${application.application_number}`,
-      });
+      }, school_tenant_id));
       await base44.entities.Application.update(application.id, {
         student_id: studentId,
         application_stage: 'Enrolled',

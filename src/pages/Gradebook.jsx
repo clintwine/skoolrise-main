@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,19 +17,24 @@ export default function Gradebook() {
   const [feedback, setFeedback] = useState('');
   const queryClient = useQueryClient();
 
+  const { school_tenant_id, isReady } = useSchoolContext();
+
   const { data: assignments = [] } = useQuery({
-    queryKey: ['assignments'],
-    queryFn: () => base44.entities.Assignment.list('-created_date'),
+    queryKey: ['assignments', school_tenant_id],
+    queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id), '-created_date'),
+    enabled: isReady,
   });
 
   const { data: submissions = [] } = useQuery({
-    queryKey: ['submissions'],
-    queryFn: () => base44.entities.Submission.list('-submitted_date'),
+    queryKey: ['submissions', school_tenant_id],
+    queryFn: () => base44.entities.Submission.filter(addSchoolFilter({}, school_tenant_id), '-submitted_date'),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const gradeMutation = useMutation({

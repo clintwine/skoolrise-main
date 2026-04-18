@@ -62,7 +62,7 @@ export default function ClassroomResources() {
     queryFn: async () => {
       if (allocations.length === 0) return [];
       const classArmIds = [...new Set(allocations.map(a => a.class_arm_id))];
-      const allClassArms = await base44.entities.ClassArm.list();
+      const allClassArms = await base44.entities.ClassArm.filter({ user_id: user?.id });
       return allClassArms.filter(ca => classArmIds.includes(ca.id));
     },
     enabled: allocations.length > 0,
@@ -72,11 +72,10 @@ export default function ClassroomResources() {
     queryKey: ['teacher-resources', teacherProfile?.id],
     queryFn: async () => {
       if (!teacherProfile?.id) return [];
-      // Get resources created by this teacher OR shared with teachers
-      const allResources = await base44.entities.TeacherResource.list();
-      return allResources.filter(r => 
-        r.teacher_id === teacherProfile.id || r.shared_with_teachers === true
-      );
+      const ownResources = await base44.entities.TeacherResource.filter({ teacher_id: teacherProfile.id });
+      const sharedResources = await base44.entities.TeacherResource.filter({ shared_with_teachers: true });
+      const allResources = [...ownResources, ...sharedResources.filter(r => r.teacher_id !== teacherProfile.id)];
+      return allResources;
     },
     enabled: !!teacherProfile?.id,
   });

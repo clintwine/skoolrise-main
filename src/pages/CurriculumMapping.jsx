@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,29 +39,34 @@ export default function CurriculumMapping() {
   });
 
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: standards = [] } = useQuery({
-    queryKey: ['curriculum-standards'],
-    queryFn: () => base44.entities.CurriculumStandard.list(),
+    queryKey: ['curriculum-standards', school_tenant_id],
+    queryFn: () => base44.entities.CurriculumStandard.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: mappings = [] } = useQuery({
-    queryKey: ['standard-mappings'],
-    queryFn: () => base44.entities.StandardMapping.list(),
+    queryKey: ['standard-mappings', school_tenant_id],
+    queryFn: () => base44.entities.StandardMapping.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: assignments = [] } = useQuery({
-    queryKey: ['assignments'],
-    queryFn: () => base44.entities.Assignment.list(),
+    queryKey: ['assignments', school_tenant_id],
+    queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: exams = [] } = useQuery({
-    queryKey: ['exams'],
-    queryFn: () => base44.entities.Exam.list(),
+    queryKey: ['exams', school_tenant_id],
+    queryFn: () => base44.entities.Exam.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createStandardMutation = useMutation({
-    mutationFn: (data) => base44.entities.CurriculumStandard.create(data),
+    mutationFn: (data) => base44.entities.CurriculumStandard.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['curriculum-standards'] });
       setShowStandardForm(false);
@@ -79,10 +86,10 @@ export default function CurriculumMapping() {
   const createMappingMutation = useMutation({
     mutationFn: async (data) => {
       const standard = standards.find(s => s.id === data.standard_id);
-      return await base44.entities.StandardMapping.create({
+      return await base44.entities.StandardMapping.create(withSchoolId({
         ...data,
         standard_code: standard?.code,
-      });
+      }, school_tenant_id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['standard-mappings'] });

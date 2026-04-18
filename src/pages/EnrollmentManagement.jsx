@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,34 +22,40 @@ export default function EnrollmentManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { school_tenant_id, isReady } = useSchoolContext();
 
   const { data: enrollments = [] } = useQuery({
-    queryKey: ['enrollments'],
-    queryFn: () => base44.entities.Enrollment.list('-enrollment_date'),
+    queryKey: ['enrollments', school_tenant_id],
+    queryFn: () => base44.entities.Enrollment.filter(addSchoolFilter({}, school_tenant_id), '-enrollment_date'),
+    enabled: isReady,
   });
 
   const { data: students = [] } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => base44.entities.Student.list(),
+    queryKey: ['students', school_tenant_id],
+    queryFn: () => base44.entities.Student.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => base44.entities.Class.list(),
+    queryKey: ['classes', school_tenant_id],
+    queryFn: () => base44.entities.Class.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: classArms = [] } = useQuery({
-    queryKey: ['class-arms'],
-    queryFn: () => base44.entities.ClassArm.list(),
+    queryKey: ['class-arms', school_tenant_id],
+    queryFn: () => base44.entities.ClassArm.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const { data: subjects = [] } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: () => base44.entities.Subject.list(),
+    queryKey: ['subjects', school_tenant_id],
+    queryFn: () => base44.entities.Subject.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: isReady,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Enrollment.create(data),
+    mutationFn: (data) => base44.entities.Enrollment.create(withSchoolId(data, school_tenant_id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enrollments'] });
       setIsFormOpen(false);
