@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
 import { addSchoolFilter } from '@/utils/schoolFilter';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,11 +14,16 @@ import { Badge } from '@/components/ui/badge';
 
 export default function AIGradingAssistant() {
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, plan, minimumPlan, loading } = usePlanAccess('aiFeatures');
   const [selectedAssignment, setSelectedAssignment] = useState('');
   const [rubric, setRubric] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const queryClient = useQueryClient();
+
+  if (!loading && !hasAccess) {
+    return <UpgradePrompt feature="AI Grading Assistant" currentPlan={plan} minimumPlan={minimumPlan} />;
+  }
 
   const { data: assignments = [] } = useQuery({
     queryKey: ['assignments', school_tenant_id],

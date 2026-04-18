@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
 import { addSchoolFilter } from '@/utils/schoolFilter';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +27,11 @@ export default function BiometricAttendance() {
   const [scannedId, setScannedId] = useState(null);
   const queryClient = useQueryClient();
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, plan, minimumPlan, loading } = usePlanAccess('biometricAttendance');
+
+  if (!loading && !hasAccess) {
+    return <UpgradePrompt feature="Biometric Attendance" currentPlan={plan} minimumPlan={minimumPlan} />;
+  }
 
   const { data: biometricRecords = [], isLoading } = useQuery({
     queryKey: ['biometric-attendance', dateRange, school_tenant_id],

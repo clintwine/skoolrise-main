@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
 import { addSchoolFilter } from '@/utils/schoolFilter';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +19,7 @@ import { base44 } from '@/api/base44Client';
 
 export default function AILessonPlanner() {
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, plan, minimumPlan, loading } = usePlanAccess('aiFeatures');
   const [generating, setGenerating] = useState(false);
   const [lessonPlan, setLessonPlan] = useState(null);
   const [formData, setFormData] = useState({
@@ -58,6 +61,10 @@ export default function AILessonPlanner() {
     queryKey: ['teacher-resources-ai'],
     queryFn: () => base44.entities.TeacherResource.list('-created_date'),
   });
+
+  if (!loading && !hasAccess) {
+    return <UpgradePrompt feature="AI Lesson Planner" currentPlan={plan} minimumPlan={minimumPlan} />;
+  }
 
   const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();
 

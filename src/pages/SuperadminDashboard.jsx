@@ -20,6 +20,13 @@ const PLAN_COLORS = {
   enterprise: 'bg-amber-100 text-amber-700',
 };
 
+const PLAN_PRICING = {
+  free: 0,
+  starter: 99,
+  pro: 299,
+  enterprise: 999,
+};
+
 export default function SuperadminDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -41,6 +48,12 @@ export default function SuperadminDashboard() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ['all-users-superadmin'],
     queryFn: () => base44.entities.User.list(),
+    enabled: !!currentUser?.is_superadmin,
+  });
+
+  const { data: allStudents = [] } = useQuery({
+    queryKey: ['all-students-superadmin'],
+    queryFn: () => base44.entities.Student.list(),
     enabled: !!currentUser?.is_superadmin,
   });
 
@@ -96,6 +109,27 @@ export default function SuperadminDashboard() {
     return user?.email || '—';
   };
 
+  const calculateMRR = () => {
+    return schools.reduce((total, school) => {
+      return total + (PLAN_PRICING[school.plan] || 0);
+    }, 0);
+  };
+
+  const getSchoolStudentCount = (schoolId) => {
+    return allStudents.filter(s => s.school_tenant_id === schoolId).length;
+  };
+
+  const topSchoolsByStudents = schools
+    .map(s => ({ ...s, studentCount: getSchoolStudentCount(s.id) }))
+    .sort((a, b) => b.studentCount - a.studentCount)
+    .slice(0, 5);
+
+  const recentlyOnboarded = schools
+    .filter(s => s.onboarded_at && new Date(s.onboarded_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+    .sort((a, b) => new Date(b.onboarded_at) - new Date(a.onboarded_at));
+
+  const suspendedSchools = schools.filter(s => !s.is_active);
+
   const summaryCards = [
     { label: 'Total Schools', value: schools.length, icon: Building2, color: 'bg-blue-500' },
     { label: 'Active Schools', value: activeCount, icon: CheckCircle, color: 'bg-green-500' },
@@ -142,6 +176,97 @@ export default function SuperadminDashboard() {
           );
         })}
       </div>
+
+      {/* Revenue Overview */}
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="text-blue-900">Revenue Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-blue-700">Monthly Recurring Revenue</p>
+              <p className="text-3xl font-bold text-blue-900">${calculateMRR()}</p>
+            </div>
+            {Object.entries(planCounts).map(([plan, count]) => (
+              <div key={plan}>
+                <p className="text-sm text-blue-700 capitalize">{plan} Plan</p>
+                <p className="text-2xl font-bold text-blue-900">{count}</p>
+                <p className="text-xs text-blue-600">${PLAN_PRICING[plan] * count}/mo</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Schools & Recent Onboarded */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top 5 Schools by Student Count</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {topSchoolsByStudents.map((school, idx) => (
+                <div key={school.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">#{idx + 1} {school.name}</p>
+                    <p className="text-xs text-gray-500">{school.plan.charAt(0).toUpperCase() + school.plan.slice(1)}</p>
+                  </div>
+                  <span className="font-bold text-lg text-gray-900">{school.studentCount}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recently Onboarded (30 days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentlyOnboarded.length === 0 ? (
+                <p className="text-sm text-gray-500">No new schools in the last 30 days.</p>
+              ) : (
+                recentlyOnboarded.map((school) => (
+                  <div key={school.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div>
+                      <p className="font-medium text-gray-900">{school.name}</p>
+                      <p className="text-xs text-gray-500">{format(new Date(school.onboarded_at), 'dd MMM yyyy')}</p>
+                    </div>
+                    <Badge className={PLAN_COLORS[school.plan]}>{school.plan}</Badge>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* At-Risk Schools */}
+      {suspendedSchools.length > 0 && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-900">At-Risk / Suspended Schools ({suspendedSchools.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {suspendedSchools.map((school) => (
+                <div key={school.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200">
+                  <div>
+                    <p className="font-medium text-gray-900">{school.name}</p>
+                    <p className="text-xs text-gray-500">Deactivated</p>
+                  </div>
+                  <Link to={`${createPageUrl('SuperadminSchoolEdit')}?id=${school.id}`}>
+                    <Button size="sm" variant="outline" className="text-red-600 border-red-200">Reactivate</Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Plan breakdown */}
       <div className="flex gap-3 flex-wrap">

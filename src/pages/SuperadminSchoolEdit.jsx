@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { PLAN_FEATURES } from '@/utils/planFeatures';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, XCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, XCircle, AlertTriangle, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SuperadminSchoolEdit() {
@@ -21,6 +22,7 @@ export default function SuperadminSchoolEdit() {
 
   const [form, setForm] = useState(null);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [featureOverrides, setFeatureOverrides] = useState('');
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['current-user-superadmin'],
@@ -46,7 +48,9 @@ export default function SuperadminSchoolEdit() {
         email: school.email || '',
         settings: school.settings || '',
         notes: school.notes || '',
+        feature_overrides: school.feature_overrides || '',
       });
+      setFeatureOverrides(school.feature_overrides || '');
     }
   }, [school]);
 
@@ -103,8 +107,8 @@ export default function SuperadminSchoolEdit() {
 
       <form onSubmit={handleSave} className="space-y-6">
         <Card>
-          <CardHeader><CardTitle>School Details</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
+           <CardHeader><CardTitle>School Details</CardTitle></CardHeader>
+           <CardContent className="space-y-4">
             <div>
               <Label>School Name</Label>
               <Input value={form.name} onChange={e => set('name', e.target.value)} />
@@ -119,6 +123,19 @@ export default function SuperadminSchoolEdit() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label className="font-semibold mb-2 block">Plan Features</Label>
+              <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg text-sm">
+                {Object.entries(PLAN_FEATURES[form.plan] || {}).map(([feature, enabled]) => (
+                  typeof enabled === 'boolean' && (
+                    <div key={feature} className="flex items-center gap-2">
+                      {enabled ? <Check className="w-4 h-4 text-green-600" /> : <X className="w-4 h-4 text-gray-300" />}
+                      <span className={enabled ? 'text-gray-900' : 'text-gray-400'}>{feature}</span>
+                    </div>
+                  )
+                ))}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Switch checked={form.is_active} onCheckedChange={v => set('is_active', v)} />
@@ -146,8 +163,25 @@ export default function SuperadminSchoolEdit() {
               <Label>Notes</Label>
               <Input value={form.notes} onChange={e => set('notes', e.target.value)} />
             </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+            </Card>
+
+            <Card>
+            <CardHeader><CardTitle>Feature Overrides</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+            <p className="text-sm text-gray-500">Override plan features for this school (JSON format, optional)</p>
+            <textarea
+              className="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
+              rows="5"
+              placeholder='{"aiFeatures": true, "customReports": false}'
+              value={featureOverrides}
+              onChange={e => {
+                setFeatureOverrides(e.target.value);
+                set('feature_overrides', e.target.value);
+              }}
+            />
+            </CardContent>
+            </Card>
 
         <div className="flex gap-3 justify-between">
           <div className="flex gap-3">
