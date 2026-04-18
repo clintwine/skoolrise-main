@@ -1,25 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function StudentAttendance() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [studentId, setStudentId] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students', user?.id],
@@ -27,7 +17,7 @@ export default function StudentAttendance() {
       if (!user?.id) return [];
       return await base44.entities.Student.filter({ user_id: user.id });
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isReady,
   });
 
   const studentProfile = students[0];
@@ -39,12 +29,12 @@ export default function StudentAttendance() {
   }, [studentProfile]);
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['student-attendance', studentId],
+    queryKey: ['student-attendance', studentId, school_tenant_id],
     queryFn: async () => {
       if (!studentId) return [];
-      return await base44.entities.Attendance.filter({ student_id: studentId });
+      return await base44.entities.Attendance.filter(addSchoolFilter({ student_id: studentId }, school_tenant_id));
     },
-    enabled: !!studentId,
+    enabled: !!studentId && isReady,
   });
 
   const stats = {

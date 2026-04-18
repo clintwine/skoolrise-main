@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award, TrendingUp, FileText } from 'lucide-react';
 
 export default function StudentGrades() {
-  const [user, setUser] = useState(null);
+  const { user, isReady } = useSchoolContext();
   const [studentId, setStudentId] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students', user?.id],
@@ -26,7 +15,7 @@ export default function StudentGrades() {
       if (!user?.id) return [];
       return await base44.entities.Student.filter({ user_id: user.id });
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isReady,
   });
 
   const studentProfile = students[0];

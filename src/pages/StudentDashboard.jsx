@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { addSchoolFilter } from '@/utils/schoolFilter';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, ClipboardList, FileText, Award, Calendar } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/SkeletonLoader';
@@ -11,29 +12,26 @@ import { format } from 'date-fns';
 import PersonalizedFeedCard from '@/components/dashboard/PersonalizedFeedCard';
 
 export default function StudentDashboard() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [studentProfile, setStudentProfile] = useState(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    if (!user?.id) return;
+    const fetchStudentProfile = async () => {
       try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        
-        // Fetch student profile
-        if (currentUser?.student_profile_id) {
-          const profile = await base44.entities.Student.get(currentUser.student_profile_id);
+        if (user?.student_profile_id) {
+          const profile = await base44.entities.Student.get(user.student_profile_id);
           setStudentProfile(profile);
-        } else if (currentUser?.id) {
-          const students = await base44.entities.Student.filter({ user_id: currentUser.id });
+        } else {
+          const students = await base44.entities.Student.filter({ user_id: user.id });
           setStudentProfile(students[0]);
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Error fetching student profile:', error);
       }
     };
-    fetchUser();
-  }, []);
+    fetchStudentProfile();
+  }, [user?.id]);
 
   const { data: enrollments = [] } = useQuery({
     queryKey: ['student-enrollments', studentProfile?.id],
@@ -41,32 +39,30 @@ export default function StudentDashboard() {
       if (!studentProfile?.id) return [];
       return await base44.entities.Enrollment.filter({ student_id: studentProfile.id });
     },
-    enabled: !!studentProfile?.id,
+    enabled: !!studentProfile?.id && isReady,
   });
 
-  const schoolTenantId = studentProfile?.school_tenant_id || null;
-
   const { data: assignments = [] } = useQuery({
-    queryKey: ['student-assignments', studentProfile?.id, schoolTenantId],
+    queryKey: ['student-assignments', studentProfile?.id, school_tenant_id],
     queryFn: async () => {
       if (!studentProfile?.id) return [];
       const classIds = enrollments.map(e => e.class_id);
       if (classIds.length === 0) return [];
-      const allAssignments = await base44.entities.Assignment.filter(addSchoolFilter({}, schoolTenantId), '-due_date', 10);
+      const allAssignments = await base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id), '-due_date', 10);
       return allAssignments.filter(a => classIds.includes(a.class_id));
     },
-    enabled: !!studentProfile?.id && enrollments.length > 0,
+    enabled: !!studentProfile?.id && enrollments.length > 0 && isReady,
   });
 
   const { data: tests = [] } = useQuery({
-    queryKey: ['student-tests-dashboard', enrollments.map(e => e.class_id).join(','), schoolTenantId],
+    queryKey: ['student-tests-dashboard', enrollments.map(e => e.class_id).join(','), school_tenant_id],
     queryFn: async () => {
       const classIds = enrollments.map(e => e.class_id);
       if (classIds.length === 0) return [];
-      const allTests = await base44.entities.Test.filter(addSchoolFilter({ status: 'Published' }, schoolTenantId), '-end_date', 20);
+      const allTests = await base44.entities.Test.filter(addSchoolFilter({ status: 'Published' }, school_tenant_id), '-end_date', 20);
       return allTests.filter(test => classIds.includes(test.class_id));
     },
-    enabled: enrollments.length > 0,
+    enabled: enrollments.length > 0 && isReady,
   });
 
   const upcomingTestsCount = useMemo(() => {

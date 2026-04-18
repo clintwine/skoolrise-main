@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,21 +18,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function StudentAssignments() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [selectedAssignment, setSelectedAssignment] = useState(null);
-  const [viewMode, setViewMode] = useState('dashboard'); // dashboard, submission, results
+  const [viewMode, setViewMode] = useState('dashboard');
   const [submissionContent, setSubmissionContent] = useState('');
   const [questionAnswers, setQuestionAnswers] = useState({});
   const [draftSaving, setDraftSaving] = useState(false);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-    };
-    fetchUser();
-  }, []);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students', user?.id],
@@ -38,7 +32,7 @@ export default function StudentAssignments() {
       if (!user?.id) return [];
       return await base44.entities.Student.filter({ user_id: user.id });
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isReady,
   });
 
   const studentProfile = students[0];
@@ -187,7 +181,7 @@ export default function StudentAssignments() {
     const dueDate = new Date(selectedAssignment.due_date);
     const isLate = now > dueDate;
 
-    const submissionData = {
+    const submissionData = withSchoolId({
       assignment_id: selectedAssignment.id,
       student_id: studentProfile.id,
       student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
@@ -196,7 +190,7 @@ export default function StudentAssignments() {
       answers: JSON.stringify(questionAnswers),
       status: 'Submitted',
       is_late: isLate,
-    };
+    }, school_tenant_id);
 
     submitMutation.mutate(submissionData);
   };

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,72 +22,63 @@ import { useParentStudents } from '@/components/hooks/useParentStudents';
 import PersonalizedFeedCard from '@/components/dashboard/PersonalizedFeedCard';
 
 export default function ParentPortal() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [expandedCard, setExpandedCard] = useState(null);
   const { formatAmount } = useCurrency();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-    };
-    fetchUser();
-  }, []);
 
   const { parentProfile, students, isLoading } = useParentStudents(user);
 
   const studentIds = students.map(s => s.id);
 
-  // Optimized: Fetch data for each student using server-side filtering
   const { data: invoices = [] } = useQuery({
-    queryKey: ['parent-invoices', studentIds],
+    queryKey: ['parent-invoices', studentIds, school_tenant_id],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
       const results = await Promise.all(
-        studentIds.map(id => base44.entities.FeeInvoice.filter({ student_id: id }))
+        studentIds.map(id => base44.entities.FeeInvoice.filter(addSchoolFilter({ student_id: id }, school_tenant_id)))
       );
       return results.flat();
     },
-    enabled: studentIds.length > 0,
+    enabled: studentIds.length > 0 && isReady,
     staleTime: 30000,
   });
 
   const { data: attendance = [] } = useQuery({
-    queryKey: ['parent-attendance', studentIds],
+    queryKey: ['parent-attendance', studentIds, school_tenant_id],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
       const results = await Promise.all(
-        studentIds.map(id => base44.entities.Attendance.filter({ student_id: id }, '-date', 50))
+        studentIds.map(id => base44.entities.Attendance.filter(addSchoolFilter({ student_id: id }, school_tenant_id), '-date', 50))
       );
       return results.flat();
     },
-    enabled: studentIds.length > 0,
+    enabled: studentIds.length > 0 && isReady,
     staleTime: 30000,
   });
 
   const { data: reportCards = [] } = useQuery({
-    queryKey: ['parent-reports', studentIds],
+    queryKey: ['parent-reports', studentIds, school_tenant_id],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
       const results = await Promise.all(
-        studentIds.map(id => base44.entities.ReportCard.filter({ student_id: id }))
+        studentIds.map(id => base44.entities.ReportCard.filter(addSchoolFilter({ student_id: id }, school_tenant_id)))
       );
       return results.flat();
     },
-    enabled: studentIds.length > 0,
+    enabled: studentIds.length > 0 && isReady,
     staleTime: 30000,
   });
 
   const { data: behaviors = [] } = useQuery({
-    queryKey: ['parent-behaviors', studentIds],
+    queryKey: ['parent-behaviors', studentIds, school_tenant_id],
     queryFn: async () => {
       if (studentIds.length === 0) return [];
       const results = await Promise.all(
-        studentIds.map(id => base44.entities.Behavior.filter({ student_id: id }, '-date', 20))
+        studentIds.map(id => base44.entities.Behavior.filter(addSchoolFilter({ student_id: id }, school_tenant_id), '-date', 20))
       );
       return results.flat();
     },
-    enabled: studentIds.length > 0,
+    enabled: studentIds.length > 0 && isReady,
     staleTime: 30000,
   });
 

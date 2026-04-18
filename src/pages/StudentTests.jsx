@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Clock, CheckCircle } from 'lucide-react';
@@ -9,20 +11,8 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 
 export default function StudentTests() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [studentId, setStudentId] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students', user?.id],
@@ -30,7 +20,7 @@ export default function StudentTests() {
       if (!user?.id) return [];
       return await base44.entities.Student.filter({ user_id: user.id });
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isReady,
   });
 
   const studentProfile = students[0];
@@ -42,17 +32,18 @@ export default function StudentTests() {
   }, [studentProfile]);
 
   const { data: exams = [] } = useQuery({
-    queryKey: ['student-tests'],
-    queryFn: () => base44.entities.Test.filter({ status: 'Published' }, '-end_date', 50),
+    queryKey: ['student-tests', school_tenant_id],
+    queryFn: () => base44.entities.Test.filter(addSchoolFilter({ status: 'Published' }, school_tenant_id), '-end_date', 50),
+    enabled: isReady,
   });
 
   const { data: attempts = [] } = useQuery({
-    queryKey: ['exam-attempts', studentId],
+    queryKey: ['exam-attempts', studentId, school_tenant_id],
     queryFn: async () => {
       if (!studentId) return [];
-      return await base44.entities.ExamAttempt.filter({ student_id: studentId });
+      return await base44.entities.ExamAttempt.filter(addSchoolFilter({ student_id: studentId }, school_tenant_id));
     },
-    enabled: !!studentId,
+    enabled: !!studentId && isReady,
   });
 
   const availableExams = exams.filter(exam => {

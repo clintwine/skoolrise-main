@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addSchoolFilter } from '@/utils/schoolFilter';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
+import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,25 +10,9 @@ import { Gift, Award, ShoppingCart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function RewardsStore() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [selectedReward, setSelectedReward] = useState(null);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-    };
-    fetchUser();
-  }, []);
-
-  const schoolTenantId = studentProfile?.school_tenant_id || null;
-
-  const { data: rewards = [] } = useQuery({
-    queryKey: ['rewards', schoolTenantId],
-    queryFn: () => base44.entities.Reward.filter(addSchoolFilter({}, schoolTenantId)),
-    enabled: !!studentProfile,
-  });
 
   const { data: students = [] } = useQuery({
     queryKey: ['students', user?.id],
@@ -35,10 +20,16 @@ export default function RewardsStore() {
       if (!user?.id) return [];
       return await base44.entities.Student.filter({ user_id: user.id });
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isReady,
   });
 
   const studentProfile = students[0];
+
+  const { data: rewards = [] } = useQuery({
+    queryKey: ['rewards', school_tenant_id],
+    queryFn: () => base44.entities.Reward.filter(addSchoolFilter({}, school_tenant_id)),
+    enabled: !!studentProfile && isReady,
+  });
 
   const { data: behaviors = [] } = useQuery({
     queryKey: ['my-behaviors', studentProfile?.id],
@@ -60,7 +51,7 @@ export default function RewardsStore() {
 
   const redeemMutation = useMutation({
     mutationFn: async (reward) => {
-      return base44.entities.RewardRedemption.create({
+      return base44.entities.RewardRedemption.create(withSchoolId({
         student_id: studentProfile.id,
         student_name: `${studentProfile.first_name} ${studentProfile.last_name}`,
         reward_id: reward.id,
@@ -68,7 +59,7 @@ export default function RewardsStore() {
         points_spent: reward.points_required,
         redemption_date: new Date().toISOString(),
         status: 'Pending',
-      });
+      }, school_tenant_id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-redemptions'] });
@@ -86,7 +77,7 @@ export default function RewardsStore() {
 
   const canAfford = (reward) => availablePoints >= reward.points_required;
 
-  if (!user) {
+  if (!isReady || !studentProfile) {
     return <div className="text-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div></div>;
   }
 
