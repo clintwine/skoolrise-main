@@ -21,10 +21,6 @@ export default function AIGradingAssistant() {
   const [suggestions, setSuggestions] = useState([]);
   const queryClient = useQueryClient();
 
-  if (!loading && !hasAccess) {
-    return <UpgradePrompt feature="AI Grading Assistant" currentPlan={plan} minimumPlan={minimumPlan} />;
-  }
-
   const { data: assignments = [] } = useQuery({
     queryKey: ['assignments', school_tenant_id],
     queryFn: () => base44.entities.Assignment.filter(addSchoolFilter({}, school_tenant_id)),
@@ -47,6 +43,10 @@ export default function AIGradingAssistant() {
       queryClient.invalidateQueries({ queryKey: ['submissions'] });
     },
   });
+
+  if (!loading && !hasAccess) {
+    return <UpgradePrompt feature="AI Grading Assistant" currentPlan={plan} minimumPlan={minimumPlan} />;
+  }
 
   const handleAnalyze = async () => {
     if (!selectedAssignment || !rubric) {

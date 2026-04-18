@@ -29,10 +29,6 @@ export default function BiometricAttendance() {
   const { school_tenant_id, isReady } = useSchoolContext();
   const { hasAccess, plan, minimumPlan, loading } = usePlanAccess('biometricAttendance');
 
-  if (!loading && !hasAccess) {
-    return <UpgradePrompt feature="Biometric Attendance" currentPlan={plan} minimumPlan={minimumPlan} />;
-  }
-
   const { data: biometricRecords = [], isLoading } = useQuery({
     queryKey: ['biometric-attendance', dateRange, school_tenant_id],
     queryFn: async () => {
@@ -55,6 +51,10 @@ export default function BiometricAttendance() {
     queryKey: ['scanner-settings'],
     queryFn: () => base44.entities.ScannerSettings.list(),
   });
+
+  if (!loading && !hasAccess) {
+    return <UpgradePrompt feature="Biometric Attendance" currentPlan={plan} minimumPlan={minimumPlan} />;
+  }
 
   const attendanceScannerEnabled = scannerSettings.find(
     s => s.feature_name === 'biometric_attendance' && s.enabled
