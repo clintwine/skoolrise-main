@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,18 +9,10 @@ import { HardDrive, Database, FileText, Download, CheckCircle, XCircle, Loader2 
 import { toast } from 'sonner';
 
 export default function BackupSettings() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [isConnected, setIsConnected] = useState(false);
   const [loadingBackupType, setLoadingBackupType] = useState(null);
   const [backupStatus, setBackupStatus] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-    };
-    fetchUser();
-  }, []);
 
   const handleConnect = async () => {
     toast.info(
@@ -47,7 +40,7 @@ export default function BackupSettings() {
     setBackupStatus(null);
     
     try {
-      const result = await base44.functions.invoke('backupToGoogleDrive', { backupType });
+      const result = await base44.functions.invoke('backupToGoogleDrive', { backupType, school_tenant_id });
       
       if (result.data.success) {
         setBackupStatus({

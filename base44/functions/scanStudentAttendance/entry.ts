@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -9,69 +9,42 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { student_id_number, action } = await req.json();
+    const body = await req.json();
+    const { student_id, biometric_id, school_tenant_id } = body;
 
-    if (!student_id_number) {
-      return Response.json({ error: 'student_id_number is required' }, { status: 400 });
+    if (!student_id || !school_tenant_id) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Fetch student details
-    const students = await base44.entities.Student.filter({ student_id_number: student_id_number });
-    if (students.length === 0) {
-      return Response.json({ success: false, error: 'Student not found' }, { status: 404 });
+    // Get student
+    const student = await base44.entities.Student.get(student_id);
+    if (!student || student.school_tenant_id !== school_tenant_id) {
+      return Response.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    const student = students[0];
+    // Record biometric attendance
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
 
-    // If action is 'confirm', create the attendance record
-    if (action === 'confirm') {
-      const now = new Date();
-      const date = now.toISOString().split('T')[0];
-      const time = now.toTimeString().split(' ')[0];
-      const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 30);
-
-      const attendanceRecord = await base44.entities.BiometricAttendance.create({
-        student_id: student.id,
-        student_name: `${student.first_name} ${student.last_name}`,
-        biometric_id: student.student_id_number,
-        timestamp: now.toISOString(),
-        date: date,
-        type: 'Check-In',
-        device_id: 'QR-SCANNER',
-        status: isLate ? 'Late' : 'On Time',
-        scanned_by_user_id: user.id,
-        scanned_by_name: user.full_name || user.email
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Attendance recorded successfully',
-        record: attendanceRecord,
-        student: {
-          id: student.id,
-          name: `${student.first_name} ${student.last_name}`,
-          student_id_number: student.student_id_number,
-          photo_url: student.photo_url,
-          grade_level: student.grade_level
-        }
-      });
-    }
-
-    // Otherwise, just return student details for confirmation
-    return Response.json({
-      success: true,
-      student: {
-        id: student.id,
-        name: `${student.first_name} ${student.last_name}`,
-        student_id_number: student.student_id_number,
-        photo_url: student.photo_url,
-        grade_level: student.grade_level,
-        status: student.status
-      }
+    const biometricRecord = await base44.asServiceRole.entities.BiometricAttendance.create({
+      school_tenant_id,
+      student_id,
+      student_name: `${student.first_name} ${student.last_name}`,
+      biometric_id,
+      timestamp: now.toISOString(),
+      date: today,
+      type: 'Check-In',
+      device_id: 'scanner-main',
+      status: 'On Time',
     });
 
+    return Response.json({
+      success: true,
+      message: 'Attendance recorded',
+      record_id: biometricRecord.id,
+      student_name: student.first_name + ' ' + student.last_name,
+    });
   } catch (error) {
-    console.error('Error in scanStudentAttendance:', error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });

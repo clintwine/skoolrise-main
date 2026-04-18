@@ -13,28 +13,29 @@ import BookRecommendationForm from '../components/bookshop/BookRecommendationFor
 import { useCurrency } from '@/components/CurrencyProvider';
 
 export default function VendorDashboard() {
-  const [user, setUser] = useState(null);
+  const { user, school_tenant_id, isReady } = useSchoolContext();
   const [vendorId, setVendorId] = useState(null);
   const [showRecommendationForm, setShowRecommendationForm] = useState(false);
   const { formatAmount } = useCurrency();
-  const { school_tenant_id, isReady } = useSchoolContext();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-
-      if (currentUser?.vendor_profile_id) {
-        setVendorId(currentUser.vendor_profile_id);
-      } else if (currentUser?.id) {
-        const vendors = await base44.entities.Vendor.filter({ user_id: currentUser.id });
-        if (vendors.length > 0) {
-          setVendorId(vendors[0].id);
+    if (!user?.id) return;
+    const fetchVendorId = async () => {
+      try {
+        if (user?.vendor_profile_id) {
+          setVendorId(user.vendor_profile_id);
+        } else {
+          const vendors = await base44.entities.Vendor.filter({ user_id: user.id });
+          if (vendors.length > 0) {
+            setVendorId(vendors[0].id);
+          }
         }
+      } catch (error) {
+        console.error('Error fetching vendor:', error);
       }
     };
-    fetchUser();
-  }, []);
+    fetchVendorId();
+  }, [user?.id]);
 
   const { data: vendor } = useQuery({
     queryKey: ['vendor', vendorId],
@@ -59,7 +60,7 @@ export default function VendorDashboard() {
     enabled: !!vendorId,
   });
 
-  if (!user || !vendorId) {
+  if (!isReady || !vendorId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

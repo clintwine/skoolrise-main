@@ -3,72 +3,53 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const body = await req.json();
+    const { school_tenant_id } = body;
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    if (!school_tenant_id) {
+      return Response.json({ error: 'school_tenant_id required' }, { status: 400 });
     }
 
-    const schoolTenantId = user.school_tenant_id;
-    const now = new Date();
-
-    const invoiceFilter = {};
-    if (schoolTenantId) invoiceFilter.school_tenant_id = schoolTenantId;
-    const invoices = await base44.asServiceRole.entities.FeeInvoice.filter(invoiceFilter);
-
-    const overdueInvoices = invoices.filter(inv => {
-      if (inv.status === 'Paid') return false;
-      if (!inv.due_date) return false;
-      return new Date(inv.due_date) < now && inv.balance > 0;
+    // Get overdue invoices
+    const overdueInvoices = await base44.asServiceRole.entities.FeeInvoice.filter({
+      school_tenant_id,
+      status: 'Overdue',
     });
 
-    const studentFilter = {};
-    if (schoolTenantId) studentFilter.school_tenant_id = schoolTenantId;
-    const students = await base44.asServiceRole.entities.Student.filter(studentFilter);
-
-    const parentFilter = {};
-    if (schoolTenantId) parentFilter.school_tenant_id = schoolTenantId;
-    const parents = await base44.asServiceRole.entities.Parent.filter(parentFilter);
-
-    const studentMap = {};
-    students.forEach(s => { studentMap[s.id] = s; });
-
-    let notificationsSent = 0;
-
+    // Get parent profiles and student links
+    const notifications = [];
     for (const invoice of overdueInvoices) {
-      const student = studentMap[invoice.student_id];
-      if (!student) continue;
-
-      const linkedParents = parents.filter(p => {
-        try {
-          const linkedIds = JSON.parse(p.linked_student_ids || '[]');
-          return linkedIds.includes(student.id);
-        } catch {
-          return false;
+      const student = await base44.asServiceRole.entities.Student.get(invoice.student_id);
+      if (student && student.parent_of_student_ids) {
+        const parentIds = JSON.parse(student.parent_of_student_ids || '[]');
+        for (const parentId of parentIds) {
+          const parent = await base44.asServiceRole.entities.Parent.get(parentId);
+          if (parent && parent.user_id) {
+            notifications.push({
+              school_tenant_id,
+              user_id: parent.user_id,
+              user_email: parent.email,
+              title: `Fee Payment Overdue: ${invoice.student_name}`,
+              message: `Invoice #${invoice.invoice_number} for ${invoice.student_name} is overdue. Balance: ${invoice.balance}`,
+              type: 'fee',
+              entity_type: 'FeeInvoice',
+              entity_id: invoice.id,
+              is_read: false,
+            });
+          }
         }
-      });
-
-      for (const parent of linkedParents) {
-        if (!parent.user_id) continue;
-
-        await base44.asServiceRole.entities.InAppNotification.create({
-          user_id: parent.user_id,
-          user_email: '',
-          title: '💰 Fee Payment Overdue',
-          message: `Invoice #${invoice.invoice_number} for ${student.first_name} ${student.last_name} is overdue. Outstanding: ${invoice.balance}`,
-          type: 'fee',
-          link: 'ParentFees',
-          link_params: '',
-          entity_type: 'FeeInvoice',
-          entity_id: invoice.id,
-          is_read: false,
-          school_tenant_id: schoolTenantId || null,
-        });
-        notificationsSent++;
       }
     }
 
-    return Response.json({ success: true, overdueInvoicesChecked: overdueInvoices.length, notificationsSent });
+    if (notifications.length > 0) {
+      await base44.asServiceRole.entities.InAppNotification.bulkCreate(notifications);
+    }
+
+    return Response.json({
+      success: true,
+      message: 'Fee overdue notifications sent',
+      count: notifications.length,
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

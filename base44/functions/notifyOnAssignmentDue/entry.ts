@@ -3,64 +3,46 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const body = await req.json();
+    const { assignment_id, school_tenant_id } = body;
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    if (!assignment_id || !school_tenant_id) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const schoolTenantId = user.school_tenant_id;
-    const now = new Date();
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    // Get assignment
+    const assignment = await base44.asServiceRole.entities.Assignment.get(assignment_id);
+    if (!assignment || assignment.school_tenant_id !== school_tenant_id) {
+      return Response.json({ error: 'Assignment not found' }, { status: 404 });
+    }
 
-    const assignmentFilter = { status: 'Published' };
-    if (schoolTenantId) assignmentFilter.school_tenant_id = schoolTenantId;
-
-    const assignments = await base44.asServiceRole.entities.Assignment.filter(assignmentFilter);
-
-    const dueSoon = assignments.filter(a => {
-      if (!a.due_date) return false;
-      const dueDate = new Date(a.due_date);
-      return dueDate >= now && dueDate <= tomorrow;
+    // Get class enrollments
+    const enrollments = await base44.asServiceRole.entities.Enrollment.filter({
+      school_tenant_id,
+      class_id: assignment.class_id,
+      status: 'Enrolled',
     });
 
-    const enrollmentFilter = { status: 'Enrolled' };
-    if (schoolTenantId) enrollmentFilter.school_tenant_id = schoolTenantId;
-    const enrollments = await base44.asServiceRole.entities.Enrollment.filter(enrollmentFilter);
+    // Create notifications for each student
+    const notifications = enrollments.map(e => ({
+      school_tenant_id,
+      user_id: e.student_id,
+      user_email: e.student_email,
+      title: `Assignment Due: ${assignment.title}`,
+      message: `Your assignment "${assignment.title}" is due ${assignment.due_date}`,
+      type: 'assignment',
+      entity_type: 'Assignment',
+      entity_id: assignment_id,
+      is_read: false,
+    }));
 
-    const studentFilter = {};
-    if (schoolTenantId) studentFilter.school_tenant_id = schoolTenantId;
-    const students = await base44.asServiceRole.entities.Student.filter(studentFilter);
-    const studentMap = {};
-    students.forEach(s => { studentMap[s.id] = s; });
+    const created = await base44.asServiceRole.entities.InAppNotification.bulkCreate(notifications);
 
-    let notificationsSent = 0;
-
-    for (const assignment of dueSoon) {
-      const classEnrollments = enrollments.filter(e => e.class_id === assignment.class_id);
-
-      for (const enrollment of classEnrollments) {
-        const student = studentMap[enrollment.student_id];
-        if (!student?.user_id) continue;
-
-        await base44.asServiceRole.entities.InAppNotification.create({
-          user_id: student.user_id,
-          user_email: '',
-          title: '📚 Assignment Due Soon',
-          message: `"${assignment.title}" is due ${new Date(assignment.due_date).toLocaleDateString()}. Don't forget to submit!`,
-          type: 'assignment',
-          link: 'StudentAssignments',
-          link_params: `id=${assignment.id}`,
-          entity_type: 'Assignment',
-          entity_id: assignment.id,
-          is_read: false,
-          school_tenant_id: schoolTenantId || null,
-        });
-        notificationsSent++;
-      }
-    }
-
-    return Response.json({ success: true, assignmentsChecked: dueSoon.length, notificationsSent });
+    return Response.json({
+      success: true,
+      message: 'Notifications created',
+      count: created.length,
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
