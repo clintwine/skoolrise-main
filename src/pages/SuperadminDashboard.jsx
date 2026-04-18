@@ -98,7 +98,10 @@ export default function SuperadminDashboard() {
   const activeCount = schools.filter(s => s.is_active).length;
 
   const filtered = schools.filter(school => {
-    const matchSearch = !search || school.name?.toLowerCase().includes(search.toLowerCase()) || school.code?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || 
+      school.name?.toLowerCase().includes(search.toLowerCase()) || 
+      school.code?.toLowerCase().includes(search.toLowerCase()) ||
+      school.subdomain?.toLowerCase().includes(search.toLowerCase());
     const matchPlan = filterPlan === 'all' || school.plan === filterPlan;
     const matchActive = filterActive === 'all' || (filterActive === 'active' ? school.is_active : !school.is_active);
     return matchSearch && matchPlan && matchActive;
@@ -282,7 +285,7 @@ export default function SuperadminDashboard() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
-            placeholder="Search by name or code..."
+            placeholder="Search by name, code, or subdomain..."
             className="pl-9"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -327,7 +330,7 @@ export default function SuperadminDashboard() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    {['Name', 'Code', 'Plan', 'Active', 'Onboarded', 'Admin Email', 'Actions'].map(h => (
+                    {['Name', 'Code', 'Subdomain', 'Plan', 'Active', 'Onboarded', 'Admin Email', 'Actions'].map(h => (
                       <th key={h} className="text-left px-4 py-3 text-gray-600 font-medium">{h}</th>
                     ))}
                   </tr>
@@ -337,6 +340,7 @@ export default function SuperadminDashboard() {
                     <tr key={school.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">{school.name}</td>
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{school.code || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 font-mono text-xs">{school.subdomain ? `${school.subdomain}.skolorise-main.base44.app` : '—'}</td>
                       <td className="px-4 py-3">
                         <Badge className={PLAN_COLORS[school.plan] || 'bg-gray-100 text-gray-700'}>
                           {school.plan || 'free'}

@@ -41,6 +41,7 @@ export default function SuperadminSchoolEdit() {
     if (school && !form) {
       setForm({
         name: school.name || '',
+        subdomain: school.subdomain || '',
         plan: school.plan || 'free',
         is_active: school.is_active ?? true,
         address: school.address || '',
@@ -112,6 +113,17 @@ export default function SuperadminSchoolEdit() {
             <div>
               <Label>School Name</Label>
               <Input value={form.name} onChange={e => set('name', e.target.value)} />
+            </div>
+            <div>
+              <Label>Subdomain</Label>
+              <Input 
+                value={form.subdomain} 
+                onChange={e => set('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                placeholder="e.g., myschool"
+                disabled
+                className="bg-gray-100"
+              />
+              <p className="text-xs text-gray-500 mt-1">Subdomain (read-only after creation)</p>
             </div>
             <div>
               <Label>Plan</Label>
