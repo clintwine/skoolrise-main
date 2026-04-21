@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrency } from '@/components/CurrencyProvider';
+import ParentMedicalInfoSection from '@/components/parents/ParentMedicalInfoSection';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function ParentStudentView() {
@@ -35,6 +36,7 @@ export default function ParentStudentView() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { formatAmount } = useCurrency();
+  const school_tenant_id = user?.school_tenant_id;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -475,6 +477,7 @@ export default function ParentStudentView() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="medical">Medical info</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
           <TabsTrigger value="grades">Grades & Reports</TabsTrigger>
@@ -505,6 +508,10 @@ export default function ParentStudentView() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="medical" className="space-y-4">
+          <ParentMedicalInfoSection studentId={selectedStudentId} school_tenant_id={school_tenant_id} />
         </TabsContent>
 
         <TabsContent value="attendance" className="space-y-4">

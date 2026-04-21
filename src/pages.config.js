@@ -144,6 +144,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import StudentGrades from './pages/StudentGrades';
 import StudentLeaderboard from './pages/StudentLeaderboard';
 import StudentManagement from './pages/StudentManagement';
+import StudentMedicalRecords from './pages/StudentMedicalRecords';
 import StudentProfile from './pages/StudentProfile';
 import StudentProgressTracking from './pages/StudentProgressTracking';
 import StudentRecords from './pages/StudentRecords';
@@ -265,6 +266,7 @@ export const PAGES = {
     "StudentGrades": StudentGrades,
     "StudentLeaderboard": StudentLeaderboard,
     "StudentManagement": StudentManagement,
+    "StudentMedicalRecords": StudentMedicalRecords,
     "StudentProfile": StudentProfile,
     "StudentProgressTracking": StudentProgressTracking,
     "StudentRecords": StudentRecords,

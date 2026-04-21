@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Clock, Flag, ChevronLeft, ChevronRight, Camera, CheckCircle } from 'lucide-react';
@@ -28,6 +30,7 @@ export default function TakeExam() {
 
   const queryClient = useQueryClient();
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, planLabel, minimumPlanLabel, loading: planLoading } = usePlanAccess('examCbt');
 
   const { data: exam } = useQuery({
     queryKey: ['exam', examId, school_tenant_id],
@@ -266,6 +269,19 @@ export default function TakeExam() {
   const handleAnswerChange = (questionId, value) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
+
+  if (planLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    </div>
+  );
+  if (!hasAccess) return (
+    <UpgradePrompt
+      feature="Online Exams"
+      currentPlan={planLabel}
+      minimumPlan={minimumPlanLabel}
+    />
+  );
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

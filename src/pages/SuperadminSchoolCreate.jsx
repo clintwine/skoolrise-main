@@ -33,7 +33,7 @@ export default function SuperadminSchoolCreate() {
     subdomain: '',
     school_type: '',
     student_count_range: '',
-    plan: 'free',
+    plan: 'starter',
     address: '',
     phone: '',
     email: '',
@@ -243,8 +243,13 @@ export default function SuperadminSchoolCreate() {
               <Select value={form.plan} onValueChange={v => set('plan', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {['free', 'starter', 'pro', 'enterprise'].map(p => (
-                    <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+                  {[
+                    { value: 'starter', label: 'Starter' },
+                    { value: 'growth', label: 'Growth' },
+                    { value: 'professional', label: 'Professional' },
+                    { value: 'elite', label: 'Elite' },
+                  ].map(p => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

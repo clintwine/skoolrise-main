@@ -19,7 +19,7 @@ import { base44 } from '@/api/base44Client';
 
 export default function AILessonPlanner() {
   const { school_tenant_id, isReady } = useSchoolContext();
-  const { hasAccess, plan, minimumPlan, loading } = usePlanAccess('aiFeatures');
+  const { hasAccess, planLabel, minimumPlanLabel, loading } = usePlanAccess('aiLessonPlanner');
   const [generating, setGenerating] = useState(false);
   const [lessonPlan, setLessonPlan] = useState(null);
   const [formData, setFormData] = useState({
@@ -63,7 +63,7 @@ export default function AILessonPlanner() {
   });
 
   if (!loading && !hasAccess) {
-    return <UpgradePrompt feature="AI Lesson Planner" currentPlan={plan} minimumPlan={minimumPlan} />;
+    return <UpgradePrompt feature="AI Lesson Planner" currentPlan={planLabel} minimumPlan={minimumPlanLabel} />;
   }
 
   const uniqueGradeLevels = [...new Set(classArms.map(c => c.grade_level))].sort();

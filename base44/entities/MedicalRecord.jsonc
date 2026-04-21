@@ -1,0 +1,87 @@
+{
+  "name": "MedicalRecord",
+  "type": "object",
+  "properties": {
+    "school_tenant_id": {
+      "type": "string",
+      "description": "Links to SchoolTenant"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "Links to Student"
+    },
+    "blood_group": {
+      "type": "string",
+      "enum": [
+        "A+",
+        "A-",
+        "B+",
+        "B-",
+        "AB+",
+        "AB-",
+        "O+",
+        "O-"
+      ],
+      "description": "Student blood group"
+    },
+    "genotype": {
+      "type": "string",
+      "enum": [
+        "AA",
+        "AS",
+        "SS",
+        "AC",
+        "SC"
+      ],
+      "description": "Student genotype"
+    },
+    "allergies": {
+      "type": "string",
+      "description": "Free text, comma-separated allergies"
+    },
+    "chronic_conditions": {
+      "type": "string",
+      "description": "Chronic conditions such as asthma, epilepsy, diabetes"
+    },
+    "disabilities": {
+      "type": "string",
+      "description": "Physical or learning disabilities"
+    },
+    "current_medications": {
+      "type": "string",
+      "description": "Medications currently taken"
+    },
+    "doctor_name": {
+      "type": "string",
+      "description": "Family or school doctor name"
+    },
+    "doctor_phone": {
+      "type": "string",
+      "description": "Doctor contact number"
+    },
+    "emergency_contact_name": {
+      "type": "string",
+      "description": "Emergency contact name"
+    },
+    "emergency_contact_phone": {
+      "type": "string",
+      "description": "Emergency contact phone"
+    },
+    "emergency_contact_relation": {
+      "type": "string",
+      "description": "Emergency contact relation e.g. Mother, Father, Guardian"
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "ISO date of last record update"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional medical notes"
+    }
+  },
+  "required": [
+    "school_tenant_id",
+    "student_id"
+  ]
+}

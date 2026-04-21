@@ -4,6 +4,8 @@ import { addSchoolFilter } from '@/utils/schoolFilter';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -43,6 +45,7 @@ export default function ExamCommandCenter() {
   const teacherProfile = teachers[0];
   const isAdmin = user?.role === 'admin' || user?.user_type === 'admin';
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, planLabel, minimumPlanLabel, loading: planLoading } = usePlanAccess('examCbt');
 
   const { data: allExams = [], isLoading: examsLoading } = useQuery({
     queryKey: ['exams', school_tenant_id],
@@ -69,6 +72,19 @@ export default function ExamCommandCenter() {
     mutationFn: (id) => base44.entities.Exam.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['exams'] }),
   });
+
+  if (planLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    </div>
+  );
+  if (!hasAccess) return (
+    <UpgradePrompt
+      feature="CBT Exam Command Centre"
+      currentPlan={planLabel}
+      minimumPlan={minimumPlanLabel}
+    />
+  );
 
   const statsCards = [
     {

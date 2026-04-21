@@ -2,12 +2,15 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Camera, AlertTriangle, Eye, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function ProctoringAnalytics() {
+  const { hasAccess, planLabel, minimumPlanLabel, loading: planLoading } = usePlanAccess('proctoringAnalytics');
   const urlParams = new URLSearchParams(window.location.search);
   const examId = urlParams.get('id');
 
@@ -29,6 +32,18 @@ export default function ProctoringAnalytics() {
     enabled: !!examId,
   });
 
+  if (planLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    </div>
+  );
+  if (!hasAccess) return (
+    <UpgradePrompt
+      feature="Proctoring Analytics"
+      currentPlan={planLabel}
+      minimumPlan={minimumPlanLabel}
+    />
+  );
   if (!exam) {
     return (
       <div className="flex items-center justify-center min-h-screen">

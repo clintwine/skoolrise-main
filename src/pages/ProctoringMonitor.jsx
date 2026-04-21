@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { addSchoolFilter } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +22,7 @@ export default function ProctoringMonitor() {
 
   const queryClient = useQueryClient();
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, planLabel, minimumPlanLabel, loading: planLoading } = usePlanAccess('proctoring');
 
   const { data: exams = [] } = useQuery({
     queryKey: ['exams', school_tenant_id],
@@ -69,6 +72,19 @@ export default function ProctoringMonitor() {
   const criticalCount = logs.filter(l => l.severity === 'Critical').length;
   const highCount = logs.filter(l => l.severity === 'High').length;
   const requiresReview = logs.filter(l => l.requires_review).length;
+
+  if (planLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    </div>
+  );
+  if (!hasAccess) return (
+    <UpgradePrompt
+      feature="Live Exam Proctoring"
+      currentPlan={planLabel}
+      minimumPlan={minimumPlanLabel}
+    />
+  );
 
   const severityColors = {
     Low: 'bg-green-100 text-green-800',

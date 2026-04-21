@@ -34,6 +34,17 @@
       ],
       "description": "Type of school"
     },
+    "tier_interest": {
+      "type": "string",
+      "enum": [
+        "Starter",
+        "Growth",
+        "Professional",
+        "Elite",
+        "Not sure yet"
+      ],
+      "description": "Which pricing tier the school is interested in"
+    },
     "student_count_range": {
       "type": "string",
       "enum": [

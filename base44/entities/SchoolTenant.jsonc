@@ -55,12 +55,12 @@
     "plan": {
       "type": "string",
       "enum": [
-        "free",
         "starter",
-        "pro",
-        "enterprise"
+        "growth",
+        "professional",
+        "elite"
       ],
-      "default": "free",
+      "default": "starter",
       "description": "Subscription plan"
     },
     "is_active": {

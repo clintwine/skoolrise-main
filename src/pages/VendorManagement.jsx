@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { addSchoolFilter, withSchoolId } from '@/utils/schoolFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +22,7 @@ export default function VendorManagement() {
   const [viewMode, setViewMode] = useState('table');
   const queryClient = useQueryClient();
   const { school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, planLabel, minimumPlanLabel, loading: planLoading } = usePlanAccess('vendorManagement');
 
   const [formData, setFormData] = useState({
     business_name: '',
@@ -92,6 +95,19 @@ export default function VendorManagement() {
     v.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (planLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    </div>
+  );
+  if (!hasAccess) return (
+    <UpgradePrompt
+      feature="Vendor Management"
+      currentPlan={planLabel}
+      minimumPlan={minimumPlanLabel}
+    />
   );
 
   const categoryColors = {

@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function AIGradingAssistant() {
   const { school_tenant_id, isReady } = useSchoolContext();
-  const { hasAccess, plan, minimumPlan, loading } = usePlanAccess('aiFeatures');
+  const { hasAccess, planLabel, minimumPlanLabel, loading } = usePlanAccess('aiGradingAssistant');
   const [selectedAssignment, setSelectedAssignment] = useState('');
   const [rubric, setRubric] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
@@ -45,7 +45,7 @@ export default function AIGradingAssistant() {
   });
 
   if (!loading && !hasAccess) {
-    return <UpgradePrompt feature="AI Grading Assistant" currentPlan={plan} minimumPlan={minimumPlan} />;
+    return <UpgradePrompt feature="AI Grading Assistant" currentPlan={planLabel} minimumPlan={minimumPlanLabel} />;
   }
 
   const handleAnalyze = async () => {

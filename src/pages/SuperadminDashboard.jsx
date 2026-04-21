@@ -9,22 +9,29 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Users, Plus, Search, Eye, Pencil, CheckCircle, XCircle } from 'lucide-react';
+import { Building2, Users, Plus, Search, Eye, Pencil, CheckCircle, XCircle, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 const PLAN_COLORS = {
-  free: 'bg-gray-100 text-gray-700',
-  starter: 'bg-blue-100 text-blue-700',
-  pro: 'bg-purple-100 text-purple-700',
-  enterprise: 'bg-amber-100 text-amber-700',
+  starter: 'bg-[#E1F5EE] text-[#0F6E56]',
+  growth: 'bg-[#E6F1FB] text-[#185FA5]',
+  professional: 'bg-[#EEEDFE] text-[#534AB7]',
+  elite: 'bg-[#FAEEDA] text-[#854F0B]',
+};
+
+const PLAN_LABELS = {
+  starter: 'Starter',
+  growth: 'Growth',
+  professional: 'Professional',
+  elite: 'Elite',
 };
 
 const PLAN_PRICING = {
-  free: 0,
   starter: 99,
-  pro: 299,
-  enterprise: 999,
+  growth: 199,
+  professional: 399,
+  elite: 999,
 };
 
 export default function SuperadminDashboard() {
@@ -89,10 +96,10 @@ export default function SuperadminDashboard() {
   }
 
   const planCounts = {
-    free: schools.filter(s => s.plan === 'free').length,
     starter: schools.filter(s => s.plan === 'starter').length,
-    pro: schools.filter(s => s.plan === 'pro').length,
-    enterprise: schools.filter(s => s.plan === 'enterprise').length,
+    growth: schools.filter(s => s.plan === 'growth').length,
+    professional: schools.filter(s => s.plan === 'professional').length,
+    elite: schools.filter(s => s.plan === 'elite').length,
   };
 
   const activeCount = schools.filter(s => s.is_active).length;
@@ -139,7 +146,7 @@ export default function SuperadminDashboard() {
     { label: 'Total Users', value: allUsers.length, icon: Users, color: 'bg-purple-500' },
     {
       label: 'Plans',
-      value: `${planCounts.pro}P / ${planCounts.enterprise}E`,
+      value: `${planCounts.growth}G / ${planCounts.elite}E`,
       icon: Building2,
       color: 'bg-amber-500',
     },
@@ -214,7 +221,7 @@ export default function SuperadminDashboard() {
                 <div key={school.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">#{idx + 1} {school.name}</p>
-                    <p className="text-xs text-gray-500">{school.plan.charAt(0).toUpperCase() + school.plan.slice(1)}</p>
+                    <p className="text-xs text-gray-500">{PLAN_LABELS[school.plan] || school.plan}</p>
                   </div>
                   <span className="font-bold text-lg text-gray-900">{school.studentCount}</span>
                 </div>
@@ -238,7 +245,7 @@ export default function SuperadminDashboard() {
                       <p className="font-medium text-gray-900">{school.name}</p>
                       <p className="text-xs text-gray-500">{format(new Date(school.onboarded_at), 'dd MMM yyyy')}</p>
                     </div>
-                    <Badge className={PLAN_COLORS[school.plan]}>{school.plan}</Badge>
+                    <Badge className={PLAN_COLORS[school.plan]}>{PLAN_LABELS[school.plan] || school.plan}</Badge>
                   </div>
                 ))
               )}
@@ -297,10 +304,10 @@ export default function SuperadminDashboard() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Plans</SelectItem>
-            <SelectItem value="free">Free</SelectItem>
             <SelectItem value="starter">Starter</SelectItem>
-            <SelectItem value="pro">Pro</SelectItem>
-            <SelectItem value="enterprise">Enterprise</SelectItem>
+            <SelectItem value="growth">Growth</SelectItem>
+            <SelectItem value="professional">Professional</SelectItem>
+            <SelectItem value="elite">Elite</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterActive} onValueChange={setFilterActive}>
@@ -343,7 +350,7 @@ export default function SuperadminDashboard() {
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{school.subdomain ? `${school.subdomain}.skolorise-main.base44.app` : '—'}</td>
                       <td className="px-4 py-3">
                         <Badge className={PLAN_COLORS[school.plan] || 'bg-gray-100 text-gray-700'}>
-                          {school.plan || 'free'}
+                          {PLAN_LABELS[school.plan] || school.plan}
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
@@ -365,6 +372,9 @@ export default function SuperadminDashboard() {
                           </Link>
                           <Link to={`${createPageUrl('SuperadminSchoolEdit')}?id=${school.id}`}>
                             <Button variant="ghost" size="sm"><Pencil className="w-4 h-4" /></Button>
+                          </Link>
+                          <Link to={`${createPageUrl('SuperadminSchoolEdit')}?id=${school.id}&tab=features`}>
+                            <Button variant="ghost" size="sm" title="Manage features"><SlidersHorizontal className="w-4 h-4" /></Button>
                           </Link>
                         </div>
                       </td>

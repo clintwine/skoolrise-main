@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,26 +9,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle2, Loader2, School } from 'lucide-react';
 import { toast } from 'sonner';
 
-const initialForm = {
+const TIER_BADGE_CLASSES = {
+  Starter: 'bg-[#E1F5EE] text-[#0F6E56]',
+  Growth: 'bg-[#E6F1FB] text-[#185FA5]',
+  Professional: 'bg-[#EEEDFE] text-[#534AB7]',
+  Elite: 'bg-[#FAEEDA] text-[#854F0B]',
+};
+
+const createInitialForm = (initialTier = null) => ({
   contact_name: '',
   email: '',
   phone: '',
   school_name: '',
   school_type: '',
+  tier_interest: initialTier || '',
   student_count_range: '',
   role: '',
   primary_goal: '',
   current_tools: '',
   go_live_timeline: '',
   notes: '',
-};
+});
 
-export default function SchoolInquiryDialog({ open, onOpenChange }) {
-  const [form, setForm] = useState(initialForm);
+export default function SchoolInquiryDialog({ open, onOpenChange, initialTier = null }) {
+  const [form, setForm] = useState(createInitialForm(initialTier));
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const updateField = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+
+  useEffect(() => {
+    if (initialTier) setForm(prev => ({ ...prev, tier_interest: initialTier }));
+  }, [initialTier]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +57,7 @@ export default function SchoolInquiryDialog({ open, onOpenChange }) {
       setTimeout(() => {
         setSubmitted(false);
         setSaving(false);
-        setForm(initialForm);
+        setForm(createInitialForm(initialTier));
       }, 200);
     }
   };
@@ -70,6 +82,11 @@ export default function SchoolInquiryDialog({ open, onOpenChange }) {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-100 to-purple-100 flex items-center justify-center mb-3">
                 <School className="w-6 h-6 text-purple-600" />
               </div>
+              {initialTier && (
+                <div className={`inline-flex self-start px-3 py-1 rounded-full text-sm font-medium mb-3 ${TIER_BADGE_CLASSES[initialTier] || 'bg-gray-100 text-gray-700'}`}>
+                  You've selected the {initialTier} plan — we'll prepare a quote for you.
+                </div>
+              )}
               <DialogTitle className="text-2xl">Start your school setup</DialogTitle>
               <DialogDescription>
                 Tell us a bit about your school so we can tailor the right onboarding path for you.
@@ -156,6 +173,20 @@ export default function SchoolInquiryDialog({ open, onOpenChange }) {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Plan you're interested in</Label>
+                <Select value={form.tier_interest} onValueChange={(value) => updateField('tier_interest', value)}>
+                  <SelectTrigger><SelectValue placeholder="Select a plan" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Starter">Starter</SelectItem>
+                    <SelectItem value="Growth">Growth</SelectItem>
+                    <SelectItem value="Professional">Professional</SelectItem>
+                    <SelectItem value="Elite">Elite</SelectItem>
+                    <SelectItem value="Not sure yet">Not sure yet</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

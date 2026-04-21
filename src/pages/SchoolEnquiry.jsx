@@ -5,10 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Mail, Phone, Building2, CalendarDays } from 'lucide-react';
+
+const TIER_CLASSES = {
+  Starter: 'bg-[#E1F5EE] text-[#0F6E56]',
+  Growth: 'bg-[#E6F1FB] text-[#185FA5]',
+  Professional: 'bg-[#EEEDFE] text-[#534AB7]',
+  Elite: 'bg-[#FAEEDA] text-[#854F0B]',
+  'Not sure yet': 'bg-gray-100 text-gray-700',
+  '': 'bg-gray-100 text-gray-700',
+};
 
 export default function SchoolEnquiry() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [tierFilter, setTierFilter] = useState('all');
 
   const { data: enquiries = [], isLoading } = useQuery({
     queryKey: ['school-enquiries'],
@@ -17,16 +28,19 @@ export default function SchoolEnquiry() {
 
   const filteredEnquiries = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return enquiries.filter((item) =>
-      [
+    return enquiries.filter((item) => {
+      const matchesSearch = [
         item.contact_name,
         item.school_name,
         item.email,
         item.phone,
         item.primary_goal,
-      ].some((value) => value?.toLowerCase().includes(term))
-    );
-  }, [enquiries, searchTerm]);
+        item.tier_interest,
+      ].some((value) => value?.toLowerCase().includes(term));
+      const matchesTier = tierFilter === 'all' || (item.tier_interest || 'Not sure yet') === tierFilter;
+      return matchesSearch && matchesTier;
+    });
+  }, [enquiries, searchTerm, tierFilter]);
 
   return (
     <div className="space-y-6">
@@ -42,14 +56,29 @@ export default function SchoolEnquiry() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, school, email or goal"
-              className="pl-10"
-            />
+          <div className="grid md:grid-cols-[1fr_220px] gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by name, school, email, goal or tier"
+                className="pl-10"
+              />
+            </div>
+            <Select value={tierFilter} onValueChange={setTierFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All tiers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All tiers</SelectItem>
+                <SelectItem value="Starter">Starter</SelectItem>
+                <SelectItem value="Growth">Growth</SelectItem>
+                <SelectItem value="Professional">Professional</SelectItem>
+                <SelectItem value="Elite">Elite</SelectItem>
+                <SelectItem value="Not sure yet">Not sure yet</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -75,7 +104,10 @@ export default function SchoolEnquiry() {
                     <CardTitle className="text-xl text-gray-900">{item.school_name}</CardTitle>
                     <p className="text-sm text-gray-500 mt-1">Submitted {new Date(item.created_date).toLocaleString()}</p>
                   </div>
-                  <Badge className="bg-orange-100 text-orange-700 border-0">{item.primary_goal}</Badge>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge className="bg-orange-100 text-orange-700 border-0">{item.primary_goal}</Badge>
+                    <Badge className={TIER_CLASSES[item.tier_interest || '']}>{item.tier_interest || 'Not sure yet'}</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

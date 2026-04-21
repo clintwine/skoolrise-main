@@ -16,12 +16,12 @@ export default function UpgradePrompt({ feature, currentPlan, minimumPlan }) {
         </h1>
 
         <p className="text-center text-slate-600 mb-6">
-          This feature is not available on your current <span className="font-semibold capitalize">{currentPlan}</span> plan.
+          This feature is not available on your current <span className="font-semibold">{currentPlan}</span> plan.
         </p>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-slate-700">
-            Upgrade to <span className="font-semibold capitalize">{minimumPlan}</span> plan to unlock this feature.
+            Upgrade to <span className="font-semibold">{minimumPlan}</span> plan to unlock this feature.
           </p>
         </div>
 

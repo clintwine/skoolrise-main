@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useSchoolContext } from '@/hooks/useSchoolContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
+import UpgradePrompt from '@/components/UpgradePrompt';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -10,6 +12,7 @@ import { toast } from 'sonner';
 
 export default function BackupSettings() {
   const { user, school_tenant_id, isReady } = useSchoolContext();
+  const { hasAccess, planLabel, minimumPlanLabel, loading: planLoading } = usePlanAccess('backupGoogleDrive');
   const [isConnected, setIsConnected] = useState(false);
   const [loadingBackupType, setLoadingBackupType] = useState(null);
   const [backupStatus, setBackupStatus] = useState(null);
@@ -65,6 +68,18 @@ export default function BackupSettings() {
     }
   };
 
+  if (planLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    </div>
+  );
+  if (!hasAccess) return (
+    <UpgradePrompt
+      feature="Google Drive Backup"
+      currentPlan={planLabel}
+      minimumPlan={minimumPlanLabel}
+    />
+  );
   if (!user || user.role !== 'admin') {
     return (
       <div className="text-center py-12">

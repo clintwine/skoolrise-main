@@ -14,6 +14,7 @@ import { Plus, Search, UserCircle, Mail, Phone, Calendar, GraduationCap, Users, 
 // import { format } from 'date-fns'; // Removed - not used
 import { toast } from 'sonner';
 import StudentForm from '../components/students/StudentForm';
+import StudentMedicalTab from '../components/students/StudentMedicalTab';
 
 export default function ImprovedStudentRecords() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -438,6 +439,8 @@ export default function ImprovedStudentRecords() {
                   </div>
                 </CardContent>
               </Card>
+
+              <StudentMedicalTab student={selectedStudent} school_tenant_id={school_tenant_id} isAdmin={true} />
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>Close</Button>

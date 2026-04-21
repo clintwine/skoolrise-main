@@ -42,6 +42,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [selectedTier, setSelectedTier] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,7 +202,7 @@ export default function LandingPage() {
               >
                 Login
               </Button>
-              <Button className="bg-black hover:bg-gray-800 text-white" onClick={() => setInquiryOpen(true)}>Get Started</Button>
+              <Button className="bg-black hover:bg-gray-800 text-white" onClick={() => { setSelectedTier(null); setInquiryOpen(true); }}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -224,11 +225,11 @@ export default function LandingPage() {
             Take full control of fees, records, results, and communication. Built specifically for Nigerian school owners.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <Button size="lg" className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
+            <Button size="lg" className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full" onClick={() => { setSelectedTier(null); setInquiryOpen(true); }}>
               Start Free Trial
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full border-gray-300" onClick={() => setInquiryOpen(true)}>
+            <Button size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full border-gray-300" onClick={() => { setSelectedTier(null); setInquiryOpen(true); }}>
               Book a Demo
             </Button>
           </div>
@@ -411,36 +412,75 @@ export default function LandingPage() {
 
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <Badge className="mb-4 bg-green-100 text-green-700 border-0">Get Started</Badge>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-green-100 text-green-700 border-0">Pricing</Badge>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-              Let’s Set Up Your School
+              Choose the plan that fits your school
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Tell us about your school and we’ll guide you to the right onboarding path.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              All plans are billed per student, per term. Contact us for a tailored quote.
             </p>
           </div>
 
-          <Card className="border-2 border-gray-200 shadow-xl bg-white">
-            <CardContent className="p-8 md:p-12 text-center">
-              <div className="max-w-2xl mx-auto">
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Start with a School Enquiry</h3>
-                <p className="text-gray-600 text-lg mb-8">
-                  Share your school size, goals and timeline so our team can follow up with the best next step.
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  <Button className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
-                    Open Enquiry Form
-                    <ArrowRight className="w-5 h-5 ml-2" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            {[
+              {
+                name: 'Starter',
+                badge: 'bg-[#E1F5EE] text-[#0F6E56]',
+                tagline: 'Everything you need to go digital from day one.',
+                features: ['Up to 200 students', 'Student records & enrolment', 'Attendance tracking', 'Report cards & gradebook', 'Fee invoicing & collection', 'Parent portal', 'Email notifications', 'Timetable management', 'Behaviour tracking', 'Student medical records', 'Google Drive backup'],
+              },
+              {
+                name: 'Growth',
+                badge: 'bg-[#E6F1FB] text-[#185FA5]',
+                tagline: 'Full academics, exams and staff operations.',
+                features: ['Everything in Starter', 'Up to 700 students', 'CBT exams & proctoring', 'Assignments & LMS', 'SMS & WhatsApp notifications', 'Salary & expense management', 'Staff clocking & HR', 'Instalment fee plans', 'Advanced analytics', 'Parent-teacher conferences'],
+                popular: true,
+              },
+              {
+                name: 'Professional',
+                badge: 'bg-[#EEEDFE] text-[#534AB7]',
+                tagline: 'AI tools, biometrics and school commerce.',
+                features: ['Everything in Growth', 'Up to 2,000 students', 'AI lesson planner', 'AI grading assistant', 'Biometric / QR attendance', 'School shop & bookshop', 'Vendor management', 'Student rewards & leaderboard', 'Room access management', 'Curriculum mapping'],
+              },
+              {
+                name: 'Elite',
+                badge: 'bg-[#FAEEDA] text-[#854F0B]',
+                tagline: 'Unlimited scale with dedicated support.',
+                features: ['Everything in Professional', 'Unlimited students', 'Custom subdomain branding', 'Dedicated account manager', 'On-site onboarding & training', 'SLA uptime guarantee', 'Custom integrations & API', 'Multi-branch management', 'Priority support 24/7'],
+              },
+            ].map((tier) => (
+              <Card key={tier.name} className={`relative bg-white shadow-lg border-2 ${tier.popular ? 'border-blue-500' : 'border-gray-200'}`}>
+                <CardContent className="p-6 h-full flex flex-col">
+                  {tier.popular && (
+                    <div className="absolute -top-3 right-4">
+                      <Badge className="bg-blue-600 text-white">Most popular</Badge>
+                    </div>
+                  )}
+                  <div className={`inline-flex self-start px-3 py-1 rounded-full text-sm font-medium ${tier.badge}`}>{tier.name}</div>
+                  <h3 className="text-2xl font-bold text-gray-900 mt-4">{tier.name}</h3>
+                  <p className="text-gray-600 mt-2">{tier.tagline}</p>
+                  <Button className="mt-6 bg-black hover:bg-gray-800 text-white rounded-full" onClick={() => { setSelectedTier(tier.name); setInquiryOpen(true); }}>
+                    Get a quote
                   </Button>
-                  <Button variant="outline" className="px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
-                    Request a Demo
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="my-6 border-t" />
+                  <div className="space-y-3 flex-1">
+                    {tier.features.map((feature) => (
+                      <div key={feature} className="flex items-start gap-3 text-sm text-gray-700">
+                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <p className="text-sm text-gray-500 text-center mt-8">
+            Prices are per student per term. No setup fees. No long-term contracts. Cancel anytime.
+          </p>
         </div>
       </section>
 
@@ -455,7 +495,7 @@ export default function LandingPage() {
               Join hundreds of Nigerian schools saving time and earning parent trust
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg rounded-full" onClick={() => setInquiryOpen(true)}>
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg rounded-full" onClick={() => { setSelectedTier(null); setInquiryOpen(true); }}>
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -492,7 +532,7 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <button onClick={() => setInquiryOpen(true)} className="text-gray-400 hover:text-white transition-colors">
+                  <button onClick={() => { setSelectedTier(null); setInquiryOpen(true); }} className="text-gray-400 hover:text-white transition-colors">
                     Apply Now
                   </button>
                 </li>
@@ -527,7 +567,11 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <SchoolInquiryDialog open={inquiryOpen} onOpenChange={setInquiryOpen} />
+      <SchoolInquiryDialog
+        open={inquiryOpen}
+        onOpenChange={setInquiryOpen}
+        initialTier={selectedTier}
+      />
 
       <style>{`
         @keyframes scroll {
