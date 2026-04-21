@@ -435,7 +435,7 @@ export default function LandingPage() {
                 name: 'Growth',
                 badge: 'bg-[#E6F1FB] text-[#185FA5]',
                 tagline: 'Full academics, exams and staff operations.',
-                features: ['Everything in Starter', 'Up to 700 students', 'CBT exams & proctoring', 'Assignments & LMS', 'SMS & WhatsApp notifications', 'Salary & expense management', 'Staff clocking & HR', 'Instalment fee plans', 'Advanced analytics', 'Parent-teacher conferences'],
+                features: ['Everything in Starter', 'Up to 700 students', 'CBT exams & proctoring', 'Assignments & LMS', 'SMS & WhatsApp notifications', 'Salary & expense management', 'Staff clocking & HR', 'Instalment fee plans', 'Advanced analytics', 'Parent-teacher conferences', 'Vendor management'],
                 popular: true,
               },
               {

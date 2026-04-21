@@ -282,7 +282,7 @@ export default function SuperadminDashboard() {
       <div className="flex gap-3 flex-wrap">
         {Object.entries(planCounts).map(([plan, count]) => (
           <Badge key={plan} className={PLAN_COLORS[plan]}>
-            {plan}: {count}
+            {PLAN_LABELS[plan] || plan}: {count}
           </Badge>
         ))}
       </div>

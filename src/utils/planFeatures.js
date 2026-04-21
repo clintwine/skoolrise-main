@@ -25,8 +25,8 @@ export const FEATURE_REGISTRY = {
   examCbt:                { label: 'CBT exam system',                 module: 'exams',         starter: false, growth: true,  professional: true,  elite: true  },
   questionBank:           { label: 'Question bank',                   module: 'exams',         starter: false, growth: true,  professional: true,  elite: true  },
   examAnalytics:          { label: 'Exam analytics',                  module: 'exams',         starter: false, growth: true,  professional: true,  elite: true  },
-  proctoring:             { label: 'Live exam proctoring',            module: 'exams',         starter: false, growth: false, professional: true,  elite: true  },
-  proctoringAnalytics:    { label: 'Proctoring analytics',            module: 'exams',         starter: false, growth: false, professional: true,  elite: true  },
+  proctoring:             { label: 'Live exam proctoring',            module: 'exams',         starter: false, growth: true,  professional: true,  elite: true  },
+  proctoringAnalytics:    { label: 'Proctoring analytics',            module: 'exams',         starter: false, growth: true,  professional: true,  elite: true  },
 
   // ── Fees & finance ───────────────────────────────────
   feesBasic:              { label: 'Fee invoicing & collection',      module: 'fees',          starter: true,  growth: true,  professional: true,  elite: true  },
@@ -69,12 +69,12 @@ export const FEATURE_REGISTRY = {
   biometricAttendance:    { label: 'Biometric / QR attendance',       module: 'advanced',      starter: false, growth: false, professional: true,  elite: true  },
   roomAccess:             { label: 'Room access management',          module: 'advanced',      starter: false, growth: false, professional: true,  elite: true  },
   scannerSettings:        { label: 'Scanner settings',                module: 'advanced',      starter: false, growth: false, professional: true,  elite: true  },
-  backupGoogleDrive:      { label: 'Google Drive backup',             module: 'advanced',      starter: false, growth: true,  professional: true,  elite: true  },
+  backupGoogleDrive:      { label: 'Google Drive backup',             module: 'advanced',      starter: true,  growth: true,  professional: true,  elite: true  },
 
   // ── Shop & commerce ──────────────────────────────────
   schoolShop:             { label: 'School shop',                     module: 'commerce',      starter: false, growth: false, professional: true,  elite: true  },
   bookshop:               { label: 'Bookshop management',             module: 'commerce',      starter: false, growth: false, professional: true,  elite: true  },
-  vendorManagement:       { label: 'Vendor management',               module: 'commerce',      starter: false, growth: false, professional: true,  elite: true  },
+  vendorManagement:       { label: 'Vendor management',               module: 'commerce',      starter: false, growth: true,  professional: true,  elite: true  },
   parentShop:             { label: 'Parent shop portal',              module: 'commerce',      starter: false, growth: false, professional: true,  elite: true  },
 
   // ── Gamification & wellbeing ─────────────────────────
